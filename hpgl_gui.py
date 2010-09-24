@@ -28,7 +28,7 @@ class algorithm_thread(QtCore.QThread):
         if self.output_filename and self.ind_value > 1:
             write_property( self.result, self.output_filename, "SK_RESULT", self.ind_value, self.und_value )
         elif self.output_filename and self.ind_value == 0:
-            write_property( self.result, self.output_filename, "SK_RESULT", self.undef_value )
+            write_property( self.result, self.output_filename, "SK_RESULT", self.und_value )
         
     def output_log(self, str, _):
         self.str_for_log = str
@@ -608,7 +608,7 @@ class MainWindow(QtGui.QMainWindow):
                     self.fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ... ')
                     self.ellipsoid_ranges = ( int(self.ellipsoid_ranges_0.text()), int(self.ellipsoid_ranges_90.text()), int(self.ellipsoid_ranges_v.text()) )
                     self.new_thread = algorithm_thread(self.prop, self.grid_object, self.ellipsoid_ranges, int(self.interpolation_points.text()),
-                                                        self.variogram, int(self.mean_value.text()), self.fname, self.undefined_value, self.indicator_value)
+                                                        self.variogram, float(self.mean_value.text()), self.fname, self.undefined_value, self.indicator_value)
                     
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("msg(QString)"), self.update_ui)
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("progress(QString)"), self.update_progress)
@@ -631,11 +631,11 @@ class MainWindow(QtGui.QMainWindow):
         # Tab 1
         self.grid_size_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Grid Size", None, QtGui.QApplication.UnicodeUTF8))
         self.grid_size_x_label.setText(QtGui.QApplication.translate("MainWindow", "x", None, QtGui.QApplication.UnicodeUTF8))
-        self.grid_size_x.setText(QtGui.QApplication.translate("MainWindow", "166", None, QtGui.QApplication.UnicodeUTF8))
+        self.grid_size_x.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
         self.grid_size_y_label.setText(QtGui.QApplication.translate("MainWindow", "y", None, QtGui.QApplication.UnicodeUTF8))
-        self.grid_size_y.setText(QtGui.QApplication.translate("MainWindow", "141", None, QtGui.QApplication.UnicodeUTF8))
+        self.grid_size_y.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
         self.grid_size_z_label.setText(QtGui.QApplication.translate("MainWindow", "z", None, QtGui.QApplication.UnicodeUTF8))
-        self.grid_size_z.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
+        self.grid_size_z.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
         self.cube_choose_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Cube choose", None, QtGui.QApplication.UnicodeUTF8))
         self.cube_choose_btn.setText(QtGui.QApplication.translate("MainWindow", "Choose", None, QtGui.QApplication.UnicodeUTF8))
         self.cube_choose_label.setText(QtGui.QApplication.translate("MainWindow", "No file chosen", None, QtGui.QApplication.UnicodeUTF8))

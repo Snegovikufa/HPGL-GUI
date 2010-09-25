@@ -182,6 +182,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.load_cube_btn = QtGui.QPushButton(self.load_cube_groupbox)
         self.load_cube_btn.setObjectName("load_cube_btn")
+        self.load_cube_btn.setDisabled(1)
         self.horizontalLayout_2.addWidget(self.load_cube_btn)
         
         spacerItem9 = QtGui.QSpacerItem(241, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -421,10 +422,14 @@ class MainWindow(QtGui.QMainWindow):
         self.run_button.setObjectName("run_button")
         self.gridLayout_13.addWidget(self.run_button, 0, 1, 1, 1)
         
+        self.save_button = QtGui.QPushButton(self.run_groupbox)
+        self.save_button.setObjectName("save_button")
+        self.gridLayout_13.addWidget(self.save_button, 0, 2, 1, 1)
+        
         spacerItem26 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_13.addItem(spacerItem26, 0, 0, 1, 1)
         spacerItem27 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_13.addItem(spacerItem27, 0, 2, 1, 1)
+        self.gridLayout_13.addItem(spacerItem27, 0, 3, 1, 1)
         spacerItem28 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout_13.addItem(spacerItem28, 1, 1, 1, 1)
         self.gridLayout_12.addWidget(self.run_groupbox, 2, 0, 1, 2)
@@ -508,6 +513,9 @@ class MainWindow(QtGui.QMainWindow):
         QtCore.QObject.connect(self.cube_choose_btn, QtCore.SIGNAL("clicked()"), self.cube_filename)
         QtCore.QObject.connect(self.load_cube_btn, QtCore.SIGNAL("clicked()"), self.cube_load)
         QtCore.QObject.connect(self.run_button, QtCore.SIGNAL("clicked()"), self.algorithm_run)
+        QtCore.QObject.connect(self.grid_size_x, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
+        QtCore.QObject.connect(self.grid_size_y, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
+        QtCore.QObject.connect(self.grid_size_z, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def cube_filename(self):
@@ -523,6 +531,10 @@ class MainWindow(QtGui.QMainWindow):
         
     def update_progress(self, value):
         self.progressBar.setValue(int(value))
+        
+    def cube_load_access(self):
+        if int(self.grid_size_x.text()) > 0 and int(self.grid_size_y.text()) > 0 and int(self.grid_size_z.text()) > 0:
+            self.load_cube_btn.setEnabled(1)
             
     def cube_load(self):
         self.log_textbox.clear()
@@ -650,9 +662,9 @@ class MainWindow(QtGui.QMainWindow):
         # Tab 2
         self.variogram_type_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Variogram type", None, QtGui.QApplication.UnicodeUTF8))
         self.variogram_type_label.setText(QtGui.QApplication.translate("MainWindow", "Type", None, QtGui.QApplication.UnicodeUTF8))
-        self.variogram_type.setItemText(0, QtGui.QApplication.translate("MainWindow", "Spherical", None, QtGui.QApplication.UnicodeUTF8))
-        self.variogram_type.setItemText(1, QtGui.QApplication.translate("MainWindow", "Exponential", None, QtGui.QApplication.UnicodeUTF8))
-        self.variogram_type.setItemText(2, QtGui.QApplication.translate("MainWindow", "Gaussian", None, QtGui.QApplication.UnicodeUTF8))
+        self.variogram_types = ['Spherical', 'Exponential', 'Gaussian']
+        for i in xrange(len(self.variogram_types)):
+            self.variogram_type.setItemText(i, QtGui.QApplication.translate("MainWindow", self.variogram_types[i], None, QtGui.QApplication.UnicodeUTF8))
         self.ellipsoid_ranges_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Ellipsoid ranges", None, QtGui.QApplication.UnicodeUTF8))
         self.ellipsoid_ranges_0_label.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
         self.ellipsoid_ranges_0.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
@@ -690,15 +702,14 @@ class MainWindow(QtGui.QMainWindow):
         self.mean_value_label.setText(QtGui.QApplication.translate("MainWindow", "Mean value", None, QtGui.QApplication.UnicodeUTF8))
         self.mean_value.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
         self.run_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Solve algorithm", None, QtGui.QApplication.UnicodeUTF8))
-        self.run_button.setText(QtGui.QApplication.translate("MainWindow", "Run and save", None, QtGui.QApplication.UnicodeUTF8))
+        self.run_button.setText(QtGui.QApplication.translate("MainWindow", "Run", None, QtGui.QApplication.UnicodeUTF8))
+        self.save_button.setText(QtGui.QApplication.translate("MainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
         self.algorithm_type_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Algorithm", None, QtGui.QApplication.UnicodeUTF8))
         self.algorithm_type_label.setText(QtGui.QApplication.translate("MainWindow", "Algorithm type", None, QtGui.QApplication.UnicodeUTF8))
-        self.algorithm_type.setItemText(0, QtGui.QApplication.translate("MainWindow", "Simple Kriging", None, QtGui.QApplication.UnicodeUTF8))
-        self.algorithm_type.setItemText(1, QtGui.QApplication.translate("MainWindow", "Ordinary Kriging", None, QtGui.QApplication.UnicodeUTF8))
-        self.algorithm_type.setItemText(2, QtGui.QApplication.translate("MainWindow", "Indicator Kriging", None, QtGui.QApplication.UnicodeUTF8))
-        self.algorithm_type.setItemText(3, QtGui.QApplication.translate("MainWindow", "LVM Kriging", None, QtGui.QApplication.UnicodeUTF8))
-        self.algorithm_type.setItemText(4, QtGui.QApplication.translate("MainWindow", "Sequantial Indicator Simulation", None, QtGui.QApplication.UnicodeUTF8))
-        self.algorithm_type.setItemText(5, QtGui.QApplication.translate("MainWindow", "Sequantial Gaussian Simulation", None, QtGui.QApplication.UnicodeUTF8))
+        self.algorithm_types = ['Simple Kriging', 'Ordinary Kriging', 'Indicator Kriging', 'LVM Kriging', 
+                                'Sequantial Indicator Simulation', 'Sequantial Gaussian Simulation']
+        for i in xrange(len(self.algorithm_types)):
+            self.algorithm_type.setItemText(i, QtGui.QApplication.translate("MainWindow", self.algorithm_types[i], None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab3), QtGui.QApplication.translate("MainWindow", "Algorithms", None, QtGui.QApplication.UnicodeUTF8))
         
         # Menus

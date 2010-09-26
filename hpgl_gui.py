@@ -4,6 +4,7 @@
 from PyQt4 import QtCore, QtGui
 from geo_bsd import *
 from geo_bsd.cvariogram import *
+import re
 
 
 class algorithm_thread(QtCore.QThread):
@@ -57,50 +58,38 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
         
         self.setObjectName("MainWindow")
-        #self.resize(700, 520)
         self.setFixedWidth(700)
         self.setFixedHeight(520)
         self.centralwidget = QtGui.QWidget()
-        self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_10 = QtGui.QGridLayout(self.centralwidget)
-        self.gridLayout_10.setObjectName("gridLayout_10")
         self.tabWidget = QtGui.QTabWidget(self.centralwidget)
-        self.tabWidget.setObjectName("tabWidget")
         
-        # TAB 1
-        self.tab1 = QtGui.QWidget()
-        self.tab1.setObjectName("tab1")
-        self.gridLayout_5 = QtGui.QGridLayout(self.tab1)
-        self.gridLayout_5.setObjectName("gridLayout_5")
-        self.grid_size_groupbox = QtGui.QGroupBox(self.tab1)
-        self.grid_size_groupbox.setObjectName("grid_size_groupbox")
-        self.gridLayout = QtGui.QGridLayout(self.grid_size_groupbox)
-        self.gridLayout.setObjectName("gridLayout")
-        
+        self.cube_was_chosen = 0
+        self.algorithm_count = 6
         self.int_validator = QtGui.QIntValidator(self)
         self.double_validator = QtGui.QDoubleValidator(self)
         
+        # TAB 1
+        self.tab1 = QtGui.QWidget()
+        self.gridLayout_5 = QtGui.QGridLayout(self.tab1)
+        self.grid_size_groupbox = QtGui.QGroupBox(self.tab1)
+        self.gridLayout = QtGui.QGridLayout(self.grid_size_groupbox)
+        
         self.grid_size_x_label = QtGui.QLabel(self.grid_size_groupbox)
-        self.grid_size_x_label.setObjectName("grid_size_x_label")
         self.gridLayout.addWidget(self.grid_size_x_label, 0, 1, 1, 1)
         self.grid_size_x = QtGui.QLineEdit(self.grid_size_groupbox)
-        self.grid_size_x.setObjectName("grid_size_x")
         self.grid_size_x.setValidator(self.int_validator)
         self.gridLayout.addWidget(self.grid_size_x, 0, 2, 1, 1)
         
         self.grid_size_y_label = QtGui.QLabel(self.grid_size_groupbox)
-        self.grid_size_y_label.setObjectName("grid_size_y_label")
         self.gridLayout.addWidget(self.grid_size_y_label, 1, 1, 1, 1)
         self.grid_size_y = QtGui.QLineEdit(self.grid_size_groupbox)
-        self.grid_size_y.setObjectName("grid_size_y")
         self.grid_size_y.setValidator(self.int_validator)
         self.gridLayout.addWidget(self.grid_size_y, 1, 2, 1, 1)
         
         self.grid_size_z_label = QtGui.QLabel(self.grid_size_groupbox)
-        self.grid_size_z_label.setObjectName("grid_size_z_label")
         self.gridLayout.addWidget(self.grid_size_z_label, 2, 1, 1, 1)
         self.grid_size_z = QtGui.QLineEdit(self.grid_size_groupbox)
-        self.grid_size_z.setObjectName("grid_size_z")
         self.grid_size_z.setValidator(self.int_validator)
         self.gridLayout.addWidget(self.grid_size_z, 2, 2, 1, 1)
         
@@ -109,42 +98,34 @@ class MainWindow(QtGui.QMainWindow):
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem1, 1, 3, 1, 1)
         self.gridLayout_5.addWidget(self.grid_size_groupbox, 0, 0, 1, 1)
-        self.cube_choose_groupbox = QtGui.QGroupBox(self.tab1)
-        self.cube_choose_groupbox.setObjectName("cube_choose_groupbox")
-        self.gridLayout_2 = QtGui.QGridLayout(self.cube_choose_groupbox)
-        self.gridLayout_2.setObjectName("gridLayout_2")
         
-        self.cube_choose_btn = QtGui.QPushButton(self.cube_choose_groupbox)
-        self.cube_choose_btn.setObjectName("cube_choose_btn")
-        self.gridLayout_2.addWidget(self.cube_choose_btn, 0, 1, 1, 1)
+        self.manage_cubes_groupbox = QtGui.QGroupBox(self.tab1)
+        self.gridLayout_2 = QtGui.QGridLayout(self.manage_cubes_groupbox)
         
-        self.cube_was_chosen = 0
+        self.loaded_cubes_tab1 = QtGui.QComboBox(self.manage_cubes_groupbox)
+        self.gridLayout_2.addWidget(self.loaded_cubes_tab1, 0, 1, 1, 1)
         
-        self.cube_choose_label = QtGui.QLabel(self.cube_choose_groupbox)
-        self.cube_choose_label.setObjectName("cube_choose_label")
-        self.gridLayout_2.addWidget(self.cube_choose_label, 0, 2, 1, 1)
+        self.cube_delete_btn = QtGui.QPushButton(self.manage_cubes_groupbox)
+        self.cube_delete_btn.setEnabled(1)
+        self.gridLayout_2.addWidget(self.cube_delete_btn, 0, 2, 1, 1)
         
         spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_2.addItem(spacerItem2, 0, 0, 1, 1)
         spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_2.addItem(spacerItem3, 0, 3, 1, 1)
-        self.gridLayout_5.addWidget(self.cube_choose_groupbox, 0, 1, 1, 1)
+        self.gridLayout_5.addWidget(self.manage_cubes_groupbox, 0, 1, 1, 1)
         
         self.ind_values_groupbox = QtGui.QGroupBox(self.tab1)
-        self.ind_values_groupbox.setObjectName("ind_values_groupbox")
         self.gridLayout_3 = QtGui.QGridLayout(self.ind_values_groupbox)
-        self.gridLayout_3.setObjectName("gridLayout_3")
         
         self.ind_values = QtGui.QSpinBox(self.ind_values_groupbox)
         self.ind_values.setEnabled(False)
         self.ind_values.setMinimum(2)
         self.ind_values.setMaximum(256)
-        self.ind_values.setObjectName("ind_values")
         self.gridLayout_3.addWidget(self.ind_values, 1, 2, 1, 1)
         
         self.ind_values_checkbox = QtGui.QCheckBox(self.ind_values_groupbox)
         self.ind_values_checkbox.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.ind_values_checkbox.setObjectName("ind_values_checkbox")
         self.gridLayout_3.addWidget(self.ind_values_checkbox, 1, 1, 1, 1)
         
         spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -154,18 +135,14 @@ class MainWindow(QtGui.QMainWindow):
         self.gridLayout_5.addWidget(self.ind_values_groupbox, 1, 0, 1, 1)
         
         self.undef_value_groupbox = QtGui.QGroupBox(self.tab1)
-        self.undef_value_groupbox.setObjectName("undef_value_groupbox")
         self.horizontalLayout = QtGui.QHBoxLayout(self.undef_value_groupbox)
-        self.horizontalLayout.setObjectName("horizontalLayout")
         spacerItem6 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem6)
         
         self.undef_value_label = QtGui.QLabel(self.undef_value_groupbox)
-        self.undef_value_label.setObjectName("undef_value_label")
         self.horizontalLayout.addWidget(self.undef_value_label)
         
         self.undef_value = QtGui.QLineEdit(self.undef_value_groupbox)
-        self.undef_value.setObjectName("undef_value")
         self.undef_value.setValidator(self.int_validator)
         self.horizontalLayout.addWidget(self.undef_value)
         
@@ -174,14 +151,11 @@ class MainWindow(QtGui.QMainWindow):
         self.gridLayout_5.addWidget(self.undef_value_groupbox, 1, 1, 1, 1)
         self.load_cube_groupbox = QtGui.QGroupBox(self.tab1)
         self.load_cube_groupbox.setTitle("")
-        self.load_cube_groupbox.setObjectName("load_cube_groupbox")
         self.horizontalLayout_2 = QtGui.QHBoxLayout(self.load_cube_groupbox)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         spacerItem8 = QtGui.QSpacerItem(241, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem8)
         
         self.load_cube_btn = QtGui.QPushButton(self.load_cube_groupbox)
-        self.load_cube_btn.setObjectName("load_cube_btn")
         self.load_cube_btn.setDisabled(1)
         self.horizontalLayout_2.addWidget(self.load_cube_btn)
         
@@ -194,22 +168,16 @@ class MainWindow(QtGui.QMainWindow):
         
         # TAB 2
         self.tab2 = QtGui.QWidget()
-        self.tab2.setObjectName("tab2")
         self.gridLayout_11 = QtGui.QGridLayout(self.tab2)
-        self.gridLayout_11.setObjectName("gridLayout_11")
         self.variogram_type_groupbox = QtGui.QGroupBox(self.tab2)
-        self.variogram_type_groupbox.setObjectName("variogram_type_groupbox")
         self.horizontalLayout_3 = QtGui.QHBoxLayout(self.variogram_type_groupbox)
-        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         spacerItem11 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_3.addItem(spacerItem11)
         
         self.variogram_type_label = QtGui.QLabel(self.variogram_type_groupbox)
-        self.variogram_type_label.setObjectName("variogram_type_label")
         self.horizontalLayout_3.addWidget(self.variogram_type_label)
         
         self.variogram_type = QtGui.QComboBox(self.variogram_type_groupbox)
-        self.variogram_type.setObjectName("variogram_type")
         self.variogram_type.addItem("")
         self.variogram_type.addItem("")
         self.variogram_type.addItem("")
@@ -220,34 +188,26 @@ class MainWindow(QtGui.QMainWindow):
         self.horizontalLayout_3.addItem(spacerItem12)
         self.gridLayout_11.addWidget(self.variogram_type_groupbox, 0, 0, 1, 1)
         self.ellipsoid_ranges_groupbox = QtGui.QGroupBox(self.tab2)
-        self.ellipsoid_ranges_groupbox.setObjectName("ellipsoid_ranges_groupbox")
         self.gridLayout_6 = QtGui.QGridLayout(self.ellipsoid_ranges_groupbox)
-        self.gridLayout_6.setObjectName("gridLayout_6")
         
         self.ellipsoid_ranges_0_label = QtGui.QLabel(self.ellipsoid_ranges_groupbox)
-        self.ellipsoid_ranges_0_label.setObjectName("ellipsoid_ranges_0_label")
         self.gridLayout_6.addWidget(self.ellipsoid_ranges_0_label, 0, 1, 2, 1)
         
         self.ellipsoid_ranges_0 = QtGui.QLineEdit(self.ellipsoid_ranges_groupbox)
-        self.ellipsoid_ranges_0.setObjectName("ellipsoid_ranges_0")
         self.gridLayout_6.addWidget(self.ellipsoid_ranges_0, 0, 2, 1, 1)
         self.ellipsoid_ranges_0.setValidator(self.int_validator)
         
         self.ellipsoid_ranges_90_label = QtGui.QLabel(self.ellipsoid_ranges_groupbox)
-        self.ellipsoid_ranges_90_label.setObjectName("ellipsoid_ranges_90_label")
         self.gridLayout_6.addWidget(self.ellipsoid_ranges_90_label, 2, 1, 1, 1)
         
         self.ellipsoid_ranges_90 = QtGui.QLineEdit(self.ellipsoid_ranges_groupbox)
-        self.ellipsoid_ranges_90.setObjectName("ellipsoid_ranges_90")
         self.gridLayout_6.addWidget(self.ellipsoid_ranges_90, 1, 2, 2, 1)
         self.ellipsoid_ranges_90.setValidator(self.int_validator)
         
         self.ellipsoid_ranges_v_label = QtGui.QLabel(self.ellipsoid_ranges_groupbox)
-        self.ellipsoid_ranges_v_label.setObjectName("ellipsoid_ranges_v_label")
         self.gridLayout_6.addWidget(self.ellipsoid_ranges_v_label, 3, 1, 1, 1)
         
         self.ellipsoid_ranges_v = QtGui.QLineEdit(self.ellipsoid_ranges_groupbox)
-        self.ellipsoid_ranges_v.setObjectName("ellipsoid_ranges_v")
         self.gridLayout_6.addWidget(self.ellipsoid_ranges_v, 3, 2, 1, 1)
         self.ellipsoid_ranges_v.setValidator(self.int_validator)
         
@@ -255,64 +215,52 @@ class MainWindow(QtGui.QMainWindow):
         self.gridLayout_6.addItem(spacerItem13, 1, 3, 1, 1)
         spacerItem14 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_6.addItem(spacerItem14, 1, 0, 1, 1)
+
         self.gridLayout_11.addWidget(self.ellipsoid_ranges_groupbox, 0, 1, 1, 1)
         self.ellipsoid_angles = QtGui.QGroupBox(self.tab2)
-        self.ellipsoid_angles.setObjectName("ellipsoid_angles")
         self.gridLayout_7 = QtGui.QGridLayout(self.ellipsoid_angles)
-        self.gridLayout_7.setObjectName("gridLayout_7")
         
         self.ellipsoid_angles_x_label = QtGui.QLabel(self.ellipsoid_angles)
-        self.ellipsoid_angles_x_label.setObjectName("ellipsoid_angles_x_label")
         self.gridLayout_7.addWidget(self.ellipsoid_angles_x_label, 0, 1, 1, 1)
         
         self.ellipsoid_angles_x = QtGui.QLineEdit(self.ellipsoid_angles)
-        self.ellipsoid_angles_x.setObjectName("ellipsoid_angles_x")
         self.gridLayout_7.addWidget(self.ellipsoid_angles_x, 0, 2, 1, 1)
         self.ellipsoid_angles_x.setValidator(self.int_validator)
         
         self.ellipsoid_angles_y = QtGui.QLineEdit(self.ellipsoid_angles)
-        self.ellipsoid_angles_y.setObjectName("ellipsoid_angles_y")
         self.gridLayout_7.addWidget(self.ellipsoid_angles_y, 1, 2, 2, 1)
         self.ellipsoid_angles_y.setValidator(self.int_validator)
         
         self.ellipsoid_angles_z_label = QtGui.QLabel(self.ellipsoid_angles)
-        self.ellipsoid_angles_z_label.setObjectName("ellipsoid_angles_z_label")
         self.gridLayout_7.addWidget(self.ellipsoid_angles_z_label, 2, 1, 2, 1)
         
         self.ellipsoid_angles_z = QtGui.QLineEdit(self.ellipsoid_angles)
-        self.ellipsoid_angles_z.setObjectName("ellipsoid_angles_z")
         self.gridLayout_7.addWidget(self.ellipsoid_angles_z, 3, 2, 1, 1)
         self.ellipsoid_angles_z.setValidator(self.int_validator)
         
         self.ellipsoid_angles_y_label = QtGui.QLabel(self.ellipsoid_angles)
-        self.ellipsoid_angles_y_label.setObjectName("ellipsoid_angles_y_label")
         self.gridLayout_7.addWidget(self.ellipsoid_angles_y_label, 1, 1, 1, 1)
         
         spacerItem15 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_7.addItem(spacerItem15, 1, 0, 1, 1)
         spacerItem16 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_7.addItem(spacerItem16, 1, 3, 1, 1)
+
         self.gridLayout_11.addWidget(self.ellipsoid_angles, 1, 0, 1, 1)
         self.nugget_effect_groupbox = QtGui.QGroupBox(self.tab2)
-        self.nugget_effect_groupbox.setObjectName("nugget_effect_groupbox")
         self.gridLayout_8 = QtGui.QGridLayout(self.nugget_effect_groupbox)
-        self.gridLayout_8.setObjectName("gridLayout_8")
         
         self.sill_value_label = QtGui.QLabel(self.nugget_effect_groupbox)
-        self.sill_value_label.setObjectName("sill_value_label")
         self.gridLayout_8.addWidget(self.sill_value_label, 0, 1, 1, 1)
         
         self.sill_value = QtGui.QLineEdit(self.nugget_effect_groupbox)
-        self.sill_value.setObjectName("sill_value")
         self.gridLayout_8.addWidget(self.sill_value, 0, 2, 1, 1)
         self.sill_value.setValidator(self.int_validator)
         
         self.nugget_value_label = QtGui.QLabel(self.nugget_effect_groupbox)
-        self.nugget_value_label.setObjectName("nugget_value_label")
         self.gridLayout_8.addWidget(self.nugget_value_label, 1, 1, 1, 1)
         
         self.nugget_value = QtGui.QLineEdit(self.nugget_effect_groupbox)
-        self.nugget_value.setObjectName("nugget_value")
         self.gridLayout_8.addWidget(self.nugget_value, 1, 2, 1, 1)
         self.nugget_value.setValidator(self.int_validator)
         
@@ -320,6 +268,7 @@ class MainWindow(QtGui.QMainWindow):
         self.gridLayout_8.addItem(spacerItem17, 0, 0, 1, 1)
         spacerItem18 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_8.addItem(spacerItem18, 1, 3, 1, 1)
+
         self.gridLayout_11.addWidget(self.nugget_effect_groupbox, 1, 1, 1, 1)
         spacerItem19 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout_11.addItem(spacerItem19, 2, 1, 1, 1)
@@ -327,56 +276,42 @@ class MainWindow(QtGui.QMainWindow):
         
         # TAB 3
         self.tab3 = QtGui.QWidget()
-        self.tab3.setObjectName("tab3")
         self.gridLayout_12 = QtGui.QGridLayout(self.tab3)
-        self.gridLayout_12.setObjectName("gridLayout_12")
         self.loaded_cubs_groupbox = QtGui.QGroupBox(self.tab3)
-        self.loaded_cubs_groupbox.setObjectName("loaded_cubs_groupbox")
         self.horizontalLayout_5 = QtGui.QHBoxLayout(self.loaded_cubs_groupbox)
-        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         spacerItem20 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_5.addItem(spacerItem20)
         
         self.loaded_cubes_label = QtGui.QLabel(self.loaded_cubs_groupbox)
-        self.loaded_cubes_label.setObjectName("loaded_cubes_label")
         self.horizontalLayout_5.addWidget(self.loaded_cubes_label)
         
         self.loaded_cubes = QtGui.QComboBox(self.loaded_cubs_groupbox)
-        self.loaded_cubes.setObjectName("loaded_cubes")
         self.horizontalLayout_5.addWidget(self.loaded_cubes)
         
         spacerItem21 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_5.addItem(spacerItem21)
         self.gridLayout_12.addWidget(self.loaded_cubs_groupbox, 0, 1, 1, 1)
         self.search_ranges_groupbox = QtGui.QGroupBox(self.tab3)
-        self.search_ranges_groupbox.setObjectName("search_ranges_groupbox")
         self.gridLayout_4 = QtGui.QGridLayout(self.search_ranges_groupbox)
-        self.gridLayout_4.setObjectName("gridLayout_4")
         
         self.search_ranges_0_label = QtGui.QLabel(self.search_ranges_groupbox)
-        self.search_ranges_0_label.setObjectName("search_ranges_0_label")
         self.gridLayout_4.addWidget(self.search_ranges_0_label, 0, 1, 1, 1)
         
         self.search_ranges_0 = QtGui.QLineEdit(self.search_ranges_groupbox)
-        self.search_ranges_0.setObjectName("search_ranges_0")
         self.gridLayout_4.addWidget(self.search_ranges_0, 0, 2, 1, 1)
         self.search_ranges_0.setValidator(self.int_validator)
         
         self.search_ranges_90_label = QtGui.QLabel(self.search_ranges_groupbox)
-        self.search_ranges_90_label.setObjectName("search_ranges_90_label")
         self.gridLayout_4.addWidget(self.search_ranges_90_label, 1, 1, 1, 1)
         
         self.search_ranges_90 = QtGui.QLineEdit(self.search_ranges_groupbox)
-        self.search_ranges_90.setObjectName("search_ranges_90")
         self.search_ranges_90.setValidator(self.int_validator)
         self.gridLayout_4.addWidget(self.search_ranges_90, 1, 2, 1, 1)
         
         self.search_ranges_v_label = QtGui.QLabel(self.search_ranges_groupbox)
-        self.search_ranges_v_label.setObjectName("search_ranges_v_label")
         self.gridLayout_4.addWidget(self.search_ranges_v_label, 2, 1, 1, 1)
         
         self.search_ranges_v = QtGui.QLineEdit(self.search_ranges_groupbox)
-        self.search_ranges_v.setObjectName("search_ranges_v")
         self.gridLayout_4.addWidget(self.search_ranges_v, 2, 2, 1, 1)
         self.search_ranges_v.setValidator(self.int_validator)
         
@@ -384,27 +319,22 @@ class MainWindow(QtGui.QMainWindow):
         self.gridLayout_4.addItem(spacerItem22, 1, 0, 1, 1)
         spacerItem23 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_4.addItem(spacerItem23, 1, 3, 1, 1)
+
         self.gridLayout_12.addWidget(self.search_ranges_groupbox, 1, 0, 1, 1)
         self.interpolation_groupbox = QtGui.QGroupBox(self.tab3)
-        self.interpolation_groupbox.setObjectName("interpolation_groupbox")
         self.gridLayout_9 = QtGui.QGridLayout(self.interpolation_groupbox)
-        self.gridLayout_9.setObjectName("gridLayout_9")
         
         self.interpolation_points_label = QtGui.QLabel(self.interpolation_groupbox)
-        self.interpolation_points_label.setObjectName("interpolation_points_label")
         self.gridLayout_9.addWidget(self.interpolation_points_label, 0, 1, 1, 1)
         
         self.interpolation_points = QtGui.QLineEdit(self.interpolation_groupbox)
-        self.interpolation_points.setObjectName("interpolation_points")
         self.gridLayout_9.addWidget(self.interpolation_points, 0, 2, 1, 1)
         self.interpolation_points.setValidator(self.int_validator)
         
         self.mean_value_label = QtGui.QLabel(self.interpolation_groupbox)
-        self.mean_value_label.setObjectName("mean_value_label")
         self.gridLayout_9.addWidget(self.mean_value_label, 1, 1, 1, 1)
         
         self.mean_value = QtGui.QLineEdit(self.interpolation_groupbox)
-        self.mean_value.setObjectName("mean_value")
         self.gridLayout_9.addWidget(self.mean_value, 1, 2, 1, 1)
         self.mean_value.setValidator(self.double_validator)
         
@@ -412,18 +342,17 @@ class MainWindow(QtGui.QMainWindow):
         self.gridLayout_9.addItem(spacerItem24, 0, 0, 1, 1)
         spacerItem25 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_9.addItem(spacerItem25, 0, 3, 1, 1)
+
         self.gridLayout_12.addWidget(self.interpolation_groupbox, 1, 1, 1, 1)
         self.run_groupbox = QtGui.QGroupBox(self.tab3)
-        self.run_groupbox.setObjectName("run_groupbox")
         self.gridLayout_13 = QtGui.QGridLayout(self.run_groupbox)
-        self.gridLayout_13.setObjectName("gridLayout_13")
         
         self.run_button = QtGui.QPushButton(self.run_groupbox)
-        self.run_button.setObjectName("run_button")
+        self.run_button.setDisabled(1)
         self.gridLayout_13.addWidget(self.run_button, 0, 1, 1, 1)
         
         self.save_button = QtGui.QPushButton(self.run_groupbox)
-        self.save_button.setObjectName("save_button")
+        self.save_button.setDisabled(1)
         self.gridLayout_13.addWidget(self.save_button, 0, 2, 1, 1)
         
         spacerItem26 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -432,28 +361,21 @@ class MainWindow(QtGui.QMainWindow):
         self.gridLayout_13.addItem(spacerItem27, 0, 3, 1, 1)
         spacerItem28 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout_13.addItem(spacerItem28, 1, 1, 1, 1)
+
         self.gridLayout_12.addWidget(self.run_groupbox, 2, 0, 1, 2)
         self.algorithm_type_groupbox = QtGui.QGroupBox(self.tab3)
-        self.algorithm_type_groupbox.setObjectName("algorithm_type_groupbox")
         self.horizontalLayout_4 = QtGui.QHBoxLayout(self.algorithm_type_groupbox)
-        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         spacerItem29 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_4.addItem(spacerItem29)
         spacerItem30 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_4.addItem(spacerItem30)
         
         self.algorithm_type_label = QtGui.QLabel(self.algorithm_type_groupbox)
-        self.algorithm_type_label.setObjectName("algorithm_type_label")
         self.horizontalLayout_4.addWidget(self.algorithm_type_label)
         
         self.algorithm_type = QtGui.QComboBox(self.algorithm_type_groupbox)
-        self.algorithm_type.setObjectName("algorithm_type")
-        self.algorithm_type.addItem("")
-        self.algorithm_type.addItem("")
-        self.algorithm_type.addItem("")
-        self.algorithm_type.addItem("")
-        self.algorithm_type.addItem("")
-        self.algorithm_type.addItem("")
+        for i in xrange(0, self.algorithm_count):
+            self.algorithm_type.addItem("")
         self.horizontalLayout_4.addWidget(self.algorithm_type)
         
         spacerItem31 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -465,38 +387,28 @@ class MainWindow(QtGui.QMainWindow):
         self.gridLayout_10.addWidget(self.tabWidget, 0, 0, 1, 1)
         self.progressBar = QtGui.QProgressBar(self.centralwidget)
         self.progressBar.setProperty("value", 24)
-        self.progressBar.setObjectName("progressBar")
         self.progressBar.setValue(0)
+        self.progressBar.hide()
         self.gridLayout_10.addWidget(self.progressBar, 1, 0, 1, 1)
         
         self.log_textbox = QtGui.QTextEdit(self.centralwidget)
         self.log_textbox.setReadOnly(True)
-        self.log_textbox.setObjectName("log_textbox")
         self.gridLayout_10.addWidget(self.log_textbox, 2, 0, 1, 1)
         self.setCentralWidget(self.centralwidget)
         
         self.menubar = QtGui.QMenuBar()
         self.menubar.setGeometry(QtCore.QRect(0, 0, 698, 24))
-        self.menubar.setObjectName("menubar")
         self.menu = QtGui.QMenu(self.menubar)
-        self.menu.setObjectName("menu")
         self.menuEdit = QtGui.QMenu(self.menubar)
-        self.menuEdit.setObjectName("menuEdit")
         self.menuHelp = QtGui.QMenu(self.menubar)
-        self.menuHelp.setObjectName("menuHelp")
         self.setMenuBar(self.menubar)
         
         self.statusbar = QtGui.QStatusBar()
-        self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
         
         self.actionExit = QtGui.QAction(self)
-        self.actionExit.setObjectName("actionExit")
         self.actionAbout = QtGui.QAction(self)
-        self.actionAbout.setObjectName("actionAbout")
         self.actionPreferences = QtGui.QAction(self)
-        self.actionPreferences.setObjectName("actionPreferences")
-        
         self.menu.addAction(self.actionExit)
         self.menuEdit.addAction(self.actionPreferences)
         self.menuHelp.addAction(self.actionAbout)
@@ -510,21 +422,19 @@ class MainWindow(QtGui.QMainWindow):
         # Signals and slots
         QtCore.QObject.connect(self.ind_values_checkbox, QtCore.SIGNAL("toggled(bool)"), self.ind_values.setEnabled)
         QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL("triggered()"), self.close)
-        QtCore.QObject.connect(self.cube_choose_btn, QtCore.SIGNAL("clicked()"), self.cube_filename)
         QtCore.QObject.connect(self.load_cube_btn, QtCore.SIGNAL("clicked()"), self.cube_load)
         QtCore.QObject.connect(self.run_button, QtCore.SIGNAL("clicked()"), self.algorithm_run)
         QtCore.QObject.connect(self.grid_size_x, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
         QtCore.QObject.connect(self.grid_size_y, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
         QtCore.QObject.connect(self.grid_size_z, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
+        QtCore.QObject.connect(self.cube_delete_btn, QtCore.SIGNAL("clicked()"), self.delete_cube)
         QtCore.QMetaObject.connectSlotsByName(self)
 
-    def cube_filename(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Select file')
-        if filename:
-            self.cube_choose_label.setText(filename)
-            self.cube_was_chosen = 1
-        else:
-            self.cube_choose_label.setText('No file selected')
+    def delete_cube(self):
+        del(self.prop)
+        self.loaded_cubes_tab1.removeItem(self.loaded_cubes_tab1.currentIndex())
+        self.log_textbox.insertPlainText('Cube deleted\n')
+        self.run_button.setDisabled(1)
 
     def update_ui(self, string):
         self.log_textbox.insertPlainText("%s"%unicode(string))
@@ -544,37 +454,43 @@ class MainWindow(QtGui.QMainWindow):
             self.log_textbox.insertPlainText('"Grid size y" is empty\n')
         elif self.grid_size_z.text() == "":
             self.log_textbox.insertPlainText('"Grid size z" is empty\n')
-        elif self.cube_was_chosen == 0:
-            self.log_textbox.insertPlainText('No cube loaded\n')
         elif self.undef_value.text() == "":
             self.log_textbox.insertPlainText('"Undefined value" is empty\n')
         else :
-            self.grid_object = SugarboxGrid( int(self.grid_size_x.text()), int(self.grid_size_y.text()), int(self.grid_size_z.text()) )
-            self.grid_size = ( int(self.grid_size_x.text()), int(self.grid_size_y.text()), int(self.grid_size_z.text()) )
-            self.undefined_value = int(self.undef_value.text())
-            if self.ind_values_checkbox.isChecked():
-                self.indicator_value = int(self.ind_values.text())
-            else:
-                self.indicator_value = 0
+            filename = QtGui.QFileDialog.getOpenFileName(self, 'Select file')
+            if filename:
+                self.loaded_cube_fname = re.search('(.*\/)([\w.]*)',filename)
+                self.loaded_cube_fname = self.loaded_cube_fname.group(self.loaded_cube_fname.lastindex)
+                self.cube_was_chosen = 1
+                self.log_textbox.insertPlainText("Selected cube: " + self.loaded_cube_fname +'\n')
+                
+                self.grid_object = SugarboxGrid( int(self.grid_size_x.text()), int(self.grid_size_y.text()), int(self.grid_size_z.text()) )
+                self.grid_size = ( int(self.grid_size_x.text()), int(self.grid_size_y.text()), int(self.grid_size_z.text()) )
+                self.undefined_value = int(self.undef_value.text())
+                if self.ind_values_checkbox.isChecked():
+                    self.indicator_value = int(self.ind_values.text())
+                else:
+                        self.indicator_value = 0
             
-            if self.ind_values_checkbox.isChecked():
-                self.log_textbox.insertPlainText('Loaded cube with indicator values\n')
-                self.cube_was_chosen = 0
+                if self.ind_values_checkbox.isChecked():
+                    self.log_textbox.insertPlainText('Loaded cube with indicator values\n')
+                    self.cube_was_chosen = 0
                 
-                # Starting load indicator cube with HPGL
+                    # Starting load indicator cube with HPGL
+                    self.prop = load_ind_property(str(filename), self.undefined_value, self.indicator_value, self.grid_size)
+                    
+                elif self.ind_values_checkbox.isChecked() == 0:
+                    self.log_textbox.insertPlainText('Loaded cube\n')
+                    self.cube_was_chosen = 0
+                
+                    # Starting load cube with HPGL
+                    self.prop = load_cont_property( str(filename), self.undefined_value, self.grid_size )
+                    if self.prop != None:
+                        self.run_button.setEnabled(1)
+                        self.loaded_cubes_tab1.addItem(self.loaded_cube_fname)
+            else:
+                self.log_textbox.insertPlainText("Cube not chosen\n")
 
-                self.prop = load_ind_property(str(self.cube_choose_label.text()), self.undefined_value, 
-                                              self.indicator_value, self.grid_size)
-                self.cube_choose_label.setText('No file chosen')
-            elif self.ind_values_checkbox.isChecked() == 0:
-                self.log_textbox.insertPlainText('Loaded cube\n')
-                self.cube_was_chosen = 0
-                
-                # Starting load cube with HPGL
-
-                self.prop = load_cont_property( str(self.cube_choose_label.text()), self.undefined_value, self.grid_size )
-                self.cube_choose_label.setText('No file chosen')
-                
     
     def algorithm_run(self):
         if self.ellipsoid_ranges_0.text() == "":
@@ -608,6 +524,7 @@ class MainWindow(QtGui.QMainWindow):
                 # elif self.cubes_loaded.nocubesloaded(): 'No cubes loaded!'
                 else :
                     self.log_textbox.insertPlainText("Starting Simple Kriging Algorithm\n")
+                    self.progressBar.show()
                     
                     # Variogram
                     self.variogram_ranges = ( int(self.ellipsoid_ranges_0.text()), int(self.ellipsoid_ranges_90.text()), int(self.ellipsoid_ranges_v.text()) )
@@ -638,7 +555,7 @@ class MainWindow(QtGui.QMainWindow):
             write_property( self.result, self.output_filename, "SK_RESULT", int(self.undef_value.text()) )
         
     def retranslateUi(self, MainWindow):
-        self.setWindowTitle(QtGui.QApplication.translate("MainWindow", "HPGL GUI", None, QtGui.QApplication.UnicodeUTF8))
+        #self.setWindowTitle(QtGui.QApplication.translate("MainWindow", "HPGL GUI", None, QtGui.QApplication.UnicodeUTF8))
         
         # Tab 1
         self.grid_size_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Grid Size", None, QtGui.QApplication.UnicodeUTF8))
@@ -648,9 +565,8 @@ class MainWindow(QtGui.QMainWindow):
         self.grid_size_y.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
         self.grid_size_z_label.setText(QtGui.QApplication.translate("MainWindow", "z", None, QtGui.QApplication.UnicodeUTF8))
         self.grid_size_z.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.cube_choose_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Cube choose", None, QtGui.QApplication.UnicodeUTF8))
-        self.cube_choose_btn.setText(QtGui.QApplication.translate("MainWindow", "Choose", None, QtGui.QApplication.UnicodeUTF8))
-        self.cube_choose_label.setText(QtGui.QApplication.translate("MainWindow", "No file chosen", None, QtGui.QApplication.UnicodeUTF8))
+        self.manage_cubes_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Manage cubes", None, QtGui.QApplication.UnicodeUTF8))
+        self.cube_delete_btn.setText(QtGui.QApplication.translate("MainWindow", "Delete", None, QtGui.QApplication.UnicodeUTF8))
         self.ind_values_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Indicator value", None, QtGui.QApplication.UnicodeUTF8))
         self.ind_values_checkbox.setText(QtGui.QApplication.translate("MainWindow", "Indicator values", None, QtGui.QApplication.UnicodeUTF8))
         self.undef_value_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Undefined value", None, QtGui.QApplication.UnicodeUTF8))

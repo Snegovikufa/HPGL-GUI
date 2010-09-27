@@ -64,6 +64,7 @@ class MainWindow(QtGui.QMainWindow):
         self.algorithm_count = 6
         self.int_validator = QtGui.QIntValidator(self)
         self.double_validator = QtGui.QDoubleValidator(self)
+        self.cubes = []
         
         # TAB 1
         self.tab1 = QtGui.QWidget()
@@ -102,7 +103,7 @@ class MainWindow(QtGui.QMainWindow):
         self.gridLayout_2.addWidget(self.loaded_cubes_tab1, 0, 1, 1, 1)
         
         self.cube_delete_btn = QtGui.QPushButton(self.manage_cubes_groupbox)
-        self.cube_delete_btn.setEnabled(1)
+        self.cube_delete_btn.setDisabled(1)
         self.gridLayout_2.addWidget(self.cube_delete_btn, 0, 2, 1, 1)
         
         spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -428,12 +429,14 @@ class MainWindow(QtGui.QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def delete_cube(self):
-        del(self.prop)
-        self.current_cube = self.loaded_cubes_tab1.currentIndex()
-        self.loaded_cubes_tab1.removeItem(self.current_cube)
-        self.loaded_cubes.removeItem(self.current_cube)
+        self.current_index = self.loaded_cubes_tab1.currentIndex()
+        del (self.cubes[self.current_index])
+        self.loaded_cubes_tab1.removeItem(self.current_index)
+        self.loaded_cubes.removeItem(self.current_index)
         self.log_textbox.insertPlainText('Cube deleted\n')
-        self.run_button.setDisabled(1)
+        if self.loaded_cubes_tab1.count() == 0:
+            self.run_button.setDisabled(1)
+            self.cube_delete_btn.setDisabled(1)
 
     def update_ui(self, string):
         self.log_textbox.insertPlainText("%s"%unicode(string))
@@ -449,14 +452,16 @@ class MainWindow(QtGui.QMainWindow):
         self.result = result
         if self.result != None:
             self.save_button.setEnabled(1)
+            self.result_values = [self.cubes[self.curr_cube][1], self.cubes[self.curr_cube][2]]
         
     def sk_result_save(self):
         if self.result != None:
             self.fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ... ')
             if self.fname and self.indicator_value > 1:
-                write_property( self.result, str(self.fname), "SK_RESULT", self.indicator_value, self.undefined_value )
+                write_property( self.result, str(self.fname), "SK_RESULT", self.result_values[1], self.result_values[0] )
             elif self.fname and self.indicator_value == 0:
-                write_property( self.result, str(self.fname), "SK_RESULT", self.undefined_value )
+                write_property( self.result, str(self.fname), "SK_RESULT", self.result_values[0] )
+            self.result_was_saved = 1
     
     def cube_load(self):
         self.log_textbox.clear()
@@ -501,6 +506,8 @@ class MainWindow(QtGui.QMainWindow):
                         self.run_button.setEnabled(1)
                         self.loaded_cubes_tab1.addItem(self.loaded_cube_fname)
                         self.loaded_cubes.addItem(self.loaded_cube_fname)
+                        self.cubes.append([self.prop, self.undefined_value, self.indicator_value])
+                        self.cube_delete_btn.setEnabled(1)
             else:
                 self.log_textbox.insertPlainText("Cube not chosen\n")
 
@@ -534,11 +541,11 @@ class MainWindow(QtGui.QMainWindow):
                     self.log_textbox.insertPlainText('"Interpolation points" is empty\n')
                 elif self.mean_value.text() == "":
                     self.log_textbox.insertPlainText('"Mean value" is empty\n')
-                # elif self.cubes_loaded.nocubesloaded(): 'No cubes loaded!'
+                elif self.loaded_cubes.count() == 0:
+                    self.log_textbox.insertPlainText('No cubes loaded!\n')
                 else :
                     self.log_textbox.insertPlainText("Starting Simple Kriging Algorithm\n")
                     self.progressBar.show()
-                    #self.id_cont_prop = QtCore.QMetaType.type('ContProperty')
                     
                     # Variogram
                     self.variogram_ranges = ( int(self.ellipsoid_ranges_0.text()), int(self.ellipsoid_ranges_90.text()), int(self.ellipsoid_ranges_v.text()) )
@@ -549,8 +556,9 @@ class MainWindow(QtGui.QMainWindow):
                     # Simple Kriging
                     
                     self.ellipsoid_ranges = ( int(self.ellipsoid_ranges_0.text()), int(self.ellipsoid_ranges_90.text()), int(self.ellipsoid_ranges_v.text()) )
-                    self.new_thread = algorithm_thread(self.prop, self.grid_object, self.ellipsoid_ranges, int(self.interpolation_points.text()),
-                                                        self.variogram, float(self.mean_value.text()), self.undefined_value, self.indicator_value)
+                    self.curr_cube = self.loaded_cubes.currentIndex()
+                    self.new_thread = algorithm_thread( self.cubes[self.curr_cube][0], self.grid_object, self.ellipsoid_ranges, int(self.interpolation_points.text()),
+                                                        self.variogram, float(self.mean_value.text()), self.cubes[self.curr_cube][1], self.cubes[self.curr_cube][2] )
                     
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("msg(QString)"), self.update_ui)
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("progress(QString)"), self.update_progress)
@@ -618,7 +626,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # Tab 3
         self.loaded_cubs_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Cubes", None, QtGui.QApplication.UnicodeUTF8))
-        self.loaded_cubes_label.setText(QtGui.QApplication.translate("MainWindow", "Loaded cubes:", None, QtGui.QApplication.UnicodeUTF8))
+        self.loaded_cubes_label.setText(QtGui.QApplication.translate("MainWindow", "Select cube:", None, QtGui.QApplication.UnicodeUTF8))
         self.search_ranges_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Search ellipsoid ranges", None, QtGui.QApplication.UnicodeUTF8))
         self.search_ranges_0_label.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
         self.search_ranges_0.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))

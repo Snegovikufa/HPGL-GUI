@@ -8,7 +8,7 @@ import re
 
 
 class algorithm_thread(QtCore.QThread):
-    def __init__(self, prop, grid_object, ellipsoid_ranges, int_points, variogram, mean_value, fname, undef_value, ind_value):
+    def __init__(self, prop, grid_object, ellipsoid_ranges, int_points, variogram, mean_value, undef_value, ind_value):
         QtCore.QThread.__init__(self)
         
         self.prop = prop
@@ -17,7 +17,6 @@ class algorithm_thread(QtCore.QThread):
         self.int_points = int_points
         self.variogram = variogram
         self.mean_value = mean_value
-        self.output_filename = fname
         self.und_value = undef_value
         self.ind_value = ind_value
         
@@ -26,10 +25,7 @@ class algorithm_thread(QtCore.QThread):
         set_progress_handler(self.progress_show, None)
         self.result = simple_kriging( self.prop, self.grid_object, self.ellipsoid_ranges, 
                                            self.int_points, self.variogram, self.mean_value )
-        if self.output_filename and self.ind_value > 1:
-            write_property( self.result, self.output_filename, "SK_RESULT", self.ind_value, self.und_value )
-        elif self.output_filename and self.ind_value == 0:
-            write_property( self.result, self.output_filename, "SK_RESULT", self.und_value )
+        self.emit(QtCore.SIGNAL("result(PyQt_PyObject)"), self.result)
         
     def output_log(self, str, _):
         self.str_for_log = str
@@ -428,11 +424,14 @@ class MainWindow(QtGui.QMainWindow):
         QtCore.QObject.connect(self.grid_size_y, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
         QtCore.QObject.connect(self.grid_size_z, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
         QtCore.QObject.connect(self.cube_delete_btn, QtCore.SIGNAL("clicked()"), self.delete_cube)
+        QtCore.QObject.connect(self.save_button, QtCore.SIGNAL("clicked()"), self.sk_result_save)
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def delete_cube(self):
         del(self.prop)
-        self.loaded_cubes_tab1.removeItem(self.loaded_cubes_tab1.currentIndex())
+        self.current_cube = self.loaded_cubes_tab1.currentIndex()
+        self.loaded_cubes_tab1.removeItem(self.current_cube)
+        self.loaded_cubes.removeItem(self.current_cube)
         self.log_textbox.insertPlainText('Cube deleted\n')
         self.run_button.setDisabled(1)
 
@@ -446,6 +445,19 @@ class MainWindow(QtGui.QMainWindow):
         if int(self.grid_size_x.text()) > 0 and int(self.grid_size_y.text()) > 0 and int(self.grid_size_z.text()) > 0:
             self.load_cube_btn.setEnabled(1)
             
+    def sk_result(self, result):
+        self.result = result
+        if self.result != None:
+            self.save_button.setEnabled(1)
+        
+    def sk_result_save(self):
+        if self.result != None:
+            self.fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ... ')
+            if self.fname and self.indicator_value > 1:
+                write_property( self.result, str(self.fname), "SK_RESULT", self.indicator_value, self.undefined_value )
+            elif self.fname and self.indicator_value == 0:
+                write_property( self.result, str(self.fname), "SK_RESULT", self.undefined_value )
+    
     def cube_load(self):
         self.log_textbox.clear()
         if self.grid_size_x.text() == "":
@@ -488,6 +500,7 @@ class MainWindow(QtGui.QMainWindow):
                     if self.prop != None:
                         self.run_button.setEnabled(1)
                         self.loaded_cubes_tab1.addItem(self.loaded_cube_fname)
+                        self.loaded_cubes.addItem(self.loaded_cube_fname)
             else:
                 self.log_textbox.insertPlainText("Cube not chosen\n")
 
@@ -525,6 +538,7 @@ class MainWindow(QtGui.QMainWindow):
                 else :
                     self.log_textbox.insertPlainText("Starting Simple Kriging Algorithm\n")
                     self.progressBar.show()
+                    #self.id_cont_prop = QtCore.QMetaType.type('ContProperty')
                     
                     # Variogram
                     self.variogram_ranges = ( int(self.ellipsoid_ranges_0.text()), int(self.ellipsoid_ranges_90.text()), int(self.ellipsoid_ranges_v.text()) )
@@ -534,13 +548,13 @@ class MainWindow(QtGui.QMainWindow):
                     
                     # Simple Kriging
                     
-                    self.fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ... ')
                     self.ellipsoid_ranges = ( int(self.ellipsoid_ranges_0.text()), int(self.ellipsoid_ranges_90.text()), int(self.ellipsoid_ranges_v.text()) )
                     self.new_thread = algorithm_thread(self.prop, self.grid_object, self.ellipsoid_ranges, int(self.interpolation_points.text()),
-                                                        self.variogram, float(self.mean_value.text()), self.fname, self.undefined_value, self.indicator_value)
+                                                        self.variogram, float(self.mean_value.text()), self.undefined_value, self.indicator_value)
                     
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("msg(QString)"), self.update_ui)
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("progress(QString)"), self.update_progress)
+                    QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("result(PyQt_PyObject)"), self.sk_result)
                     self.new_thread.start()
                     
             elif self.algorithm_type.currentIndex() == 2:

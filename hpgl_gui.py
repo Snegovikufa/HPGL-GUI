@@ -507,6 +507,7 @@ class MainWindow(QtGui.QMainWindow):
                         self.loaded_cubes_tab1.addItem(self.loaded_cube_fname)
                         self.loaded_cubes.addItem(self.loaded_cube_fname)
                         self.cubes.append([self.prop, self.undefined_value, self.indicator_value])
+                        del(self.prop)
                         self.cube_delete_btn.setEnabled(1)
             else:
                 self.log_textbox.insertPlainText("Cube not chosen\n")

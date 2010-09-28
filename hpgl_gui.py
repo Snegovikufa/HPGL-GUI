@@ -8,7 +8,7 @@ import re
 
 
 class algorithm_thread(QtCore.QThread):
-    def __init__(self, prop, grid_object, ellipsoid_ranges, int_points, variogram, mean_value, undef_value, ind_value):
+    def __init__(self, prop, grid_object, ellipsoid_ranges, int_points, variogram, mean_value, undef_value):
         QtCore.QThread.__init__(self)
         
         self.prop = prop
@@ -18,7 +18,6 @@ class algorithm_thread(QtCore.QThread):
         self.variogram = variogram
         self.mean_value = mean_value
         self.und_value = undef_value
-        self.ind_value = ind_value
         
     def run(self):
         set_output_handler(self.output_log, None)
@@ -450,6 +449,7 @@ class MainWindow(QtGui.QMainWindow):
             
     def sk_result(self, result):
         self.result = result
+        self.run_button.setEnabled(1)
         if self.result != None:
             self.save_button.setEnabled(1)
             self.result_values = [self.cubes[self.curr_cube][1], self.cubes[self.curr_cube][2]]
@@ -457,9 +457,9 @@ class MainWindow(QtGui.QMainWindow):
     def sk_result_save(self):
         if self.result != None:
             self.fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ... ')
-            if self.fname and self.indicator_value > 1:
+            if self.fname and self.result_values[1] != None:
                 write_property( self.result, str(self.fname), "SK_RESULT", self.result_values[1], self.result_values[0] )
-            elif self.fname and self.indicator_value == 0:
+            elif self.fname and self.result_values[1] == None:
                 write_property( self.result, str(self.fname), "SK_RESULT", self.result_values[0] )
             self.result_was_saved = 1
     
@@ -485,9 +485,9 @@ class MainWindow(QtGui.QMainWindow):
                 self.grid_size = ( int(self.grid_size_x.text()), int(self.grid_size_y.text()), int(self.grid_size_z.text()) )
                 self.undefined_value = int(self.undef_value.text())
                 if self.ind_values_checkbox.isChecked():
-                    self.indicator_value = int(self.ind_values.text())
+                    self.indicator_value = range(int(self.ind_values.text()))
                 else:
-                        self.indicator_value = 0
+                        self.indicator_value = None
             
                 if self.ind_values_checkbox.isChecked():
                     self.log_textbox.insertPlainText('Loaded cube with indicator values\n')
@@ -559,12 +559,13 @@ class MainWindow(QtGui.QMainWindow):
                     self.ellipsoid_ranges = ( int(self.ellipsoid_ranges_0.text()), int(self.ellipsoid_ranges_90.text()), int(self.ellipsoid_ranges_v.text()) )
                     self.curr_cube = self.loaded_cubes.currentIndex()
                     self.new_thread = algorithm_thread( self.cubes[self.curr_cube][0], self.grid_object, self.ellipsoid_ranges, int(self.interpolation_points.text()),
-                                                        self.variogram, float(self.mean_value.text()), self.cubes[self.curr_cube][1], self.cubes[self.curr_cube][2] )
+                                                        self.variogram, float(self.mean_value.text()), self.cubes[self.curr_cube][1] )
                     
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("msg(QString)"), self.update_ui)
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("progress(QString)"), self.update_progress)
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("result(PyQt_PyObject)"), self.sk_result)
                     self.new_thread.start()
+                    self.run_button.setDisabled(1)
                     
             elif self.algorithm_type.currentIndex() == 2:
                 self.log_textbox.insertPlainText("Starting Ordinary Kriging Algorithm\n")

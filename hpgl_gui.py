@@ -476,7 +476,7 @@ class MainWindow(QtGui.QMainWindow):
         else :
             filename = QtGui.QFileDialog.getOpenFileName(self, 'Select file')
             if filename:
-                self.loaded_cube_fname = re.search('(.*\/)([\w.]*)',filename)
+                self.loaded_cube_fname = re.search('(.*\/)([\w.]*)|(.*\\)([\w.]*)',filename) # For Linux and Win paths
                 self.loaded_cube_fname = self.loaded_cube_fname.group(self.loaded_cube_fname.lastindex)
                 self.cube_was_chosen = 1
                 self.log_textbox.insertPlainText("Selected cube: " + self.loaded_cube_fname +'\n')

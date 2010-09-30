@@ -5,48 +5,46 @@ from PyQt4 import QtCore, QtGui
 from geo_bsd import *
 from geo_bsd.cvariogram import *
 import re
+from types import ClassType
 
 
 class algorithm_thread(QtCore.QThread):
-    def __init__(self, prop, grid_object, ellipsoid_ranges, int_points, variogram, mean_value, undef_value):
+    def __init__(self, Prop, GridObject, EllipsoidRanges, IntPoints, Variogram, MeanValue, UndefValue):
         QtCore.QThread.__init__(self)
         
-        self.prop = prop
-        self.grid_object = grid_object
-        self.ellipsoid_ranges = ellipsoid_ranges
-        self.int_points = int_points
-        self.variogram = variogram
-        self.mean_value = mean_value
-        self.und_value = undef_value
+        self.Prop = Prop
+        self.GridObject = GridObject
+        self.EllipsoidRanges = EllipsoidRanges
+        self.IntPoints = IntPoints
+        self.Variogram = Variogram
+        self.MeanValue = MeanValue
+        self.und_value = UndefValue
         
     def run(self):
         set_output_handler(self.output_log, None)
         set_progress_handler(self.progress_show, None)
-        self.result = simple_kriging( self.prop, self.grid_object, self.ellipsoid_ranges, 
-                                           self.int_points, self.variogram, self.mean_value )
-        self.emit(QtCore.SIGNAL("result(PyQt_PyObject)"), self.result)
+        self.Result = simple_kriging( self.Prop, self.GridObject, self.EllipsoidRanges, 
+                                      self.IntPoints, self.Variogram, self.MeanValue )
+        self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
         
-    def output_log(self, str, _):
-        self.str_for_log = str
-        self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(self.str_for_log))
+    def output_log(self, string, _):
+        self.StrForLog = string
+        self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(self.StrForLog))
         return 0
         
-    def progress_show(self, stage, percent, _):
-        self.percent = percent
+    def progress_show(self, stage, Percent, _):
+        self.Percent = Percent
         self.stage = stage
-        if self.percent == 0:
+        if self.Percent == 0:
             print self.stage,
-        elif self.percent == -1:
-                print ""
+        elif self.Percent == -1:
+            print ""
         else:
-            self.out_str = int(self.percent)
-            self.out_str = str(self.out_str)
-            self.emit(QtCore.SIGNAL("progress(QString)"), QtCore.QString(self.out_str))
+            self.OutStr = int(self.Percent)
+            self.OutStr = str(self.OutStr)
+            self.emit(QtCore.SIGNAL("progress(QString)"), QtCore.QString(self.OutStr))
         return 0
 
-    def __del__(self):
-        self.exiting = True
-        self.wait()
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
@@ -55,612 +53,617 @@ class MainWindow(QtGui.QMainWindow):
         self.setObjectName("MainWindow")
         self.setFixedWidth(700)
         self.setFixedHeight(520)
-        self.centralwidget = QtGui.QWidget()
-        self.gridLayout_10 = QtGui.QGridLayout(self.centralwidget)
-        self.tabWidget = QtGui.QTabWidget(self.centralwidget)
+        self.CentralWidget = QtGui.QWidget()
+        self.CentralLayout = QtGui.QGridLayout(self.CentralWidget)
+        self.TabWidget = QtGui.QTabWidget(self.CentralWidget)
         
-        self.cube_was_chosen = 0
-        self.algorithm_count = 6
-        self.int_validator = QtGui.QIntValidator(self)
+        self.CubeWasChosen = 0
+        self.AlgorithmCount = 6
+        self.IntValidator = QtGui.QIntValidator(self)
         self.double_validator = QtGui.QDoubleValidator(self)
-        self.cubes = []
+        self.Cubes = []
         
         # TAB 1
-        self.tab1 = QtGui.QWidget()
-        self.gridLayout_5 = QtGui.QGridLayout(self.tab1)
-        self.grid_size_groupbox = QtGui.QGroupBox(self.tab1)
-        self.gridLayout = QtGui.QGridLayout(self.grid_size_groupbox)
+        self.Tab1 = QtGui.QWidget()
+        self.Tab1Layout = QtGui.QGridLayout(self.Tab1)
         
-        self.grid_size_x_label = QtGui.QLabel(self.grid_size_groupbox)
-        self.gridLayout.addWidget(self.grid_size_x_label, 0, 1, 1, 1)
-        self.grid_size_x = QtGui.QLineEdit(self.grid_size_groupbox)
-        self.grid_size_x.setValidator(self.int_validator)
-        self.gridLayout.addWidget(self.grid_size_x, 0, 2, 1, 1)
+        self.GridSizeGB = QtGui.QGroupBox(self.Tab1)
+        self.GridLayout = QtGui.QGridLayout(self.GridSizeGB)
         
-        self.grid_size_y_label = QtGui.QLabel(self.grid_size_groupbox)
-        self.gridLayout.addWidget(self.grid_size_y_label, 1, 1, 1, 1)
-        self.grid_size_y = QtGui.QLineEdit(self.grid_size_groupbox)
-        self.grid_size_y.setValidator(self.int_validator)
-        self.gridLayout.addWidget(self.grid_size_y, 1, 2, 1, 1)
+        self.GridSizeXLabel = QtGui.QLabel(self.GridSizeGB)
+        self.GridSizeX = QtGui.QLineEdit(self.GridSizeGB)
+        self.GridSizeX.setValidator(self.IntValidator)
+        self.GridSizeYLabel = QtGui.QLabel(self.GridSizeGB)
+        self.GridSizeY = QtGui.QLineEdit(self.GridSizeGB)
+        self.GridSizeY.setValidator(self.IntValidator)
+        self.GridSizeZLabel = QtGui.QLabel(self.GridSizeGB)
+        self.GridSizeZ = QtGui.QLineEdit(self.GridSizeGB)
+        self.GridSizeZ.setValidator(self.IntValidator)
+        self.GridSizeSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.GridSizeSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        self.grid_size_z_label = QtGui.QLabel(self.grid_size_groupbox)
-        self.gridLayout.addWidget(self.grid_size_z_label, 2, 1, 1, 1)
-        self.grid_size_z = QtGui.QLineEdit(self.grid_size_groupbox)
-        self.grid_size_z.setValidator(self.int_validator)
-        self.gridLayout.addWidget(self.grid_size_z, 2, 2, 1, 1)
+        self.GridSizeWidgets = [self.GridSizeXLabel, self.GridSizeX, 
+                                self.GridSizeYLabel, self.GridSizeY, 
+                                self.GridSizeZLabel, self.GridSizeZ,
+                                self.GridSizeSpacerL, self.GridSizeSpacerR]
+        self.GridSizeWidgetsPlaces = [[0,1,1,1], [0,2,1,1], 
+                                      [1,1,1,1], [1,2,1,1], 
+                                      [2,1,1,1], [2,2,1,1],
+                                      [0,0,1,1], [0,3,1,1]]      
+
+        self.ManageCubesGB = QtGui.QGroupBox(self.Tab1)
+        self.ManageCubesLayout = QtGui.QGridLayout(self.ManageCubesGB)
         
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem, 1, 0, 1, 1)
-        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem1, 1, 3, 1, 1)
-        self.gridLayout_5.addWidget(self.grid_size_groupbox, 0, 0, 1, 1)
+        self.LoadedCubesTab1 = QtGui.QComboBox(self.ManageCubesGB)
+        self.CubeDeleteButton = QtGui.QPushButton(self.ManageCubesGB)
+        self.CubeDeleteButton.setDisabled(1)
+        ManageCubesSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        ManageCubesSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        self.manage_cubes_groupbox = QtGui.QGroupBox(self.tab1)
-        self.gridLayout_2 = QtGui.QGridLayout(self.manage_cubes_groupbox)
+        self.ManageCubesWidgets = [self.LoadedCubesTab1, self.CubeDeleteButton,
+                                   ManageCubesSpacerL, ManageCubesSpacerR]
+        self.ManageCubesWidgetsPlaces = [[0,1,1,1], [0,2,1,1], [0,0,1,1], [0,3,1,1]]
         
-        self.loaded_cubes_tab1 = QtGui.QComboBox(self.manage_cubes_groupbox)
-        self.gridLayout_2.addWidget(self.loaded_cubes_tab1, 0, 1, 1, 1)
         
-        self.cube_delete_btn = QtGui.QPushButton(self.manage_cubes_groupbox)
-        self.cube_delete_btn.setDisabled(1)
-        self.gridLayout_2.addWidget(self.cube_delete_btn, 0, 2, 1, 1)
+        self.IndValuesGB = QtGui.QGroupBox(self.Tab1)
+        self.IndValuesLayout = QtGui.QGridLayout(self.IndValuesGB)
         
-        spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_2.addItem(spacerItem2, 0, 0, 1, 1)
-        spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_2.addItem(spacerItem3, 0, 3, 1, 1)
-        self.gridLayout_5.addWidget(self.manage_cubes_groupbox, 0, 1, 1, 1)
+        self.IndValues = QtGui.QSpinBox(self.IndValuesGB)
+        self.IndValues.setEnabled(False)
+        self.IndValues.setMinimum(2)
+        self.IndValues.setMaximum(256)
+        self.IndValuesCheckbox = QtGui.QCheckBox(self.IndValuesGB)
+        self.IndValuesCheckbox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        IndValuesSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        IndValuesSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        self.ind_values_groupbox = QtGui.QGroupBox(self.tab1)
-        self.gridLayout_3 = QtGui.QGridLayout(self.ind_values_groupbox)
+        self.IndValuesWidgets = [self.IndValues, self.IndValuesCheckbox,
+                                 IndValuesSpacerL, IndValuesSpacerR]
+        self.IndValuesWidgetsPlaces = [[1,2,1,1], [1,1,1,1], [1,3,1,1], [1,0,1,1]]
         
-        self.ind_values = QtGui.QSpinBox(self.ind_values_groupbox)
-        self.ind_values.setEnabled(False)
-        self.ind_values.setMinimum(2)
-        self.ind_values.setMaximum(256)
-        self.gridLayout_3.addWidget(self.ind_values, 1, 2, 1, 1)
         
-        self.ind_values_checkbox = QtGui.QCheckBox(self.ind_values_groupbox)
-        self.ind_values_checkbox.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.gridLayout_3.addWidget(self.ind_values_checkbox, 1, 1, 1, 1)
+        self.UndefValueGB = QtGui.QGroupBox(self.Tab1)
+        self.UndefValueLayout = QtGui.QGridLayout(self.UndefValueGB)
+        self.UndefValueLabel = QtGui.QLabel(self.UndefValueGB)
+        self.UndefValue = QtGui.QLineEdit(self.UndefValueGB)
+        self.UndefValue.setValidator(self.IntValidator)
+        UndefValueSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        UndefValueSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_3.addItem(spacerItem4, 1, 0, 1, 1)
-        spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_3.addItem(spacerItem5, 1, 3, 1, 1)
-        self.gridLayout_5.addWidget(self.ind_values_groupbox, 1, 0, 1, 1)
+        self.UndefValueWidgets = [self.UndefValueLabel, self.UndefValue,
+                                  UndefValueSpacerL, UndefValueSpacerR]
+        self.UndefValueWidgetsPlaces = [[0,1,1,1], [0,2,1,1], [0,0,1,1], [0,3,1,1]]
         
-        self.undef_value_groupbox = QtGui.QGroupBox(self.tab1)
-        self.horizontalLayout = QtGui.QHBoxLayout(self.undef_value_groupbox)
-        spacerItem6 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem6)
+        self.LoadCubeGB = QtGui.QGroupBox(self.Tab1)
+        self.LoadCubeLayout = QtGui.QGridLayout(self.LoadCubeGB)
         
-        self.undef_value_label = QtGui.QLabel(self.undef_value_groupbox)
-        self.horizontalLayout.addWidget(self.undef_value_label)
+        self.LoadCubeButton = QtGui.QPushButton(self.LoadCubeGB)
+        self.LoadCubeButton.setDisabled(1)
+        LoadCubeSpacerL = QtGui.QSpacerItem(241, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        LoadCubeSpacerR = QtGui.QSpacerItem(241, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        self.undef_value = QtGui.QLineEdit(self.undef_value_groupbox)
-        self.undef_value.setValidator(self.int_validator)
-        self.horizontalLayout.addWidget(self.undef_value)
+        self.LoadCubeWidgets = [self.LoadCubeButton, LoadCubeSpacerL, LoadCubeSpacerR]
+        self.LoadCubeWidgetsPlaces = [[0,1,1,1], [0,0,1,1],[0,2,1,1]]
         
-        spacerItem7 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem7)
-        self.gridLayout_5.addWidget(self.undef_value_groupbox, 1, 1, 1, 1)
-        self.load_cube_groupbox = QtGui.QGroupBox(self.tab1)
-        self.load_cube_groupbox.setTitle("")
-        self.horizontalLayout_2 = QtGui.QHBoxLayout(self.load_cube_groupbox)
-        spacerItem8 = QtGui.QSpacerItem(241, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem8)
+        Tab1Spacer = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         
-        self.load_cube_btn = QtGui.QPushButton(self.load_cube_groupbox)
-        self.load_cube_btn.setDisabled(1)
-        self.horizontalLayout_2.addWidget(self.load_cube_btn)
+        self.Tab1Widgets = [self.GridSizeGB, self.ManageCubesGB, 
+                            self.IndValuesGB, self.UndefValueGB,
+                            self.LoadCubeGB, Tab1Spacer]
+        self.Tab1WidgetsPlaces = [[0,0,1,1], [0,1,1,1], 
+                                  [1,0,1,1], [1,1,1,1],
+                                  [3,0,1,2], [4,0,1,1]]
         
-        spacerItem9 = QtGui.QSpacerItem(241, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem9)
-        self.gridLayout_5.addWidget(self.load_cube_groupbox, 3, 0, 1, 2)
-        spacerItem10 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_5.addItem(spacerItem10, 4, 0, 1, 1)
-        self.tabWidget.addTab(self.tab1, "")
+        self.place_widgets_at_places(self.GridLayout, self.GridSizeWidgets, self.GridSizeWidgetsPlaces)
+        self.place_widgets_at_places(self.ManageCubesLayout, self.ManageCubesWidgets, self.ManageCubesWidgetsPlaces)
+        self.place_widgets_at_places(self.IndValuesLayout, self.IndValuesWidgets, self.IndValuesWidgetsPlaces)
+        self.place_widgets_at_places(self.UndefValueLayout, self.UndefValueWidgets, self.UndefValueWidgetsPlaces)
+        self.place_widgets_at_places(self.LoadCubeLayout, self.LoadCubeWidgets, self.LoadCubeWidgetsPlaces)
+        self.place_widgets_at_places(self.Tab1Layout, self.Tab1Widgets, self.Tab1WidgetsPlaces)
+        
+        
+        self.TabWidget.addTab(self.Tab1, "")
         
         # TAB 2
-        self.tab2 = QtGui.QWidget()
-        self.gridLayout_11 = QtGui.QGridLayout(self.tab2)
-        self.variogram_type_groupbox = QtGui.QGroupBox(self.tab2)
-        self.horizontalLayout_3 = QtGui.QHBoxLayout(self.variogram_type_groupbox)
-        spacerItem11 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem11)
+        self.Tab2 = QtGui.QWidget()
+        self.Tab2Layout = QtGui.QGridLayout(self.Tab2)
         
-        self.variogram_type_label = QtGui.QLabel(self.variogram_type_groupbox)
-        self.horizontalLayout_3.addWidget(self.variogram_type_label)
+        self.VariogramTypeGB = QtGui.QGroupBox(self.Tab2)
+        self.VariogramTypeLayout = QtGui.QGridLayout(self.VariogramTypeGB)
+               
+        self.VariogramType_label = QtGui.QLabel(self.VariogramTypeGB)
+        self.VariogramType = QtGui.QComboBox(self.VariogramTypeGB)
+        self.VariogramType.addItem("")
+        self.VariogramType.addItem("")
+        self.VariogramType.addItem("")
+        self.VariogramType.setValidator(self.IntValidator)
+        VariogramTypeSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum) 
+        VariogramTypeSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+              
+        self.VariogramTypeWidgets = [self.VariogramType_label, self.VariogramType,
+                                     VariogramTypeSpacerL, VariogramTypeSpacerR]
+        self.VariogramTypeWidgetsPlaces = [[0,1,1,1], [0,2,1,1],[0,0,1,1],[0,3,1,1]]
         
-        self.variogram_type = QtGui.QComboBox(self.variogram_type_groupbox)
-        self.variogram_type.addItem("")
-        self.variogram_type.addItem("")
-        self.variogram_type.addItem("")
-        self.horizontalLayout_3.addWidget(self.variogram_type)
-        self.variogram_type.setValidator(self.int_validator)
+        self.EllipsoidRangesGB = QtGui.QGroupBox(self.Tab2)
+        self.EllipsoidRangesLayout = QtGui.QGridLayout(self.EllipsoidRangesGB)
         
-        spacerItem12 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem12)
-        self.gridLayout_11.addWidget(self.variogram_type_groupbox, 0, 0, 1, 1)
-        self.ellipsoid_ranges_groupbox = QtGui.QGroupBox(self.tab2)
-        self.gridLayout_6 = QtGui.QGridLayout(self.ellipsoid_ranges_groupbox)
+        self.EllipsoidRanges0Label = QtGui.QLabel(self.EllipsoidRangesGB)
+        self.EllipsoidRanges0 = QtGui.QLineEdit(self.EllipsoidRangesGB)
+        self.EllipsoidRanges0.setValidator(self.IntValidator)
+        self.EllipsoidRanges90Label = QtGui.QLabel(self.EllipsoidRangesGB)
+        self.EllipsoidRanges90 = QtGui.QLineEdit(self.EllipsoidRangesGB)
+        self.EllipsoidRanges90.setValidator(self.IntValidator)
+        self.EllipsoidRangesVLabel = QtGui.QLabel(self.EllipsoidRangesGB)
+        self.EllipsoidRangesV = QtGui.QLineEdit(self.EllipsoidRangesGB)
+        self.EllipsoidRangesV.setValidator(self.IntValidator)
+        EllipsoidRangesSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        EllipsoidRangesSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        self.ellipsoid_ranges_0_label = QtGui.QLabel(self.ellipsoid_ranges_groupbox)
-        self.gridLayout_6.addWidget(self.ellipsoid_ranges_0_label, 0, 1, 2, 1)
+        self.EllipsoidRangesWidgets = [self.EllipsoidRanges0Label, self.EllipsoidRanges0,
+                                       self.EllipsoidRanges90Label, self.EllipsoidRanges90,
+                                       self.EllipsoidRangesVLabel, self.EllipsoidRangesV,
+                                       EllipsoidRangesSpacerL, EllipsoidRangesSpacerR]
+        self.EllipsoidRangesWidgetsPlaces = [[0,1,1,1], [0,2,1,1], 
+                                             [1,1,1,1], [1,2,1,1],
+                                             [2,1,1,1], [2,2,1,1],
+                                             [1,0,1,1], [1,3,1,1]]
+               
+        self.EllipsoidAnglesGB = QtGui.QGroupBox(self.Tab2)
+        self.EllipsoidAnglesLayout = QtGui.QGridLayout(self.EllipsoidAnglesGB)
         
-        self.ellipsoid_ranges_0 = QtGui.QLineEdit(self.ellipsoid_ranges_groupbox)
-        self.gridLayout_6.addWidget(self.ellipsoid_ranges_0, 0, 2, 1, 1)
-        self.ellipsoid_ranges_0.setValidator(self.int_validator)
+        self.EllipsoidAnglesXLabel = QtGui.QLabel(self.EllipsoidAnglesGB)
+        self.EllipsoidAnglesX = QtGui.QLineEdit(self.EllipsoidAnglesGB)
+        self.EllipsoidAnglesX.setValidator(self.IntValidator)
+        self.EllipsoidAnglesYLabel = QtGui.QLabel(self.EllipsoidAnglesGB)
+        self.EllipsoidAnglesY = QtGui.QLineEdit(self.EllipsoidAnglesGB)
+        self.EllipsoidAnglesY.setValidator(self.IntValidator)
+        self.EllipsoidAnglesZLabel = QtGui.QLabel(self.EllipsoidAnglesGB)
+        self.EllipsoidAnglesZ = QtGui.QLineEdit(self.EllipsoidAnglesGB)
+        self.EllipsoidAnglesZ.setValidator(self.IntValidator)
         
-        self.ellipsoid_ranges_90_label = QtGui.QLabel(self.ellipsoid_ranges_groupbox)
-        self.gridLayout_6.addWidget(self.ellipsoid_ranges_90_label, 2, 1, 1, 1)
+        EllipsoidAnglesSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        EllipsoidAnglesSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)      
         
-        self.ellipsoid_ranges_90 = QtGui.QLineEdit(self.ellipsoid_ranges_groupbox)
-        self.gridLayout_6.addWidget(self.ellipsoid_ranges_90, 1, 2, 2, 1)
-        self.ellipsoid_ranges_90.setValidator(self.int_validator)
+        self.EllipsoidAnglesWidgets = [self.EllipsoidAnglesXLabel, self.EllipsoidAnglesX,
+                                       self.EllipsoidAnglesYLabel, self.EllipsoidAnglesY,
+                                       self.EllipsoidAnglesZLabel, self.EllipsoidAnglesZ,
+                                       EllipsoidAnglesSpacerL, EllipsoidAnglesSpacerR]
+        self.EllipsoidAnglesWidgetsPlaces = [[0,1,1,1], [0,2,1,1],
+                                             [1,1,1,1], [1,2,1,1],
+                                             [2,1,2,1], [2,2,1,1],
+                                             [1,0,1,1], [1,3,1,1]]
+                
+        self.NuggetEffectGB = QtGui.QGroupBox(self.Tab2)
+        self.NuggetEffectLayout = QtGui.QGridLayout(self.NuggetEffectGB)
         
-        self.ellipsoid_ranges_v_label = QtGui.QLabel(self.ellipsoid_ranges_groupbox)
-        self.gridLayout_6.addWidget(self.ellipsoid_ranges_v_label, 3, 1, 1, 1)
+        self.SillValueLabel = QtGui.QLabel(self.NuggetEffectGB)
+        self.SillValue = QtGui.QLineEdit(self.NuggetEffectGB)
+        self.SillValue.setValidator(self.IntValidator)
+        self.NuggetValueLabel = QtGui.QLabel(self.NuggetEffectGB)
+        self.NuggetValue = QtGui.QLineEdit(self.NuggetEffectGB)
+        self.NuggetValue.setValidator(self.IntValidator)
+        NuggetEffectSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        NuggetEffectSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        self.ellipsoid_ranges_v = QtGui.QLineEdit(self.ellipsoid_ranges_groupbox)
-        self.gridLayout_6.addWidget(self.ellipsoid_ranges_v, 3, 2, 1, 1)
-        self.ellipsoid_ranges_v.setValidator(self.int_validator)
+        self.NuggetEffectWidgets = [self.SillValueLabel, self.SillValue,
+                                    self.NuggetValueLabel, self.NuggetValue,
+                                    NuggetEffectSpacerL, NuggetEffectSpacerR]
+        self.NuggetEffectWidgetsPlaces = [[0,1,1,1], [0,2,1,1],
+                                          [1,1,1,1], [1,2,1,1],
+                                          [0,0,1,1], [0,3,1,1]]
         
-        spacerItem13 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_6.addItem(spacerItem13, 1, 3, 1, 1)
-        spacerItem14 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_6.addItem(spacerItem14, 1, 0, 1, 1)
-
-        self.gridLayout_11.addWidget(self.ellipsoid_ranges_groupbox, 0, 1, 1, 1)
-        self.ellipsoid_angles = QtGui.QGroupBox(self.tab2)
-        self.gridLayout_7 = QtGui.QGridLayout(self.ellipsoid_angles)
+        Tab2Spacer = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         
-        self.ellipsoid_angles_x_label = QtGui.QLabel(self.ellipsoid_angles)
-        self.gridLayout_7.addWidget(self.ellipsoid_angles_x_label, 0, 1, 1, 1)
+        self.Tab2Widgets = [self.VariogramTypeGB, self.EllipsoidRangesGB,
+                            self.EllipsoidAnglesGB, self.NuggetEffectGB,
+                            Tab2Spacer]
+        self.Tab2WidgetsPlaces = [[0,0,1,1], [0,1,1,1],
+                                  [1,0,1,1], [1,1,1,1],
+                                  [2,1,1,1]]
         
-        self.ellipsoid_angles_x = QtGui.QLineEdit(self.ellipsoid_angles)
-        self.gridLayout_7.addWidget(self.ellipsoid_angles_x, 0, 2, 1, 1)
-        self.ellipsoid_angles_x.setValidator(self.int_validator)
+        self.place_widgets_at_places(self.VariogramTypeLayout, self.VariogramTypeWidgets, self.VariogramTypeWidgetsPlaces)
+        self.place_widgets_at_places(self.EllipsoidRangesLayout, self.EllipsoidRangesWidgets, self.EllipsoidRangesWidgetsPlaces)
+        self.place_widgets_at_places(self.EllipsoidAnglesLayout, self.EllipsoidAnglesWidgets, self.EllipsoidAnglesWidgetsPlaces)
+        self.place_widgets_at_places(self.NuggetEffectLayout, self.NuggetEffectWidgets, self.NuggetEffectWidgetsPlaces)
+        self.place_widgets_at_places(self.Tab2Layout, self.Tab2Widgets, self.Tab2WidgetsPlaces)
         
-        self.ellipsoid_angles_y = QtGui.QLineEdit(self.ellipsoid_angles)
-        self.gridLayout_7.addWidget(self.ellipsoid_angles_y, 1, 2, 2, 1)
-        self.ellipsoid_angles_y.setValidator(self.int_validator)
-        
-        self.ellipsoid_angles_z_label = QtGui.QLabel(self.ellipsoid_angles)
-        self.gridLayout_7.addWidget(self.ellipsoid_angles_z_label, 2, 1, 2, 1)
-        
-        self.ellipsoid_angles_z = QtGui.QLineEdit(self.ellipsoid_angles)
-        self.gridLayout_7.addWidget(self.ellipsoid_angles_z, 3, 2, 1, 1)
-        self.ellipsoid_angles_z.setValidator(self.int_validator)
-        
-        self.ellipsoid_angles_y_label = QtGui.QLabel(self.ellipsoid_angles)
-        self.gridLayout_7.addWidget(self.ellipsoid_angles_y_label, 1, 1, 1, 1)
-        
-        spacerItem15 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_7.addItem(spacerItem15, 1, 0, 1, 1)
-        spacerItem16 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_7.addItem(spacerItem16, 1, 3, 1, 1)
-
-        self.gridLayout_11.addWidget(self.ellipsoid_angles, 1, 0, 1, 1)
-        self.nugget_effect_groupbox = QtGui.QGroupBox(self.tab2)
-        self.gridLayout_8 = QtGui.QGridLayout(self.nugget_effect_groupbox)
-        
-        self.sill_value_label = QtGui.QLabel(self.nugget_effect_groupbox)
-        self.gridLayout_8.addWidget(self.sill_value_label, 0, 1, 1, 1)
-        
-        self.sill_value = QtGui.QLineEdit(self.nugget_effect_groupbox)
-        self.gridLayout_8.addWidget(self.sill_value, 0, 2, 1, 1)
-        self.sill_value.setValidator(self.int_validator)
-        
-        self.nugget_value_label = QtGui.QLabel(self.nugget_effect_groupbox)
-        self.gridLayout_8.addWidget(self.nugget_value_label, 1, 1, 1, 1)
-        
-        self.nugget_value = QtGui.QLineEdit(self.nugget_effect_groupbox)
-        self.gridLayout_8.addWidget(self.nugget_value, 1, 2, 1, 1)
-        self.nugget_value.setValidator(self.int_validator)
-        
-        spacerItem17 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_8.addItem(spacerItem17, 0, 0, 1, 1)
-        spacerItem18 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_8.addItem(spacerItem18, 1, 3, 1, 1)
-
-        self.gridLayout_11.addWidget(self.nugget_effect_groupbox, 1, 1, 1, 1)
-        spacerItem19 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_11.addItem(spacerItem19, 2, 1, 1, 1)
-        self.tabWidget.addTab(self.tab2, "")
+        self.TabWidget.addTab(self.Tab2, "")
         
         # TAB 3
-        self.tab3 = QtGui.QWidget()
-        self.gridLayout_12 = QtGui.QGridLayout(self.tab3)
-        self.loaded_cubs_groupbox = QtGui.QGroupBox(self.tab3)
-        self.horizontalLayout_5 = QtGui.QHBoxLayout(self.loaded_cubs_groupbox)
-        spacerItem20 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem20)
+        self.Tab3 = QtGui.QWidget()
+        self.Tab3Layout = QtGui.QGridLayout(self.Tab3)
         
-        self.loaded_cubes_label = QtGui.QLabel(self.loaded_cubs_groupbox)
-        self.horizontalLayout_5.addWidget(self.loaded_cubes_label)
+        self.LoadedCubesGB = QtGui.QGroupBox(self.Tab3)
+        self.LoadedCubesLayout = QtGui.QGridLayout(self.LoadedCubesGB)
         
-        self.loaded_cubes = QtGui.QComboBox(self.loaded_cubs_groupbox)
-        self.horizontalLayout_5.addWidget(self.loaded_cubes)
+        self.LoadedCubesLabel = QtGui.QLabel(self.LoadedCubesGB)
+        self.LoadedCubes = QtGui.QComboBox(self.LoadedCubesGB)
+        LoadedCubesSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        LoadedCubesSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        spacerItem21 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem21)
-        self.gridLayout_12.addWidget(self.loaded_cubs_groupbox, 0, 1, 1, 1)
-        self.search_ranges_groupbox = QtGui.QGroupBox(self.tab3)
-        self.gridLayout_4 = QtGui.QGridLayout(self.search_ranges_groupbox)
+        self.LoadedCubesWidgets = [self.LoadedCubesLabel, self.LoadedCubes,
+                                   LoadedCubesSpacerL, LoadedCubesSpacerR]
+        self.LoadedCubesWidgetsPlaces = [[0,1,1,1], [0,2,1,1],
+                                         [0,0,1,1], [0,3,1,1]]       
         
-        self.search_ranges_0_label = QtGui.QLabel(self.search_ranges_groupbox)
-        self.gridLayout_4.addWidget(self.search_ranges_0_label, 0, 1, 1, 1)
+        self.SearchRangesGB = QtGui.QGroupBox(self.Tab3)
+        self.SearchRangesLayout = QtGui.QGridLayout(self.SearchRangesGB)
         
-        self.search_ranges_0 = QtGui.QLineEdit(self.search_ranges_groupbox)
-        self.gridLayout_4.addWidget(self.search_ranges_0, 0, 2, 1, 1)
-        self.search_ranges_0.setValidator(self.int_validator)
+        self.SearchRanges0Label = QtGui.QLabel(self.SearchRangesGB)
+        self.SearchRanges0 = QtGui.QLineEdit(self.SearchRangesGB)
+        self.SearchRanges0.setValidator(self.IntValidator)
         
-        self.search_ranges_90_label = QtGui.QLabel(self.search_ranges_groupbox)
-        self.gridLayout_4.addWidget(self.search_ranges_90_label, 1, 1, 1, 1)
+        self.SearchRanges90Label = QtGui.QLabel(self.SearchRangesGB)
+        self.SearchRanges90 = QtGui.QLineEdit(self.SearchRangesGB)
+        self.SearchRanges90.setValidator(self.IntValidator)
+        self.SearchRangesVLabel = QtGui.QLabel(self.SearchRangesGB)
+        self.SearchRangesV = QtGui.QLineEdit(self.SearchRangesGB)
+        self.SearchRangesV.setValidator(self.IntValidator)
+        SearchRangesSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        SearchRangesSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        self.search_ranges_90 = QtGui.QLineEdit(self.search_ranges_groupbox)
-        self.search_ranges_90.setValidator(self.int_validator)
-        self.gridLayout_4.addWidget(self.search_ranges_90, 1, 2, 1, 1)
+        self.SearchRangesWidgets = [self.SearchRanges0Label, self.SearchRanges0,
+                                    self.SearchRanges90Label, self.SearchRanges90,
+                                    self.SearchRangesVLabel, self.SearchRangesV,
+                                    SearchRangesSpacerL, SearchRangesSpacerR]
+        self.SearchRangesWidgetsPlaces = [[0,1,1,1], [0,2,1,1],
+                                          [1,1,1,1], [1,2,1,1],
+                                          [2,1,2,1], [2,2,1,1],
+                                          [1,0,1,1], [1,3,1,1]]
         
-        self.search_ranges_v_label = QtGui.QLabel(self.search_ranges_groupbox)
-        self.gridLayout_4.addWidget(self.search_ranges_v_label, 2, 1, 1, 1)
+        self.InterpolationGB = QtGui.QGroupBox(self.Tab3)
+        self.InterpolationLayout = QtGui.QGridLayout(self.InterpolationGB)
         
-        self.search_ranges_v = QtGui.QLineEdit(self.search_ranges_groupbox)
-        self.gridLayout_4.addWidget(self.search_ranges_v, 2, 2, 1, 1)
-        self.search_ranges_v.setValidator(self.int_validator)
+        self.InterpolationPointsLabel = QtGui.QLabel(self.InterpolationGB)
+        self.InterpolationPoints = QtGui.QLineEdit(self.InterpolationGB)
+        self.InterpolationPoints.setValidator(self.IntValidator)
+        self.MeanValueLabel = QtGui.QLabel(self.InterpolationGB)
+        self.MeanValue = QtGui.QLineEdit(self.InterpolationGB)
+        self.MeanValue.setValidator(self.double_validator)
+        InterpolationSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        InterpolationSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        spacerItem22 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_4.addItem(spacerItem22, 1, 0, 1, 1)
-        spacerItem23 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_4.addItem(spacerItem23, 1, 3, 1, 1)
-
-        self.gridLayout_12.addWidget(self.search_ranges_groupbox, 1, 0, 1, 1)
-        self.interpolation_groupbox = QtGui.QGroupBox(self.tab3)
-        self.gridLayout_9 = QtGui.QGridLayout(self.interpolation_groupbox)
+        self.InterpolationWidgets = [self.InterpolationPointsLabel, self.InterpolationPoints,
+                                     self.MeanValueLabel, self.MeanValue,
+                                     InterpolationSpacerL, InterpolationSpacerR]
+        self.InterpolationWidgetsPlaces = [[0,1,1,1], [0,2,1,1],
+                                           [1,1,1,1], [1,2,1,1],
+                                           [0,0,1,1], [0,3,1,1]]
         
-        self.interpolation_points_label = QtGui.QLabel(self.interpolation_groupbox)
-        self.gridLayout_9.addWidget(self.interpolation_points_label, 0, 1, 1, 1)
+        self.RunGB = QtGui.QGroupBox(self.Tab3)
+        self.RunLayout = QtGui.QGridLayout(self.RunGB)
         
-        self.interpolation_points = QtGui.QLineEdit(self.interpolation_groupbox)
-        self.gridLayout_9.addWidget(self.interpolation_points, 0, 2, 1, 1)
-        self.interpolation_points.setValidator(self.int_validator)
+        self.RunButton = QtGui.QPushButton(self.RunGB)
+        self.RunButton.setDisabled(1)
+        self.SaveButton = QtGui.QPushButton(self.RunGB)
+        self.SaveButton.setDisabled(1)
+        RunSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        RunSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        RunSpacerD = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         
-        self.mean_value_label = QtGui.QLabel(self.interpolation_groupbox)
-        self.gridLayout_9.addWidget(self.mean_value_label, 1, 1, 1, 1)
+        self.RunWidgets = [self.RunButton, self.SaveButton,
+                           RunSpacerL, RunSpacerR, RunSpacerD]
+        self.RunWidgetsPlaces = [[0,1,1,1], [0,2,1,1],
+                                 [0,0,1,1], [0,3,1,1], [2,0,1,2]]       
         
-        self.mean_value = QtGui.QLineEdit(self.interpolation_groupbox)
-        self.gridLayout_9.addWidget(self.mean_value, 1, 2, 1, 1)
-        self.mean_value.setValidator(self.double_validator)
+        self.AlgorithmTypeGB = QtGui.QGroupBox(self.Tab3)
+        self.AlgorithmTypeLayout = QtGui.QGridLayout(self.AlgorithmTypeGB)
         
-        spacerItem24 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_9.addItem(spacerItem24, 0, 0, 1, 1)
-        spacerItem25 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_9.addItem(spacerItem25, 0, 3, 1, 1)
-
-        self.gridLayout_12.addWidget(self.interpolation_groupbox, 1, 1, 1, 1)
-        self.run_groupbox = QtGui.QGroupBox(self.tab3)
-        self.gridLayout_13 = QtGui.QGridLayout(self.run_groupbox)
+        self.AlgorithmTypeLabel = QtGui.QLabel(self.AlgorithmTypeGB)        
+        self.AlgorithmType = QtGui.QComboBox(self.AlgorithmTypeGB)
+        for i in xrange(0, self.AlgorithmCount):
+            self.AlgorithmType.addItem("")        
+        AlgorithmTypeSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        AlgorithmTypeSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        self.run_button = QtGui.QPushButton(self.run_groupbox)
-        self.run_button.setDisabled(1)
-        self.gridLayout_13.addWidget(self.run_button, 0, 1, 1, 1)
+        self.AlgorithmTypeWidgets = [self.AlgorithmTypeLabel, self.AlgorithmType,
+                                     AlgorithmTypeSpacerL, AlgorithmTypeSpacerR]
+        self.AlgorithmTypeWidgetsPlaces = [[0,1,1,1], [0,2,1,1],
+                                           [0,0,1,1], [0,3,1,1]]
         
-        self.save_button = QtGui.QPushButton(self.run_groupbox)
-        self.save_button.setDisabled(1)
-        self.gridLayout_13.addWidget(self.save_button, 0, 2, 1, 1)
         
-        spacerItem26 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_13.addItem(spacerItem26, 0, 0, 1, 1)
-        spacerItem27 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_13.addItem(spacerItem27, 0, 3, 1, 1)
-        spacerItem28 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_13.addItem(spacerItem28, 1, 1, 1, 1)
-
-        self.gridLayout_12.addWidget(self.run_groupbox, 2, 0, 1, 2)
-        self.algorithm_type_groupbox = QtGui.QGroupBox(self.tab3)
-        self.horizontalLayout_4 = QtGui.QHBoxLayout(self.algorithm_type_groupbox)
-        spacerItem29 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_4.addItem(spacerItem29)
-        spacerItem30 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_4.addItem(spacerItem30)
+        Tab3Spacer = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         
-        self.algorithm_type_label = QtGui.QLabel(self.algorithm_type_groupbox)
-        self.horizontalLayout_4.addWidget(self.algorithm_type_label)
+        self.Tab3Widgets = [self.AlgorithmTypeGB, self.LoadedCubesGB,
+                            self.SearchRangesGB, self.InterpolationGB,
+                            self.RunGB, Tab3Spacer]
+        self.Tab3WidgetsPlaces = [[0,0,1,1],[0,1,1,1],
+                                  [1,0,1,1],[1,1,1,1],
+                                  [2,0,1,2],[3,1,1,1]]
         
-        self.algorithm_type = QtGui.QComboBox(self.algorithm_type_groupbox)
-        for i in xrange(0, self.algorithm_count):
-            self.algorithm_type.addItem("")
-        self.horizontalLayout_4.addWidget(self.algorithm_type)
-        
-        spacerItem31 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_4.addItem(spacerItem31)
-        self.gridLayout_12.addWidget(self.algorithm_type_groupbox, 0, 0, 1, 1)
-        self.tabWidget.addTab(self.tab3, "")
+        self.place_widgets_at_places(self.LoadedCubesLayout, self.LoadedCubesWidgets, self.LoadedCubesWidgetsPlaces)
+        self.place_widgets_at_places(self.InterpolationLayout, self.InterpolationWidgets, self.InterpolationWidgetsPlaces)
+        self.place_widgets_at_places(self.SearchRangesLayout, self.SearchRangesWidgets, self.SearchRangesWidgetsPlaces)
+        self.place_widgets_at_places(self.AlgorithmTypeLayout, self.AlgorithmTypeWidgets, self.AlgorithmTypeWidgetsPlaces)
+        self.place_widgets_at_places(self.RunLayout, self.RunWidgets, self.RunWidgetsPlaces) 
+        self.place_widgets_at_places(self.Tab3Layout, self.Tab3Widgets, self.Tab3WidgetsPlaces)
+    
+        self.TabWidget.addTab(self.Tab3, "")
         
         # Other Mainwindow layouths, bars, etc.
-        self.gridLayout_10.addWidget(self.tabWidget, 0, 0, 1, 1)
-        self.progressBar = QtGui.QProgressBar(self.centralwidget)
-        self.progressBar.setProperty("value", 24)
-        self.progressBar.setValue(0)
-        self.progressBar.hide()
-        self.gridLayout_10.addWidget(self.progressBar, 1, 0, 1, 1)
+        self.CentralLayout.addWidget(self.TabWidget, 0, 0, 1, 1)
+        self.ProgressBar = QtGui.QProgressBar(self.CentralWidget)
+        self.ProgressBar.setProperty("value", 24)
+        self.ProgressBar.setValue(0)
+        self.ProgressBar.hide()
+        self.CentralLayout.addWidget(self.ProgressBar, 1, 0, 1, 1)
         
-        self.log_textbox = QtGui.QTextEdit(self.centralwidget)
-        self.log_textbox.setReadOnly(True)
-        self.gridLayout_10.addWidget(self.log_textbox, 2, 0, 1, 1)
-        self.setCentralWidget(self.centralwidget)
+        self.LogTextbox = QtGui.QTextEdit(self.CentralWidget)
+        self.LogTextbox.setReadOnly(True)
+        self.CentralLayout.addWidget(self.LogTextbox, 2, 0, 1, 1)
+        self.setCentralWidget(self.CentralWidget)
         
-        self.menubar = QtGui.QMenuBar()
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 698, 24))
-        self.menu = QtGui.QMenu(self.menubar)
-        self.menuEdit = QtGui.QMenu(self.menubar)
-        self.menuHelp = QtGui.QMenu(self.menubar)
-        self.setMenuBar(self.menubar)
+        self.Menubar = QtGui.QMenuBar()
+        self.Menubar.setGeometry(QtCore.QRect(0, 0, 700, 24))
+        self.Menu = QtGui.QMenu(self.Menubar)
+        self.MenuEdit = QtGui.QMenu(self.Menubar)
+        self.MenuHelp = QtGui.QMenu(self.Menubar)
+        self.setMenuBar(self.Menubar)
         
-        self.statusbar = QtGui.QStatusBar()
-        self.setStatusBar(self.statusbar)
+        self.Statusbar = QtGui.QStatusBar()
+        self.setStatusBar(self.Statusbar)
         
-        self.actionExit = QtGui.QAction(self)
-        self.actionAbout = QtGui.QAction(self)
-        self.actionPreferences = QtGui.QAction(self)
-        self.menu.addAction(self.actionExit)
-        self.menuEdit.addAction(self.actionPreferences)
-        self.menuHelp.addAction(self.actionAbout)
-        self.menubar.addAction(self.menu.menuAction())
-        self.menubar.addAction(self.menuEdit.menuAction())
-        self.menubar.addAction(self.menuHelp.menuAction())
+        self.ActionExit = QtGui.QAction(self)
+        self.ActionAbout = QtGui.QAction(self)
+        self.ActionPreferences = QtGui.QAction(self)
+        self.Menu.addAction(self.ActionExit)
+        self.MenuEdit.addAction(self.ActionPreferences)
+        self.MenuHelp.addAction(self.ActionAbout)
+        self.Menubar.addAction(self.Menu.menuAction())
+        self.Menubar.addAction(self.MenuEdit.menuAction())
+        self.Menubar.addAction(self.MenuHelp.menuAction())
         
-        self.retranslateUi(self)
-        self.tabWidget.setCurrentIndex(0)
+        self.RetranslateUI(self)
+        self.TabWidget.setCurrentIndex(0)
         
         # Signals and slots
-        QtCore.QObject.connect(self.ind_values_checkbox, QtCore.SIGNAL("toggled(bool)"), self.ind_values.setEnabled)
-        QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL("triggered()"), self.close)
-        QtCore.QObject.connect(self.load_cube_btn, QtCore.SIGNAL("clicked()"), self.cube_load)
-        QtCore.QObject.connect(self.run_button, QtCore.SIGNAL("clicked()"), self.algorithm_run)
-        QtCore.QObject.connect(self.grid_size_x, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
-        QtCore.QObject.connect(self.grid_size_y, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
-        QtCore.QObject.connect(self.grid_size_z, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
-        QtCore.QObject.connect(self.cube_delete_btn, QtCore.SIGNAL("clicked()"), self.delete_cube)
-        QtCore.QObject.connect(self.save_button, QtCore.SIGNAL("clicked()"), self.sk_result_save)
+        QtCore.QObject.connect(self.IndValuesCheckbox, QtCore.SIGNAL("toggled(bool)"), self.IndValues.setEnabled)
+        QtCore.QObject.connect(self.ActionExit, QtCore.SIGNAL("triggered()"), self.close)
+        QtCore.QObject.connect(self.LoadCubeButton, QtCore.SIGNAL("clicked()"), self.cube_load)
+        QtCore.QObject.connect(self.RunButton, QtCore.SIGNAL("clicked()"), self.algorithm_run)
+        QtCore.QObject.connect(self.GridSizeX, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
+        QtCore.QObject.connect(self.GridSizeY, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
+        QtCore.QObject.connect(self.GridSizeZ, QtCore.SIGNAL("textChanged(QString)"), self.cube_load_access)
+        QtCore.QObject.connect(self.CubeDeleteButton, QtCore.SIGNAL("clicked()"), self.delete_cube)
+        QtCore.QObject.connect(self.SaveButton, QtCore.SIGNAL("clicked()"), self.sk_result_save)
         QtCore.QMetaObject.connectSlotsByName(self)
+        
+    def place_widgets_at_places(self, layout, widgets, places):
+        self.layout = layout
+        self.widgets = widgets
+        self.places = places
+        for i in xrange(len(self.widgets)):
+            if type(self.widgets[i]) == type(self.GridSizeSpacerL):
+                self.layout.addItem(widgets[i], places[i][0], places[i][1], places[i][2], places[i][3])
+            else:
+                self.layout.addWidget(widgets[i], places[i][0], places[i][1], places[i][2], places[i][3])
 
     def delete_cube(self):
-        self.current_index = self.loaded_cubes_tab1.currentIndex()
-        del (self.cubes[self.current_index])
-        self.loaded_cubes_tab1.removeItem(self.current_index)
-        self.loaded_cubes.removeItem(self.current_index)
-        self.log_textbox.insertPlainText('Cube deleted\n')
-        if self.loaded_cubes_tab1.count() == 0:
-            self.run_button.setDisabled(1)
-            self.cube_delete_btn.setDisabled(1)
+        self.current_index = self.LoadedCubesTab1.currentIndex()
+        del (self.Cubes[self.current_index])
+        self.LoadedCubesTab1.removeItem(self.current_index)
+        self.LoadedCubes.removeItem(self.current_index)
+        self.LogTextbox.insertPlainText('Cube deleted\n')
+        if self.LoadedCubesTab1.count() == 0:
+            self.RunButton.setDisabled(1)
+            self.CubeDeleteButton.setDisabled(1)
 
     def update_ui(self, string):
-        self.log_textbox.insertPlainText("%s"%unicode(string))
+        self.LogTextbox.insertPlainText("%s"%unicode(string))
         
     def update_progress(self, value):
-        self.progressBar.setValue(int(value))
+        self.ProgressBar.setValue(int(value))
         
     def cube_load_access(self):
-        if int(self.grid_size_x.text()) > 0 and int(self.grid_size_y.text()) > 0 and int(self.grid_size_z.text()) > 0:
-            self.load_cube_btn.setEnabled(1)
+        if int(self.GridSizeX.text()) > 0 and int(self.GridSizeY.text()) > 0 and int(self.GridSizeZ.text()) > 0:
+            self.LoadCubeButton.setEnabled(1)
             
-    def sk_result(self, result):
-        self.result = result
-        self.run_button.setEnabled(1)
-        if self.result != None:
-            self.save_button.setEnabled(1)
-            self.result_values = [self.cubes[self.curr_cube][1], self.cubes[self.curr_cube][2]]
+    def sk_result(self, Result):
+        self.Result = Result
+        self.RunButton.setEnabled(1)
+        if self.Result != None:
+            self.SaveButton.setEnabled(1)
+            self.Result_values = [self.Cubes[self.curr_cube][1], self.Cubes[self.curr_cube][2]]
         
     def sk_result_save(self):
-        if self.result != None:
+        if self.Result != None:
             self.fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ... ')
-            if self.fname and self.result_values[1] != None:
-                write_property( self.result, str(self.fname), "SK_RESULT", self.result_values[1], self.result_values[0] )
-            elif self.fname and self.result_values[1] == None:
-                write_property( self.result, str(self.fname), "SK_RESULT", self.result_values[0] )
-            self.result_was_saved = 1
+            if self.fname and self.Result_values[1] != None:
+                write_property( self.Result, str(self.fname), "SK_RESULT", self.Result_values[1], self.Result_values[0] )
+            elif self.fname and self.Result_values[1] == None:
+                write_property( self.Result, str(self.fname), "SK_RESULT", self.Result_values[0] )
+            self.Result_was_saved = 1
     
     def cube_load(self):
-        self.log_textbox.clear()
-        if self.grid_size_x.text() == "":
-            self.log_textbox.insertPlainText('"Grid size x" is empty\n')
-        elif self.grid_size_y.text() == "":
-            self.log_textbox.insertPlainText('"Grid size y" is empty\n')
-        elif self.grid_size_z.text() == "":
-            self.log_textbox.insertPlainText('"Grid size z" is empty\n')
-        elif self.undef_value.text() == "":
-            self.log_textbox.insertPlainText('"Undefined value" is empty\n')
+        self.LogTextbox.clear()
+        if self.GridSizeX.text() == "":
+            self.LogTextbox.insertPlainText('"Grid size x" is empty\n')
+        elif self.GridSizeY.text() == "":
+            self.LogTextbox.insertPlainText('"Grid size y" is empty\n')
+        elif self.GridSizeZ.text() == "":
+            self.LogTextbox.insertPlainText('"Grid size z" is empty\n')
+        elif self.UndefValue.text() == "":
+            self.LogTextbox.insertPlainText('"Undefined value" is empty\n')
         else :
             filename = QtGui.QFileDialog.getOpenFileName(self, 'Select file')
             if filename:
-                self.loaded_cube_fname = re.search('(.*\/)([\w.]*)|(.*\\)([\w.]*)',filename) # For Linux and Win paths
+                self.loaded_cube_fname = re.search('(.*\/)([\w.]*)', filename) 
                 self.loaded_cube_fname = self.loaded_cube_fname.group(self.loaded_cube_fname.lastindex)
-                self.cube_was_chosen = 1
-                self.log_textbox.insertPlainText("Selected cube: " + self.loaded_cube_fname +'\n')
+                self.CubeWasChosen = 1
+                self.LogTextbox.insertPlainText("Selected cube: " + self.loaded_cube_fname +'\n')
                 
-                self.grid_object = SugarboxGrid( int(self.grid_size_x.text()), int(self.grid_size_y.text()), int(self.grid_size_z.text()) )
-                self.grid_size = ( int(self.grid_size_x.text()), int(self.grid_size_y.text()), int(self.grid_size_z.text()) )
-                self.undefined_value = int(self.undef_value.text())
-                if self.ind_values_checkbox.isChecked():
-                    self.indicator_value = range(int(self.ind_values.text()))
+                self.GridObject = SugarboxGrid( int(self.GridSizeX.text()), int(self.GridSizeY.text()), int(self.GridSizeZ.text()) )
+                self.GridSize = ( int(self.GridSizeX.text()), int(self.GridSizeY.text()), int(self.GridSizeZ.text()) )
+                self.undefined_value = int(self.UndefValue.text())
+                if self.IndValuesCheckbox.isChecked():
+                    self.indicator_value = range(int(self.IndValues.text()))
                 else:
-                        self.indicator_value = None
+                    self.indicator_value = None
             
-                if self.ind_values_checkbox.isChecked():
-                    self.log_textbox.insertPlainText('Loaded cube with indicator values\n')
-                    self.cube_was_chosen = 0
+                if self.IndValuesCheckbox.isChecked():
+                    self.LogTextbox.insertPlainText('Loaded cube with indicator values\n')
+                    self.CubeWasChosen = 0
                 
                     # Starting load indicator cube with HPGL
-                    self.prop = load_ind_property(str(filename), self.undefined_value, self.indicator_value, self.grid_size)
+                    self.Prop = load_ind_property(str(filename), self.undefined_value, self.indicator_value, self.GridSize)
                     
-                elif self.ind_values_checkbox.isChecked() == 0:
-                    self.log_textbox.insertPlainText('Loaded cube\n')
-                    self.cube_was_chosen = 0
+                elif self.IndValuesCheckbox.isChecked() == 0:
+                    self.LogTextbox.insertPlainText('Loaded cube\n')
+                    self.CubeWasChosen = 0
                 
                     # Starting load cube with HPGL
-                    self.prop = load_cont_property( str(filename), self.undefined_value, self.grid_size )
-                    if self.prop != None:
-                        self.run_button.setEnabled(1)
-                        self.loaded_cubes_tab1.addItem(self.loaded_cube_fname)
-                        self.loaded_cubes.addItem(self.loaded_cube_fname)
-                        self.cubes.append([self.prop, self.undefined_value, self.indicator_value])
-                        del(self.prop)
-                        self.cube_delete_btn.setEnabled(1)
+                    self.Prop = load_cont_property( str(filename), self.undefined_value, self.GridSize )
+                    if self.Prop != None:
+                        self.RunButton.setEnabled(1)
+                        self.LoadedCubesTab1.addItem(self.loaded_cube_fname)
+                        self.LoadedCubes.addItem(self.loaded_cube_fname)
+                        self.Cubes.append([self.Prop, self.undefined_value, self.indicator_value])
+                        del(self.Prop)
+                        self.CubeDeleteButton.setEnabled(1)
             else:
-                self.log_textbox.insertPlainText("Cube not chosen\n")
+                self.LogTextbox.insertPlainText("Cube not chosen\n")
 
     
     def algorithm_run(self):
-        if self.ellipsoid_ranges_0.text() == "":
-            self.log_textbox.insertPlainText('"Ellipsoid ranges 0" is empty\n')
-        elif self.ellipsoid_ranges_90.text() == "":
-            self.log_textbox.insertPlainText('"Ellipsoid ranges 90" is empty\n')
-        elif self.ellipsoid_ranges_v.text() == "":
-            self.log_textbox.insertPlainText('"Ellipsoid ranges vertical" is empty\n')
-        elif self.ellipsoid_angles_x.text() == "":
-            self.log_textbox.insertPlainText('"Ellipsoid angles x" is empty\n')
-        elif self.ellipsoid_angles_y.text() == "":
-            self.log_textbox.insertPlainText('"Ellipsoid angles y" is empty\n')
-        elif self.ellipsoid_angles_z.text() == "":
-            self.log_textbox.insertPlainText('"Ellipsoid angles z" is empty\n')
-        elif self.sill_value.text() == "":
-            self.log_textbox.insertPlainText('"Sill value" is empty\n')
-        elif self.nugget_value.text() == "":
-            self.log_textbox.insertPlainText('"Nugget effect value" is empty\n')
+        if self.EllipsoidRanges0.text() == "":
+            self.LogTextbox.insertPlainText('"Ellipsoid ranges 0" is empty\n')
+        elif self.EllipsoidRanges90.text() == "":
+            self.LogTextbox.insertPlainText('"Ellipsoid ranges 90" is empty\n')
+        elif self.EllipsoidRangesV.text() == "":
+            self.LogTextbox.insertPlainText('"Ellipsoid ranges vertical" is empty\n')
+        elif self.EllipsoidAnglesX.text() == "":
+            self.LogTextbox.insertPlainText('"Ellipsoid angles x" is empty\n')
+        elif self.EllipsoidAnglesY.text() == "":
+            self.LogTextbox.insertPlainText('"Ellipsoid angles y" is empty\n')
+        elif self.EllipsoidAnglesZ.text() == "":
+            self.LogTextbox.insertPlainText('"Ellipsoid angles z" is empty\n')
+        elif self.SillValue.text() == "":
+            self.LogTextbox.insertPlainText('"Sill value" is empty\n')
+        elif self.NuggetValue.text() == "":
+            self.LogTextbox.insertPlainText('"Nugget effect value" is empty\n')
         else :
-            if self.algorithm_type.currentIndex() == 0:
-                if self.search_ranges_0.text() == "":
-                    self.log_textbox.insertPlainText('"Search ranges 0" is empty\n')
-                elif self.search_ranges_90.text() == "":
-                    self.log_textbox.insertPlainText('"Search ranges 90" is empty\n')
-                elif self.search_ranges_v.text() == "":
-                    self.log_textbox.insertPlainText('"Search ranges vertical" is empty\n')
-                elif self.interpolation_points.text() == "":
-                    self.log_textbox.insertPlainText('"Interpolation points" is empty\n')
-                elif self.mean_value.text() == "":
-                    self.log_textbox.insertPlainText('"Mean value" is empty\n')
-                elif self.loaded_cubes.count() == 0:
-                    self.log_textbox.insertPlainText('No cubes loaded!\n')
+            if self.AlgorithmType.currentIndex() == 0:
+                if self.SearchRanges0.text() == "":
+                    self.LogTextbox.insertPlainText('"Search ranges 0" is empty\n')
+                elif self.SearchRanges90.text() == "":
+                    self.LogTextbox.insertPlainText('"Search ranges 90" is empty\n')
+                elif self.SearchRangesV.text() == "":
+                    self.LogTextbox.insertPlainText('"Search ranges vertical" is empty\n')
+                elif self.InterpolationPoints.text() == "":
+                    self.LogTextbox.insertPlainText('"Interpolation points" is empty\n')
+                elif self.MeanValue.text() == "":
+                    self.LogTextbox.insertPlainText('"Mean value" is empty\n')
+                elif self.LoadedCubes.count() == 0:
+                    self.LogTextbox.insertPlainText('No Cubes loaded!\n')
                 else :
-                    self.log_textbox.insertPlainText("Starting Simple Kriging Algorithm\n")
-                    self.progressBar.show()
+                    self.LogTextbox.insertPlainText("Starting Simple Kriging Algorithm\n")
+                    self.ProgressBar.show()
                     
                     # Variogram
-                    self.variogram_ranges = ( int(self.ellipsoid_ranges_0.text()), int(self.ellipsoid_ranges_90.text()), int(self.ellipsoid_ranges_v.text()) )
-                    self.variogram_angles = ( int(self.ellipsoid_angles_x.text()), int(self.ellipsoid_angles_y.text()), int(self.ellipsoid_angles_z.text()) )
-                    self.variogram = geo.CovarianceModel( int(self.variogram_type.currentIndex()), self.variogram_ranges, 
-                                                      self.variogram_angles, int(self.sill_value.text()), int(self.nugget_value.text()) )
+                    self.Variogram_ranges = ( int(self.EllipsoidRanges0.text()), int(self.EllipsoidRanges90.text()), int(self.EllipsoidRangesV.text()) )
+                    self.Variogram_angles = ( int(self.EllipsoidAnglesX.text()), int(self.EllipsoidAnglesY.text()), int(self.EllipsoidAnglesZ.text()) )
+                    self.Variogram = geo.CovarianceModel( int(self.VariogramType.currentIndex()), self.Variogram_ranges, 
+                                                      self.Variogram_angles, int(self.SillValue.text()), int(self.NuggetValue.text()) )
                     
                     # Simple Kriging
                     
-                    self.ellipsoid_ranges = ( int(self.ellipsoid_ranges_0.text()), int(self.ellipsoid_ranges_90.text()), int(self.ellipsoid_ranges_v.text()) )
-                    self.curr_cube = self.loaded_cubes.currentIndex()
-                    self.new_thread = algorithm_thread( self.cubes[self.curr_cube][0], self.grid_object, self.ellipsoid_ranges, int(self.interpolation_points.text()),
-                                                        self.variogram, float(self.mean_value.text()), self.cubes[self.curr_cube][1] )
+                    self.EllipsoidRanges = ( int(self.EllipsoidRanges0.text()), int(self.EllipsoidRanges90.text()), int(self.EllipsoidRangesV.text()) )
+                    self.curr_cube = self.LoadedCubes.currentIndex()
+                    self.new_thread = algorithm_thread( self.Cubes[self.curr_cube][0], self.GridObject, self.EllipsoidRanges, int(self.InterpolationPoints.text()),
+                                                        self.Variogram, float(self.MeanValue.text()), self.Cubes[self.curr_cube][1] )
                     
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("msg(QString)"), self.update_ui)
                     QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("progress(QString)"), self.update_progress)
-                    QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("result(PyQt_PyObject)"), self.sk_result)
+                    QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("Result(PyQt_PyObject)"), self.sk_result)
                     self.new_thread.start()
-                    self.run_button.setDisabled(1)
+                    self.RunButton.setDisabled(1)
                     
-            elif self.algorithm_type.currentIndex() == 2:
-                self.log_textbox.insertPlainText("Starting Ordinary Kriging Algorithm\n")
-
-    def save_result(self, result):
-        self.result = result
-        self.output_filename = QtGui.QFileDialog.getSaveFileName(self, caption = QtCore.QString("Save file as") )
-        if self.output_filename and self.ind_values_checkbox.isChecked():
-            write_property( self.result, self.output_filename, "SK_RESULT", int(self.undef_value.text()), int(self.ind_values.text()) )
-        elif self.output_filename and self.ind_values_checkbox.isChecked() == 0:
-            write_property( self.result, self.output_filename, "SK_RESULT", int(self.undef_value.text()) )
+            elif self.AlgorithmType.currentIndex() == 2:
+                self.LogTextbox.insertPlainText("Starting Ordinary Kriging Algorithm\n")
         
-    def retranslateUi(self, MainWindow):
-        #self.setWindowTitle(QtGui.QApplication.translate("MainWindow", "HPGL GUI", None, QtGui.QApplication.UnicodeUTF8))
+    def RetranslateUI(self, MainWindow):
+        self.setWindowTitle(QtGui.QApplication.translate("MainWindow", "HPGL GUI", None, QtGui.QApplication.UnicodeUTF8))
         
         # Tab 1
-        self.grid_size_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Grid Size", None, QtGui.QApplication.UnicodeUTF8))
-        self.grid_size_x_label.setText(QtGui.QApplication.translate("MainWindow", "x", None, QtGui.QApplication.UnicodeUTF8))
-        self.grid_size_x.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.grid_size_y_label.setText(QtGui.QApplication.translate("MainWindow", "y", None, QtGui.QApplication.UnicodeUTF8))
-        self.grid_size_y.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.grid_size_z_label.setText(QtGui.QApplication.translate("MainWindow", "z", None, QtGui.QApplication.UnicodeUTF8))
-        self.grid_size_z.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.manage_cubes_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Manage cubes", None, QtGui.QApplication.UnicodeUTF8))
-        self.cube_delete_btn.setText(QtGui.QApplication.translate("MainWindow", "Delete", None, QtGui.QApplication.UnicodeUTF8))
-        self.ind_values_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Indicator value", None, QtGui.QApplication.UnicodeUTF8))
-        self.ind_values_checkbox.setText(QtGui.QApplication.translate("MainWindow", "Indicator values", None, QtGui.QApplication.UnicodeUTF8))
-        self.undef_value_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Undefined value", None, QtGui.QApplication.UnicodeUTF8))
-        self.undef_value_label.setText(QtGui.QApplication.translate("MainWindow", "Undefined value", None, QtGui.QApplication.UnicodeUTF8))
-        self.undef_value.setText(QtGui.QApplication.translate("MainWindow", "-99", None, QtGui.QApplication.UnicodeUTF8))
-        self.load_cube_btn.setText(QtGui.QApplication.translate("MainWindow", "Load cube", None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab1), QtGui.QApplication.translate("MainWindow", "Load cube", None, QtGui.QApplication.UnicodeUTF8))
+        self.GridSizeGB.setTitle(QtGui.QApplication.translate("MainWindow", "Grid Size", None, QtGui.QApplication.UnicodeUTF8))
+        self.GridSizeXLabel.setText(QtGui.QApplication.translate("MainWindow", "x", None, QtGui.QApplication.UnicodeUTF8))
+        self.GridSizeX.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
+        self.GridSizeYLabel.setText(QtGui.QApplication.translate("MainWindow", "y", None, QtGui.QApplication.UnicodeUTF8))
+        self.GridSizeY.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
+        self.GridSizeZLabel.setText(QtGui.QApplication.translate("MainWindow", "z", None, QtGui.QApplication.UnicodeUTF8))
+        self.GridSizeZ.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
+        self.ManageCubesGB.setTitle(QtGui.QApplication.translate("MainWindow", "Manage Cubes", None, QtGui.QApplication.UnicodeUTF8))
+        self.CubeDeleteButton.setText(QtGui.QApplication.translate("MainWindow", "Delete", None, QtGui.QApplication.UnicodeUTF8))
+        self.IndValuesGB.setTitle(QtGui.QApplication.translate("MainWindow", "Indicator value", None, QtGui.QApplication.UnicodeUTF8))
+        self.IndValuesCheckbox.setText(QtGui.QApplication.translate("MainWindow", "Indicator values", None, QtGui.QApplication.UnicodeUTF8))
+        self.UndefValueGB.setTitle(QtGui.QApplication.translate("MainWindow", "Undefined value", None, QtGui.QApplication.UnicodeUTF8))
+        self.UndefValueLabel.setText(QtGui.QApplication.translate("MainWindow", "Undefined value", None, QtGui.QApplication.UnicodeUTF8))
+        self.UndefValue.setText(QtGui.QApplication.translate("MainWindow", "-99", None, QtGui.QApplication.UnicodeUTF8))
+        self.LoadCubeButton.setText(QtGui.QApplication.translate("MainWindow", "Load cube", None, QtGui.QApplication.UnicodeUTF8))
+        self.TabWidget.setTabText(self.TabWidget.indexOf(self.Tab1), QtGui.QApplication.translate("MainWindow", "Load cube", None, QtGui.QApplication.UnicodeUTF8))
         
         # Tab 2
-        self.variogram_type_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Variogram type", None, QtGui.QApplication.UnicodeUTF8))
-        self.variogram_type_label.setText(QtGui.QApplication.translate("MainWindow", "Type", None, QtGui.QApplication.UnicodeUTF8))
-        self.variogram_types = ['Spherical', 'Exponential', 'Gaussian']
-        for i in xrange(len(self.variogram_types)):
-            self.variogram_type.setItemText(i, QtGui.QApplication.translate("MainWindow", self.variogram_types[i], None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_ranges_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Ellipsoid ranges", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_ranges_0_label.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_ranges_0.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_ranges_90_label.setText(QtGui.QApplication.translate("MainWindow", "90", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_ranges_90.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_ranges_v_label.setText(QtGui.QApplication.translate("MainWindow", "Vertical", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_ranges_v.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_angles.setTitle(QtGui.QApplication.translate("MainWindow", "Ellipsoid angles", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_angles_x_label.setText(QtGui.QApplication.translate("MainWindow", "x", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_angles_x.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_angles_y.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_angles_z_label.setText(QtGui.QApplication.translate("MainWindow", "z", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_angles_z.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.ellipsoid_angles_y_label.setText(QtGui.QApplication.translate("MainWindow", "y", None, QtGui.QApplication.UnicodeUTF8))
-        self.nugget_effect_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Sill value and nugget-effect", None, QtGui.QApplication.UnicodeUTF8))
-        self.sill_value_label.setText(QtGui.QApplication.translate("MainWindow", "Sill value", None, QtGui.QApplication.UnicodeUTF8))
-        self.sill_value.setText(QtGui.QApplication.translate("MainWindow", "1", None, QtGui.QApplication.UnicodeUTF8))
-        self.nugget_value_label.setText(QtGui.QApplication.translate("MainWindow", "\"Nugget\" effect value", None, QtGui.QApplication.UnicodeUTF8))
-        self.nugget_value.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab2), QtGui.QApplication.translate("MainWindow", "Variogram", None, QtGui.QApplication.UnicodeUTF8))
+        self.VariogramTypeGB.setTitle(QtGui.QApplication.translate("MainWindow", "Variogram type", None, QtGui.QApplication.UnicodeUTF8))
+        self.VariogramType_label.setText(QtGui.QApplication.translate("MainWindow", "Type", None, QtGui.QApplication.UnicodeUTF8))
+        self.VariogramTypes = ['Spherical', 'Exponential', 'Gaussian']
+        for i in xrange(len(self.VariogramTypes)):
+            self.VariogramType.setItemText(i, QtGui.QApplication.translate("MainWindow", self.VariogramTypes[i], None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidRangesGB.setTitle(QtGui.QApplication.translate("MainWindow", "Ellipsoid ranges", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidRanges0Label.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidRanges0.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidRanges90Label.setText(QtGui.QApplication.translate("MainWindow", "90", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidRanges90.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidRangesVLabel.setText(QtGui.QApplication.translate("MainWindow", "Vertical", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidRangesV.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidAnglesGB.setTitle(QtGui.QApplication.translate("MainWindow", "Ellipsoid angles", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidAnglesXLabel.setText(QtGui.QApplication.translate("MainWindow", "x", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidAnglesX.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidAnglesY.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidAnglesZLabel.setText(QtGui.QApplication.translate("MainWindow", "z", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidAnglesZ.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
+        self.EllipsoidAnglesYLabel.setText(QtGui.QApplication.translate("MainWindow", "y", None, QtGui.QApplication.UnicodeUTF8))
+        self.NuggetEffectGB.setTitle(QtGui.QApplication.translate("MainWindow", "Sill value and nugget-effect", None, QtGui.QApplication.UnicodeUTF8))
+        self.SillValueLabel.setText(QtGui.QApplication.translate("MainWindow", "Sill value", None, QtGui.QApplication.UnicodeUTF8))
+        self.SillValue.setText(QtGui.QApplication.translate("MainWindow", "1", None, QtGui.QApplication.UnicodeUTF8))
+        self.NuggetValueLabel.setText(QtGui.QApplication.translate("MainWindow", "\"Nugget\" effect value", None, QtGui.QApplication.UnicodeUTF8))
+        self.NuggetValue.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
+        self.TabWidget.setTabText(self.TabWidget.indexOf(self.Tab2), QtGui.QApplication.translate("MainWindow", "Variogram", None, QtGui.QApplication.UnicodeUTF8))
         
         # Tab 3
-        self.loaded_cubs_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Cubes", None, QtGui.QApplication.UnicodeUTF8))
-        self.loaded_cubes_label.setText(QtGui.QApplication.translate("MainWindow", "Select cube:", None, QtGui.QApplication.UnicodeUTF8))
-        self.search_ranges_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Search ellipsoid ranges", None, QtGui.QApplication.UnicodeUTF8))
-        self.search_ranges_0_label.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.search_ranges_0.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
-        self.search_ranges_90_label.setText(QtGui.QApplication.translate("MainWindow", "90", None, QtGui.QApplication.UnicodeUTF8))
-        self.search_ranges_90.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
-        self.search_ranges_v_label.setText(QtGui.QApplication.translate("MainWindow", "Vertical", None, QtGui.QApplication.UnicodeUTF8))
-        self.search_ranges_v.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
-        self.interpolation_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Interpolation", None, QtGui.QApplication.UnicodeUTF8))
-        self.interpolation_points_label.setText(QtGui.QApplication.translate("MainWindow", "Maximum interpolation points", None, QtGui.QApplication.UnicodeUTF8))
-        self.interpolation_points.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
-        self.mean_value_label.setText(QtGui.QApplication.translate("MainWindow", "Mean value", None, QtGui.QApplication.UnicodeUTF8))
-        self.mean_value.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
-        self.run_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Solve algorithm", None, QtGui.QApplication.UnicodeUTF8))
-        self.run_button.setText(QtGui.QApplication.translate("MainWindow", "Run", None, QtGui.QApplication.UnicodeUTF8))
-        self.save_button.setText(QtGui.QApplication.translate("MainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
-        self.algorithm_type_groupbox.setTitle(QtGui.QApplication.translate("MainWindow", "Algorithm", None, QtGui.QApplication.UnicodeUTF8))
-        self.algorithm_type_label.setText(QtGui.QApplication.translate("MainWindow", "Algorithm type", None, QtGui.QApplication.UnicodeUTF8))
-        self.algorithm_types = ['Simple Kriging', 'Ordinary Kriging', 'Indicator Kriging', 'LVM Kriging', 
+        self.LoadedCubesGB.setTitle(QtGui.QApplication.translate("MainWindow", "Cubes", None, QtGui.QApplication.UnicodeUTF8))
+        self.LoadedCubesLabel.setText(QtGui.QApplication.translate("MainWindow", "Select cube:", None, QtGui.QApplication.UnicodeUTF8))
+        self.SearchRangesGB.setTitle(QtGui.QApplication.translate("MainWindow", "Search ellipsoid ranges", None, QtGui.QApplication.UnicodeUTF8))
+        self.SearchRanges0Label.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
+        self.SearchRanges0.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
+        self.SearchRanges90Label.setText(QtGui.QApplication.translate("MainWindow", "90", None, QtGui.QApplication.UnicodeUTF8))
+        self.SearchRanges90.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
+        self.SearchRangesVLabel.setText(QtGui.QApplication.translate("MainWindow", "Vertical", None, QtGui.QApplication.UnicodeUTF8))
+        self.SearchRangesV.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
+        self.InterpolationGB.setTitle(QtGui.QApplication.translate("MainWindow", "Interpolation", None, QtGui.QApplication.UnicodeUTF8))
+        self.InterpolationPointsLabel.setText(QtGui.QApplication.translate("MainWindow", "Maximum interpolation points", None, QtGui.QApplication.UnicodeUTF8))
+        self.InterpolationPoints.setText(QtGui.QApplication.translate("MainWindow", "20", None, QtGui.QApplication.UnicodeUTF8))
+        self.MeanValueLabel.setText(QtGui.QApplication.translate("MainWindow", "Mean value", None, QtGui.QApplication.UnicodeUTF8))
+        self.MeanValue.setText(QtGui.QApplication.translate("MainWindow", "0", None, QtGui.QApplication.UnicodeUTF8))
+        self.RunGB.setTitle(QtGui.QApplication.translate("MainWindow", "Solve algorithm", None, QtGui.QApplication.UnicodeUTF8))
+        self.RunButton.setText(QtGui.QApplication.translate("MainWindow", "Run", None, QtGui.QApplication.UnicodeUTF8))
+        self.SaveButton.setText(QtGui.QApplication.translate("MainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
+        self.AlgorithmTypeGB.setTitle(QtGui.QApplication.translate("MainWindow", "Algorithm", None, QtGui.QApplication.UnicodeUTF8))
+        self.AlgorithmTypeLabel.setText(QtGui.QApplication.translate("MainWindow", "Algorithm type", None, QtGui.QApplication.UnicodeUTF8))
+        self.AlgorithmTypes = ['Simple Kriging', 'Ordinary Kriging', 'Indicator Kriging', 'LVM Kriging', 
                                 'Sequantial Indicator Simulation', 'Sequantial Gaussian Simulation']
-        for i in xrange(len(self.algorithm_types)):
-            self.algorithm_type.setItemText(i, QtGui.QApplication.translate("MainWindow", self.algorithm_types[i], None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab3), QtGui.QApplication.translate("MainWindow", "Algorithms", None, QtGui.QApplication.UnicodeUTF8))
+        for i in xrange(len(self.AlgorithmTypes)):
+            self.AlgorithmType.setItemText(i, QtGui.QApplication.translate("MainWindow", self.AlgorithmTypes[i], None, QtGui.QApplication.UnicodeUTF8))
+        self.TabWidget.setTabText(self.TabWidget.indexOf(self.Tab3), QtGui.QApplication.translate("MainWindow", "Algorithms", None, QtGui.QApplication.UnicodeUTF8))
         
         # Menus
-        self.menu.setTitle(QtGui.QApplication.translate("MainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuEdit.setTitle(QtGui.QApplication.translate("MainWindow", "Edit", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuHelp.setTitle(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionExit.setText(QtGui.QApplication.translate("MainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionExit.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+Q", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionAbout.setText(QtGui.QApplication.translate("MainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionPreferences.setText(QtGui.QApplication.translate("MainWindow", "Preferences", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionPreferences.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+P", None, QtGui.QApplication.UnicodeUTF8))
+        self.Menu.setTitle(QtGui.QApplication.translate("MainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
+        self.MenuEdit.setTitle(QtGui.QApplication.translate("MainWindow", "Edit", None, QtGui.QApplication.UnicodeUTF8))
+        self.MenuHelp.setTitle(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
+        self.ActionExit.setText(QtGui.QApplication.translate("MainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
+        self.ActionExit.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+Q", None, QtGui.QApplication.UnicodeUTF8))
+        self.ActionAbout.setText(QtGui.QApplication.translate("MainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
+        self.ActionPreferences.setText(QtGui.QApplication.translate("MainWindow", "Preferences", None, QtGui.QApplication.UnicodeUTF8))
+        self.ActionPreferences.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+P", None, QtGui.QApplication.UnicodeUTF8))
 
 
 if __name__ == "__main__":

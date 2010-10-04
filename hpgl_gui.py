@@ -395,7 +395,7 @@ class MainWindow(QtGui.QMainWindow):
                             self.AlgorithmWidget, self.RunGB, 
                             self.Tab3Spacer]
         self.Tab3WidgetsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1],
-                                  [1, 0, 1, 1], [2, 0, 1, 2], 
+                                  [1, 0, 1, 2], [2, 0, 1, 2], 
                                   [3, 1, 1, 1]]
         
         self.PlaceWidgetsAtPlaces(self.LoadedCubesLayout, self.LoadedCubesWidgets, self.LoadedCubesWidgetsPlaces)

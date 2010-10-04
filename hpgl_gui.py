@@ -8,88 +8,11 @@ from geo_bsd import SugarboxGrid
 from geo_bsd import load_cont_property
 from geo_bsd import load_ind_property
 from geo_bsd import CovarianceModel
-from geo_bsd import set_output_handler
-from geo_bsd import set_progress_handler
-from geo_bsd import simple_kriging
-from geo_bsd import ordinary_kriging
 import re
+from ok_thread import *
+from sk_thread import *
 
-class SKThread(QtCore.QThread):
-    def __init__(self, Prop, GridObject, EllipsoidRanges, IntPoints, Variogram, MeanValue):
-        QtCore.QThread.__init__(self)
-        
-        self.Prop = Prop
-        self.GridObject = GridObject
-        self.EllipsoidRanges = EllipsoidRanges
-        self.IntPoints = IntPoints
-        self.Variogram = Variogram
-        self.MeanValue = MeanValue
-        
-    def Run(self):
-        '''Runs thread'''
-        set_output_handler(self.OutputLog, None)
-        set_progress_handler(self.ProgressShow, None)
-        self.Result = simple_kriging( self.Prop, self.GridObject, self.EllipsoidRanges, 
-                                      self.IntPoints, self.Variogram, self.MeanValue )
-        self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
-        
-    def OutputLog(self, string, _):
-        '''Emits HPGL logs to main thread'''
-        self.StrForLog = string
-        self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(self.StrForLog))
-        return 0
-        
-    def ProgressShow(self, stage, Percent, _):
-        '''Emits HPGL progress to main thread'''
-        self.Percent = Percent
-        self.stage = stage
-        if self.Percent == 0:
-            print self.stage,
-        elif self.Percent == -1:
-            print ""
-        else:
-            self.OutStr = int(self.Percent)
-            self.OutStr = str(self.OutStr)
-            self.emit(QtCore.SIGNAL("progress(QString)"), QtCore.QString(self.OutStr))
-        return 0
-    
-class OKThread(QtCore.QThread):
-    def __init__(self, Prop, GridObject, EllipsoidRanges, IntPoints, Variogram):
-        QtCore.QThread.__init__(self)
-        
-        self.Prop = Prop
-        self.GridObject = GridObject
-        self.EllipsoidRanges = EllipsoidRanges
-        self.IntPoints = IntPoints
-        self.Variogram = Variogram
-        
-    def Run(self):
-        '''Runs thread'''
-        set_output_handler(self.OutputLog, None)
-        set_progress_handler(self.ProgressShow, None)
-        self.Result = ordinary_kriging( self.Prop, self.GridObject, self.EllipsoidRanges, 
-                                      self.IntPoints, self.Variogram )
-        self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
-        
-    def OutputLog(self, string, _):
-        '''Emits HPGL logs to main thread'''
-        self.StrForLog = string
-        self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(self.StrForLog))
-        return 0
-        
-    def ProgressShow(self, stage, Percent, _):
-        '''Emits HPGL progress to main thread'''
-        self.Percent = Percent
-        self.stage = stage
-        if self.Percent == 0:
-            print self.stage,
-        elif self.Percent == -1:
-            print ""
-        else:
-            self.OutStr = int(self.Percent)
-            self.OutStr = str(self.OutStr)
-            self.emit(QtCore.SIGNAL("progress(QString)"), QtCore.QString(self.OutStr))
-        return 0
+
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
@@ -372,6 +295,7 @@ class MainWindow(QtGui.QMainWindow):
         self.SGSLayout = QtGui.QGridLayout(self.SGSWidget)
         
         self.SKWidgetsInit()
+        self.OKWidgetsInit()
         self.SGSWidgetsInit()
         
         self.RunGB = QtGui.QGroupBox(self.Tab3)
@@ -495,7 +419,7 @@ class MainWindow(QtGui.QMainWindow):
         self.RunButton.setEnabled(1)
         if self.Result != None:
             self.SaveButton.setEnabled(1)
-            self.Result_values = [self.Cubes[self.curr_cube][1], self.Cubes[self.curr_cube][2]]
+            self.Result_values = [self.Cubes[self.CurrCube][1], self.Cubes[self.CurrCube][2]]
 
     def OKResult(self, Result):
         '''Catchs result of algorithm'''
@@ -503,7 +427,7 @@ class MainWindow(QtGui.QMainWindow):
         self.RunButton.setEnabled(1)
         if self.Result != None:
             self.SaveButton.setEnabled(1)
-            self.Result_values = [self.Cubes[self.curr_cube][1], self.Cubes[self.curr_cube][2]]
+            self.Result_values = [self.Cubes[self.CurrCube][1], self.Cubes[self.CurrCube][2]]
         
     def ResultSave(self):
         '''Saves the result of algorithm'''
@@ -516,80 +440,126 @@ class MainWindow(QtGui.QMainWindow):
             self.Result_was_saved = 1
             
     def SKWidgetsInit(self):
-        self.SearchRangesGB = QtGui.QGroupBox(self.SKWidget)
-        self.SearchRangesLayout = QtGui.QGridLayout(self.SearchRangesGB)
+        self.SKSearchRangesGB = QtGui.QGroupBox(self.SKWidget)
+        self.SKSearchRangesLayout = QtGui.QGridLayout(self.SKSearchRangesGB)
         
-        self.SearchRanges0Label = QtGui.QLabel(self.SearchRangesGB)
-        self.SearchRanges0 = QtGui.QLineEdit(self.SearchRangesGB)
-        self.SearchRanges0.setValidator(self.IntValidator)
+        self.SKSearchRanges0Label = QtGui.QLabel(self.SKSearchRangesGB)
+        self.SKSearchRanges0 = QtGui.QLineEdit(self.SKSearchRangesGB)
+        self.SKSearchRanges0.setValidator(self.IntValidator)
+        self.SKSearchRanges90Label = QtGui.QLabel(self.SKSearchRangesGB)
+        self.SKSearchRanges90 = QtGui.QLineEdit(self.SKSearchRangesGB)
+        self.SKSearchRanges90.setValidator(self.IntValidator)
+        self.SKSearchRangesVLabel = QtGui.QLabel(self.SKSearchRangesGB)
+        self.SKSearchRangesV = QtGui.QLineEdit(self.SKSearchRangesGB)
+        self.SKSearchRangesV.setValidator(self.IntValidator)
+        SKSearchRangesSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        SKSearchRangesSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        self.SearchRanges90Label = QtGui.QLabel(self.SearchRangesGB)
-        self.SearchRanges90 = QtGui.QLineEdit(self.SearchRangesGB)
-        self.SearchRanges90.setValidator(self.IntValidator)
-        self.SearchRangesVLabel = QtGui.QLabel(self.SearchRangesGB)
-        self.SearchRangesV = QtGui.QLineEdit(self.SearchRangesGB)
-        self.SearchRangesV.setValidator(self.IntValidator)
-        SearchRangesSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        SearchRangesSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.SKSearchRangesWidgets = [self.SKSearchRanges0Label, self.SKSearchRanges0,
+                                    self.SKSearchRanges90Label, self.SKSearchRanges90,
+                                    self.SKSearchRangesVLabel, self.SKSearchRangesV,
+                                    SKSearchRangesSpacerL, SKSearchRangesSpacerR]
+        self.SKSearchRangesWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
+                                            [1, 1, 1, 1], [1, 2, 1, 1],
+                                            [2, 1, 2, 1], [2, 2, 1, 1],
+                                            [1, 0, 1, 1], [1, 3, 1, 1]]
         
-        self.SearchRangesWidgets = [self.SearchRanges0Label, self.SearchRanges0,
-                                    self.SearchRanges90Label, self.SearchRanges90,
-                                    self.SearchRangesVLabel, self.SearchRangesV,
-                                    SearchRangesSpacerL, SearchRangesSpacerR]
-        self.SearchRangesWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
-                                          [1, 1, 1, 1], [1, 2, 1, 1],
-                                          [2, 1, 2, 1], [2, 2, 1, 1],
-                                          [1, 0, 1, 1], [1, 3, 1, 1]]
+        self.SKInterpolationGB = QtGui.QGroupBox(self.SKWidget)
+        self.SKInterpolationLayout = QtGui.QGridLayout(self.SKInterpolationGB)
         
-        self.InterpolationGB = QtGui.QGroupBox(self.SKWidget)
-        self.InterpolationLayout = QtGui.QGridLayout(self.InterpolationGB)
+        self.SKInterpolationPointsLabel = QtGui.QLabel(self.SKInterpolationGB)
+        self.SKInterpolationPoints = QtGui.QLineEdit(self.SKInterpolationGB)
+        self.SKInterpolationPoints.setValidator(self.IntValidator)
+        self.SKMeanValueLabel = QtGui.QLabel(self.SKInterpolationGB)
+        self.SKMeanValue = QtGui.QLineEdit(self.SKInterpolationGB)
+        self.SKMeanValue.setValidator(self.double_validator)
+        SKInterpolationSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        SKInterpolationSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         
-        self.InterpolationPointsLabel = QtGui.QLabel(self.InterpolationGB)
-        self.InterpolationPoints = QtGui.QLineEdit(self.InterpolationGB)
-        self.InterpolationPoints.setValidator(self.IntValidator)
-        self.MeanValueLabel = QtGui.QLabel(self.InterpolationGB)
-        self.MeanValue = QtGui.QLineEdit(self.InterpolationGB)
-        self.MeanValue.setValidator(self.double_validator)
-        InterpolationSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        InterpolationSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        
-        self.InterpolationWidgets = [self.InterpolationPointsLabel, self.InterpolationPoints,
-                                     self.MeanValueLabel, self.MeanValue,
-                                     InterpolationSpacerL, InterpolationSpacerR]
-        self.InterpolationWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
-                                           [1, 1, 1, 1], [1, 2, 1, 1],
-                                           [0, 0, 1, 1], [0, 3, 1, 1]]
+        self.SKInterpolationWidgets = [self.SKInterpolationPointsLabel, self.SKInterpolationPoints,
+                                     self.SKMeanValueLabel, self.SKMeanValue,
+                                     SKInterpolationSpacerL, SKInterpolationSpacerR]
+        self.SKInterpolationWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
+                                             [1, 1, 1, 1], [1, 2, 1, 1],
+                                             [0, 0, 1, 1], [0, 3, 1, 1]]
         
                                        
-        self.SKWidgetItems = [self.SearchRangesGB, self.InterpolationGB]
+        self.SKWidgetItems = [self.SKSearchRangesGB, self.SKInterpolationGB]
         self.SKWidgetItemsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1]]
         
-        self.PlaceWidgetsAtPlaces(self.InterpolationLayout, self.InterpolationWidgets, self.InterpolationWidgetsPlaces)
-        self.PlaceWidgetsAtPlaces(self.SearchRangesLayout, self.SearchRangesWidgets, self.SearchRangesWidgetsPlaces)
+        self.PlaceWidgetsAtPlaces(self.SKInterpolationLayout, self.SKInterpolationWidgets, self.SKInterpolationWidgetsPlaces)
+        self.PlaceWidgetsAtPlaces(self.SKSearchRangesLayout, self.SKSearchRangesWidgets, self.SKSearchRangesWidgetsPlaces)
         self.PlaceWidgetsAtPlaces(self.SKLayout, self.SKWidgetItems, self.SKWidgetItemsPlaces)
         
+    def OKWidgetsInit(self):
+        self.OKSearchRangesGB = QtGui.QGroupBox(self.OKWidget)
+        self.OKSearchRangesLayout = QtGui.QGridLayout(self.OKSearchRangesGB)
+        
+        self.OKSearchRanges0Label = QtGui.QLabel(self.OKSearchRangesGB)
+        self.OKSearchRanges0 = QtGui.QLineEdit(self.OKSearchRangesGB)
+        self.OKSearchRanges0.setValidator(self.IntValidator)
+        self.OKSearchRanges90Label = QtGui.QLabel(self.OKSearchRangesGB)
+        self.OKSearchRanges90 = QtGui.QLineEdit(self.OKSearchRangesGB)
+        self.OKSearchRanges90.setValidator(self.IntValidator)
+        self.OKSearchRangesVLabel = QtGui.QLabel(self.OKSearchRangesGB)
+        self.OKSearchRangesV = QtGui.QLineEdit(self.OKSearchRangesGB)
+        self.OKSearchRangesV.setValidator(self.IntValidator)
+        OKSearchRangesSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        OKSearchRangesSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        
+        self.OKSearchRangesWidgets = [self.OKSearchRanges0Label, self.OKSearchRanges0,
+                                    self.OKSearchRanges90Label, self.OKSearchRanges90,
+                                    self.OKSearchRangesVLabel, self.OKSearchRangesV,
+                                    OKSearchRangesSpacerL, OKSearchRangesSpacerR]
+        self.OKSearchRangesWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
+                                            [1, 1, 1, 1], [1, 2, 1, 1],
+                                            [2, 1, 2, 1], [2, 2, 1, 1],
+                                            [1, 0, 1, 1], [1, 3, 1, 1]]
+        
+        self.OKInterpolationGB = QtGui.QGroupBox(self.OKWidget)
+        self.OKInterpolationLayout = QtGui.QGridLayout(self.OKInterpolationGB)
+        
+        self.OKInterpolationPointsLabel = QtGui.QLabel(self.OKInterpolationGB)
+        self.OKInterpolationPoints = QtGui.QLineEdit(self.OKInterpolationGB)
+        self.OKInterpolationPoints.setValidator(self.IntValidator)
+        OKInterpolationSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        OKInterpolationSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        
+        self.OKInterpolationWidgets = [self.OKInterpolationPointsLabel, self.OKInterpolationPoints,
+                                     OKInterpolationSpacerL, OKInterpolationSpacerR]
+        self.OKInterpolationWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
+                                             [0, 0, 1, 1], [0, 3, 1, 1]]
+        
+                                       
+        self.OKWidgetItems = [self.OKSearchRangesGB, self.OKInterpolationGB]
+        self.OKWidgetItemsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1]]
+        
+        self.PlaceWidgetsAtPlaces(self.OKInterpolationLayout, self.OKInterpolationWidgets, self.OKInterpolationWidgetsPlaces)
+        self.PlaceWidgetsAtPlaces(self.OKSearchRangesLayout, self.OKSearchRangesWidgets, self.OKSearchRangesWidgetsPlaces)
+        self.PlaceWidgetsAtPlaces(self.OKLayout, self.OKWidgetItems, self.OKWidgetItemsPlaces)
+        
     def SGSWidgetsInit(self):
-        self.SeedGB = QtGui.QGroupBox(self.SGSWidget)
-        self.SeedLayout = QtGui.QGridLayout(self.SeedGB)
+        self.SGSSeedGB = QtGui.QGroupBox(self.SGSWidget)
+        self.SGSSeedLayout = QtGui.QGridLayout(self.SGSSeedGB)
         
-        self.SeedNum = QtGui.QLineEdit(self.SeedGB)
-        self.SeedNum.setValidator(self.IntValidator)
-        self.SeedLabel = QtGui.QLabel(self.SeedGB)
-        self.KrigingType = QtGui.QComboBox(self.SeedGB)
-        self.KrigingType.addItem("")
-        self.KrigingType.addItem("")
-        self.KrigingTypeLabel = QtGui.QLabel(self.SeedGB)
-        SeedSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        SeedSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.SeedWidgets = [self.SeedLabel, self.SeedNum,
-                            self.KrigingTypeLabel, self.KrigingType,
-                            SeedSpacerL, SeedSpacerR]
-        self.SeedWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
-                                  [1, 1, 1, 1], [1, 2, 1, 1],
-                                  [0, 0, 1, 1], [0, 3, 1, 1]]
-        self.PlaceWidgetsAtPlaces(self.SeedLayout, self.SeedWidgets, self.SeedWidgetsPlaces)
+        self.SGSSeedNum = QtGui.QLineEdit(self.SGSSeedGB)
+        self.SGSSeedNum.setValidator(self.IntValidator)
+        self.SGSSeedLabel = QtGui.QLabel(self.SGSSeedGB)
+        self.SGSKrigingType = QtGui.QComboBox(self.SGSSeedGB)
+        self.SGSKrigingType.addItem("")
+        self.SGSKrigingType.addItem("")
+        self.SGSKrigingTypeLabel = QtGui.QLabel(self.SGSSeedGB)
+        SGSSeedSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        SGSSeedSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.SGSSeedWidgets = [self.SGSSeedLabel, self.SGSSeedNum,
+                            self.SGSKrigingTypeLabel, self.SGSKrigingType,
+                            SGSSeedSpacerL, SGSSeedSpacerR]
+        self.SGSSeedWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
+                                     [1, 1, 1, 1], [1, 2, 1, 1],
+                                     [0, 0, 1, 1], [0, 3, 1, 1]]
+        self.PlaceWidgetsAtPlaces(self.SGSSeedLayout, self.SGSSeedWidgets, self.SGSSeedWidgetsPlaces)
         
-        self.SGSWidgetItems = [self.SeedGB]
+        self.SGSWidgetItems = [self.SGSSeedGB]
         self.SGSWidgetItemsPlaces = [[0, 0, 1, 1]]
         self.PlaceWidgetsAtPlaces(self.SGSLayout, self.SGSWidgetItems, self.SGSWidgetItemsPlaces)
             
@@ -671,15 +641,15 @@ class MainWindow(QtGui.QMainWindow):
             self.LogTextbox.insertPlainText('"Nugget effect value" is empty\n')
         else :
             if self.AlgorithmType.currentIndex() == 0:
-                if self.SearchRanges0.text() == "":
+                if self.SKSearchRanges0.text() == "":
                     self.LogTextbox.insertPlainText('"Search ranges 0" is empty\n')
-                elif self.SearchRanges90.text() == "":
+                elif self.SKSearchRanges90.text() == "":
                     self.LogTextbox.insertPlainText('"Search ranges 90" is empty\n')
-                elif self.SearchRangesV.text() == "":
+                elif self.SKSearchRangesV.text() == "":
                     self.LogTextbox.insertPlainText('"Search ranges vertical" is empty\n')
-                elif self.InterpolationPoints.text() == "":
+                elif self.SKInterpolationPoints.text() == "":
                     self.LogTextbox.insertPlainText('"Interpolation points" is empty\n')
-                elif self.MeanValue.text() == "":
+                elif self.SKMeanValue.text() == "":
                     self.LogTextbox.insertPlainText('"Mean value" is empty\n')
                 elif self.LoadedCubes.count() == 0:
                     self.LogTextbox.insertPlainText('No Cubes loaded!\n')
@@ -688,55 +658,54 @@ class MainWindow(QtGui.QMainWindow):
                     self.ProgressBar.show()
                     
                     # Variogram
-                    self.Variogram_ranges = ( int(self.EllipsoidRanges0.text()), int(self.EllipsoidRanges90.text()), int(self.EllipsoidRangesV.text()) )
-                    self.Variogram_angles = ( int(self.EllipsoidAnglesX.text()), int(self.EllipsoidAnglesY.text()), int(self.EllipsoidAnglesZ.text()) )
-                    self.Variogram = CovarianceModel( int(self.VariogramType.currentIndex()), self.Variogram_ranges, 
-                                                      self.Variogram_angles, int(self.SillValue.text()), int(self.NuggetValue.text()) )
+                    self.VariogramRanges = ( int(self.EllipsoidRanges0.text()), int(self.EllipsoidRanges90.text()), int(self.EllipsoidRangesV.text()) )
+                    self.VariogramAngles = ( int(self.EllipsoidAnglesX.text()), int(self.EllipsoidAnglesY.text()), int(self.EllipsoidAnglesZ.text()) )
+                    self.Variogram = CovarianceModel( int(self.VariogramType.currentIndex()), self.VariogramRanges, 
+                                                      self.VariogramAngles, int(self.SillValue.text()), int(self.NuggetValue.text()) )
                     
                     # Simple Kriging
                     
                     self.EllipsoidRanges = ( int(self.EllipsoidRanges0.text()), int(self.EllipsoidRanges90.text()), int(self.EllipsoidRangesV.text()) )
-                    self.curr_cube = self.LoadedCubes.currentIndex()
-                    self.new_thread = SKThread( self.Cubes[self.curr_cube][0], self.GridObject, self.EllipsoidRanges, 
-                                                int(self.InterpolationPoints.text()),
-                                                self.Variogram, float(self.MeanValue.text()))
-                    
-                    QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("msg(QString)"), self.UpdateUI)
-                    QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("progress(QString)"), self.UpdateProgress)
-                    QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("Result(PyQt_PyObject)"), self.SKResult)
+                    self.CurrCube = self.LoadedCubes.currentIndex()
+                    self.NewThread = SKThread( self.Cubes[self.CurrCube][0], self.GridObject, self.EllipsoidRanges, 
+                                                int(self.SKInterpolationPoints.text()),
+                                                self.Variogram, float(self.SKMeanValue.text()))
+                    QtCore.QObject.connect(self.NewThread, QtCore.SIGNAL("msg(QString)"), self.UpdateUI)
+                    QtCore.QObject.connect(self.NewThread, QtCore.SIGNAL("progress(QString)"), self.UpdateProgress)
+                    QtCore.QObject.connect(self.NewThread, QtCore.SIGNAL("Result(PyQt_PyObject)"), self.SKResult)
                     self.ResultType = 0
-                    self.new_thread.start()
+                    self.NewThread.start()
                     self.RunButton.setDisabled(1)
                     
             elif self.AlgorithmType.currentIndex() == 1:
-                if self.SearchRanges0.text() == "":
+                if self.OKSearchRanges0.text() == "":
                     self.LogTextbox.insertPlainText('"Search ranges 0" is empty\n')
-                elif self.SearchRanges90.text() == "":
+                elif self.OKSearchRanges90.text() == "":
                     self.LogTextbox.insertPlainText('"Search ranges 90" is empty\n')
-                elif self.SearchRangesV.text() == "":
+                elif self.OKSearchRangesV.text() == "":
                     self.LogTextbox.insertPlainText('"Search ranges vertical" is empty\n')
-                elif self.InterpolationPoints.text() == "":
+                elif self.OKInterpolationPoints.text() == "":
                     self.LogTextbox.insertPlainText('"Interpolation points" is empty\n')
                 else:
                     self.LogTextbox.insertPlainText("Starting Ordinary Kriging Algorithm\n")
                     self.ProgressBar.show()
                     # Variogram
-                    self.Variogram_ranges = ( int(self.EllipsoidRanges0.text()), int(self.EllipsoidRanges90.text()), int(self.EllipsoidRangesV.text()) )
-                    self.Variogram_angles = ( int(self.EllipsoidAnglesX.text()), int(self.EllipsoidAnglesY.text()), int(self.EllipsoidAnglesZ.text()) )
-                    self.Variogram = CovarianceModel( int(self.VariogramType.currentIndex()), self.Variogram_ranges, 
-                                                      self.Variogram_angles, int(self.SillValue.text()), int(self.NuggetValue.text()) )
+                    self.VariogramRanges = ( int(self.EllipsoidRanges0.text()), int(self.EllipsoidRanges90.text()), int(self.EllipsoidRangesV.text()) )
+                    self.VariogramAngles = ( int(self.EllipsoidAnglesX.text()), int(self.EllipsoidAnglesY.text()), int(self.EllipsoidAnglesZ.text()) )
+                    self.Variogram = CovarianceModel( int(self.VariogramType.currentIndex()), self.VariogramRanges, 
+                                                      self.VariogramAngles, int(self.SillValue.text()), int(self.NuggetValue.text()) )
                     # Ordinary Kriging
                     
                     self.EllipsoidRanges = ( int(self.EllipsoidRanges0.text()), int(self.EllipsoidRanges90.text()), int(self.EllipsoidRangesV.text()) )
-                    self.curr_cube = self.LoadedCubes.currentIndex()
-                    self.new_thread = OKThread( self.Cubes[self.curr_cube][0], self.GridObject, self.EllipsoidRanges, 
-                                                int(self.InterpolationPoints.text()), self.Variogram )
+                    self.CurrCube = self.LoadedCubes.currentIndex()
+                    self.NewThread = OKThread( self.Cubes[self.CurrCube][0], self.GridObject, self.EllipsoidRanges, 
+                                                int(self.SKInterpolationPoints.text()), self.Variogram )
                     
-                    QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("msg(QString)"), self.UpdateUI)
-                    QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("progress(QString)"), self.UpdateProgress)
-                    QtCore.QObject.connect(self.new_thread, QtCore.SIGNAL("Result(PyQt_PyObject)"), self.OKResult)
+                    QtCore.QObject.connect(self.NewThread, QtCore.SIGNAL("msg(QString)"), self.UpdateUI)
+                    QtCore.QObject.connect(self.NewThread, QtCore.SIGNAL("progress(QString)"), self.UpdateProgress)
+                    QtCore.QObject.connect(self.NewThread, QtCore.SIGNAL("Result(PyQt_PyObject)"), self.OKResult)
                     self.ResultType = 1
-                    self.new_thread.start()
+                    self.NewThread.start()
                     self.RunButton.setDisabled(1)
                     
         
@@ -752,13 +721,16 @@ class MainWindow(QtGui.QMainWindow):
         self.GridSizeY.setText(self.__tr("0"))
         self.GridSizeZLabel.setText(self.__tr("z"))
         self.GridSizeZ.setText(self.__tr("0"))
+        
         self.ManageCubesGB.setTitle(self.__tr("Manage Cubes"))
         self.CubeDeleteButton.setText(self.__tr("Delete"))
+        
         self.IndValuesGB.setTitle(self.__tr("Indicator value"))
         self.IndValuesCheckbox.setText(self.__tr("Indicator values"))
         self.UndefValueGB.setTitle(self.__tr("Undefined value"))
         self.UndefValueLabel.setText(self.__tr("Undefined value"))
         self.UndefValue.setText(self.__tr("-99"))
+        
         self.LoadCubeButton.setText(self.__tr("Load cube"))
         self.TabWidget.setTabText(self.TabWidget.indexOf(self.Tab1), (self.__tr("Load cube")))
         
@@ -768,6 +740,7 @@ class MainWindow(QtGui.QMainWindow):
         self.VariogramTypes = ['Spherical', 'Exponential', 'Gaussian']
         for i in xrange(len(self.VariogramTypes)):
             self.VariogramType.setItemText(i, (self.__tr(self.VariogramTypes[i])))
+            
         self.EllipsoidRangesGB.setTitle(self.__tr("Ellipsoid ranges"))
         self.EllipsoidRanges0Label.setText(self.__tr("0"))
         self.EllipsoidRanges0.setText(self.__tr("20"))
@@ -775,6 +748,7 @@ class MainWindow(QtGui.QMainWindow):
         self.EllipsoidRanges90.setText(self.__tr("20"))
         self.EllipsoidRangesVLabel.setText(self.__tr("Vertical"))
         self.EllipsoidRangesV.setText(self.__tr("20"))
+        
         self.EllipsoidAnglesGB.setTitle(self.__tr("Ellipsoid angles"))
         self.EllipsoidAnglesXLabel.setText(self.__tr("x"))
         self.EllipsoidAnglesX.setText(self.__tr("0"))
@@ -782,6 +756,7 @@ class MainWindow(QtGui.QMainWindow):
         self.EllipsoidAnglesZLabel.setText(self.__tr("z"))
         self.EllipsoidAnglesZ.setText(self.__tr("0"))
         self.EllipsoidAnglesYLabel.setText(self.__tr("y"))
+        
         self.NuggetEffectGB.setTitle(self.__tr("Sill value and nugget-effect"))
         self.SillValueLabel.setText(self.__tr("Sill value"))
         self.SillValue.setText(self.__tr("1"))
@@ -792,27 +767,42 @@ class MainWindow(QtGui.QMainWindow):
         # Tab 3
         self.LoadedCubesGB.setTitle(self.__tr("Cubes"))
         self.LoadedCubesLabel.setText(self.__tr("Select cube:"))
-        self.SearchRangesGB.setTitle(self.__tr("Search ellipsoid ranges"))
-        self.SearchRanges0Label.setText(self.__tr("0"))
-        self.SearchRanges0.setText(self.__tr("20"))
-        self.SearchRanges90Label.setText(self.__tr("90"))
-        self.SearchRanges90.setText(self.__tr("20"))
-        self.SearchRangesVLabel.setText(self.__tr("Vertical"))
-        self.SearchRangesV.setText(self.__tr("20"))
-        self.InterpolationGB.setTitle(self.__tr("Interpolation"))
-        self.InterpolationPointsLabel.setText(self.__tr("Maximum interpolation points"))
-        self.InterpolationPoints.setText(self.__tr("20"))
-        self.MeanValueLabel.setText(self.__tr("Mean value"))
-        self.MeanValue.setText(self.__tr("0"))
+        
+        self.SKSearchRangesGB.setTitle(self.__tr("Search ellipsoid ranges"))
+        self.SKSearchRanges0Label.setText(self.__tr("0"))
+        self.SKSearchRanges0.setText(self.__tr("20"))
+        self.SKSearchRanges90Label.setText(self.__tr("90"))
+        self.SKSearchRanges90.setText(self.__tr("20"))
+        self.SKSearchRangesVLabel.setText(self.__tr("Vertical"))
+        self.SKSearchRangesV.setText(self.__tr("20"))
+        self.SKInterpolationGB.setTitle(self.__tr("Interpolation"))
+        self.SKInterpolationPointsLabel.setText(self.__tr("Maximum interpolation points"))
+        self.SKInterpolationPoints.setText(self.__tr("20"))
+        self.SKMeanValueLabel.setText(self.__tr("Mean value"))
+        self.SKMeanValue.setText(self.__tr("0"))
+        
+        self.OKSearchRangesGB.setTitle(self.__tr("Search ellipsoid ranges"))
+        self.OKSearchRanges0Label.setText(self.__tr("0"))
+        self.OKSearchRanges0.setText(self.__tr("20"))
+        self.OKSearchRanges90Label.setText(self.__tr("90"))
+        self.OKSearchRanges90.setText(self.__tr("20"))
+        self.OKSearchRangesVLabel.setText(self.__tr("Vertical"))
+        self.OKSearchRangesV.setText(self.__tr("20"))
+        self.OKInterpolationGB.setTitle(self.__tr("Interpolation"))
+        self.OKInterpolationPointsLabel.setText(self.__tr("Maximum interpolation points"))
+        self.OKInterpolationPoints.setText(self.__tr("20"))
+        
+        self.SGSSeedLabel.setText(self.__tr("Seed value:"))
+        self.SGSSeedNum.setText(self.__tr("0"))
+        self.SGSSeedGB.setTitle(self.__tr("Seed"))
+        self.SGSKrigingTypeLabel.setText(self.__tr("Kriging type:"))
+        self.SGSKrigingType.setItemText(0, "Simple Kriging")
+        self.SGSKrigingType.setItemText(1, "Ordinary Kriging")
+        
         self.RunGB.setTitle(self.__tr("Solve algorithm"))
         self.RunButton.setText(self.__tr("Run"))
         self.SaveButton.setText(self.__tr("Save"))
-        self.SeedLabel.setText(self.__tr("Seed value:"))
-        self.SeedNum.setText(self.__tr("0"))
-        self.SeedGB.setTitle(self.__tr("Seed"))
-        self.KrigingTypeLabel.setText(self.__tr("Kriging type:"))
-        self.KrigingType.setItemText(0, "Simple Kriging")
-        self.KrigingType.setItemText(1, "Ordinary Kriging")
+        
         self.AlgorithmTypeGB.setTitle(self.__tr("Algorithm"))
         self.AlgorithmTypeLabel.setText(self.__tr("Algorithm type"))
         self.AlgorithmTypes = ['Simple Kriging', 'Ordinary Kriging', 

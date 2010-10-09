@@ -1,14 +1,15 @@
 from geo_bsd import set_output_handler
 from geo_bsd import set_progress_handler
-from geo_bsd import simple_kriging
+from geo_bsd.geo import lvm_kriging
 from PyQt4 import QtCore, QtGui
 
-class SKThread(QtCore.QThread):
-    def __init__(self, Prop, GridObject, EllipsoidRanges, IntPoints, 
-                  Variogram, MeanValue):
+class LVMThread(QtCore.QThread):
+    def __init__(self, Prop, GridObject, Mean, EllipsoidRanges, 
+                  IntPoints, Variogram, MeanValue):
         QtCore.QThread.__init__(self)
         self.Prop = Prop
         self.GridObject = GridObject
+        self.Mean = Mean
         self.EllipsoidRanges = EllipsoidRanges
         self.IntPoints = IntPoints
         self.Variogram = Variogram
@@ -19,9 +20,11 @@ class SKThread(QtCore.QThread):
         set_output_handler(self.OutputLog, None)
         set_progress_handler(self.ProgressShow, None)
 
-        self.Result = simple_kriging( self.Prop, self.GridObject, 
+        self.Result = lvm_kriging( self.Prop, self.GridObject,
+                                      self.Mean,
                                       self.EllipsoidRanges, 
-                                      self.IntPoints, self.Variogram, 
+                                      self.IntPoints, 
+                                      self.Variogram, 
                                       self.MeanValue )
         self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
         
@@ -42,6 +45,7 @@ class SKThread(QtCore.QThread):
         else:
             self.OutStr = int(self.Percent)
             self.OutStr = str(self.OutStr)
-            self.emit(QtCore.SIGNAL("progress(QString)"), QtCore.QString(self.OutStr))
+            self.emit(QtCore.SIGNAL("progress(QString)"), 
+                      QtCore.QString(self.OutStr))
         return 0
     

@@ -10,6 +10,7 @@ class okwidget(skwidget):
         
         self.BaseWidgetsInit()
         self.OwnWidgetsInit()
+        self.AddSpacer()
         
         self.Retranslate()
         

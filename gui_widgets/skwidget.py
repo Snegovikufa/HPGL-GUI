@@ -9,6 +9,7 @@ class skwidget(QtGui.QWidget):
         
         self.BaseWidgetsInit()
         self.Retranslate()
+        self.AddSpacer()
 
     def BaseWidgetsInit(self):
         self.IntValidator = QtGui.QIntValidator(self)
@@ -26,8 +27,12 @@ class skwidget(QtGui.QWidget):
         self.SearchRangesVLabel = QtGui.QLabel(self.SearchRangesGB)
         self.SearchRangesV = QtGui.QLineEdit(self.SearchRangesGB)
         self.SearchRangesV.setValidator(self.IntValidator)
-        self.SearchRangesSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.SearchRangesSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.SearchRangesSpacerL = QtGui.QSpacerItem(40, 20, 
+                                                     QtGui.QSizePolicy.Expanding, 
+                                                     QtGui.QSizePolicy.Minimum)
+        self.SearchRangesSpacerR = QtGui.QSpacerItem(40, 20, 
+                                                     QtGui.QSizePolicy.Expanding, 
+                                                     QtGui.QSizePolicy.Minimum)
         
         self.SearchRangesWidgets = [self.SearchRanges0Label, self.SearchRanges0,
                                     self.SearchRanges90Label, self.SearchRanges90,
@@ -35,7 +40,7 @@ class skwidget(QtGui.QWidget):
                                     self.SearchRangesSpacerL, self.SearchRangesSpacerR]
         self.SearchRangesWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
                                             [1, 1, 1, 1], [1, 2, 1, 1],
-                                            [2, 1, 2, 1], [2, 2, 1, 1],
+                                            [2, 1, 1, 1], [2, 2, 1, 1],
                                             [1, 0, 1, 1], [1, 3, 1, 1]]
         
         self.InterpolationGB = QtGui.QGroupBox(self)
@@ -47,32 +52,52 @@ class skwidget(QtGui.QWidget):
         self.MeanValueLabel = QtGui.QLabel(self.InterpolationGB)
         self.MeanValue = QtGui.QLineEdit(self.InterpolationGB)
         self.MeanValue.setValidator(self.DoubleValidator)
-        InterpolationSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        InterpolationSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.InterpolationSpacerL = QtGui.QSpacerItem(40, 20, 
+                                                 QtGui.QSizePolicy.Expanding, 
+                                                 QtGui.QSizePolicy.Minimum)
+        self.InterpolationSpacerR = QtGui.QSpacerItem(40, 20, 
+                                                 QtGui.QSizePolicy.Expanding, 
+                                                 QtGui.QSizePolicy.Minimum)
         
-        self.InterpolationWidgets = [self.InterpolationPointsLabel, self.InterpolationPoints,
-                                     self.MeanValueLabel, self.MeanValue,
-                                     InterpolationSpacerL, InterpolationSpacerR]
+        self.InterpolationWidgets = [self.InterpolationPointsLabel, 
+                                     self.InterpolationPoints,
+                                     self.MeanValueLabel, 
+                                     self.MeanValue,
+                                     self.InterpolationSpacerL, 
+                                     self.InterpolationSpacerR]
         self.InterpolationWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
-                                             [1, 1, 1, 1], [1, 2, 1, 1],
-                                             [0, 0, 1, 1], [0, 3, 1, 1]]
+                                           [1, 1, 1, 1], [1, 2, 1, 1],
+                                           [0, 0, 1, 1], [0, 3, 1, 1]]
         
                                        
         self.WidgetItems = [self.SearchRangesGB, self.InterpolationGB]
         self.WidgetItemsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1]]
         
-        self.PlaceWidgetsAtPlaces(self.InterpolationLayout, self.InterpolationWidgets, self.InterpolationWidgetsPlaces)
-        self.PlaceWidgetsAtPlaces(self.SearchRangesLayout, self.SearchRangesWidgets, self.SearchRangesWidgetsPlaces)
-        self.PlaceWidgetsAtPlaces(self.Layout, self.WidgetItems, self.WidgetItemsPlaces)
+        self.PlaceWidgetsAtPlaces(self.InterpolationLayout, 
+                                  self.InterpolationWidgets, 
+                                  self.InterpolationWidgetsPlaces)
+        self.PlaceWidgetsAtPlaces(self.SearchRangesLayout, 
+                                  self.SearchRangesWidgets, 
+                                  self.SearchRangesWidgetsPlaces)
+        self.PlaceWidgetsAtPlaces(self.Layout, 
+                                  self.WidgetItems, 
+                                  self.WidgetItemsPlaces)
         
+    def AddSpacer(self):
+        self.Spacer = QtGui.QSpacerItem(20, 40, 
+                                        QtGui.QSizePolicy.Minimum, 
+                                        QtGui.QSizePolicy.Expanding)
+        self.Layout.addItem(self.Spacer, 2, 0, 1, 1)
         
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
         for i in xrange(len(widgets)):
             if type(widgets[i]) == type(self.SearchRangesSpacerL):
-                layout.addItem(widgets[i], places[i][0], places[i][1], places[i][2], places[i][3])
+                layout.addItem(widgets[i], places[i][0], places[i][1], 
+                               places[i][2], places[i][3])
             else:
-                layout.addWidget(widgets[i], places[i][0], places[i][1], places[i][2], places[i][3])
+                layout.addWidget(widgets[i], places[i][0], places[i][1], 
+                                 places[i][2], places[i][3])
                 
     def ValuesCheck(self, LogTextbox):
         if self.SearchRanges0.text() == "":

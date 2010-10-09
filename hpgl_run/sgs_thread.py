@@ -1,28 +1,44 @@
 from geo_bsd import set_output_handler
 from geo_bsd import set_progress_handler
-from geo_bsd import simple_kriging
+from geo_bsd import sgs_simulation
+from geo_bsd import calc_cdf
 from PyQt4 import QtCore, QtGui
 
-class SKThread(QtCore.QThread):
-    def __init__(self, Prop, GridObject, EllipsoidRanges, IntPoints, 
-                  Variogram, MeanValue):
+class SGSThread(QtCore.QThread):
+    def __init__(self, Prop, GridObject, EllRanges, IntPoints, Variogram, 
+                   Seed, KrType, Mean, UseHd, Mask):
         QtCore.QThread.__init__(self)
         self.Prop = Prop
         self.GridObject = GridObject
-        self.EllipsoidRanges = EllipsoidRanges
+        self.EllipsoidRanges = EllRanges
         self.IntPoints = IntPoints
         self.Variogram = Variogram
-        self.MeanValue = MeanValue
+        self.Mean = Mean
+        self.Seed = Seed
+        self.Mask = Mask
+        self.UseHd = UseHd
+        
+        print KrType
+        if KrType == 0:
+            self.KrigingType = 'sk'
+        elif KrType == 1:
+            self.KrigingType = 'ok'
+        else:
+            self.emit(QtCore.SIGNAL("msg(QString)"), "Something's wrong with kriging type\n")
         
     def run(self):
         '''Runs thread'''
+        print "hello"
         set_output_handler(self.OutputLog, None)
         set_progress_handler(self.ProgressShow, None)
 
-        self.Result = simple_kriging( self.Prop, self.GridObject, 
+        self.CdfData = calc_cdf(self.Prop)
+        self.Result = sgs_simulation( self.Prop, self.GridObject, 
                                       self.EllipsoidRanges, 
                                       self.IntPoints, self.Variogram, 
-                                      self.MeanValue )
+                                      self.Seed, self.KrigingType, 
+                                      self.Mean, self.UseHd, self.CdfData,
+                                      self.Mask )
         self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
         
     def OutputLog(self, string, _):

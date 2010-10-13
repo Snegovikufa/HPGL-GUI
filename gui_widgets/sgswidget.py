@@ -83,7 +83,10 @@ class sgswidget(skwidget):
         return 1 # It's unusable?
     
     def GetKrType(self):
-        return int(self.KrigingType.currentIndex())
+        if int(self.KrigingType.currentIndex()) == 0:
+            return "sk"
+        else:
+            return "ok"
     
     def GetMean(self, Cubes, CubesCont):
         if self.MeanCheckbox.isChecked() == 1:

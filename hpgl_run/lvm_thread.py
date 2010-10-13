@@ -5,7 +5,7 @@ from PyQt4 import QtCore, QtGui
 
 class LVMThread(QtCore.QThread):
     def __init__(self, Prop, GridObject, Mean, EllipsoidRanges, 
-                  IntPoints, Variogram, MeanValue):
+                  IntPoints, Variogram):
         QtCore.QThread.__init__(self)
         self.Prop = Prop
         self.GridObject = GridObject
@@ -13,7 +13,6 @@ class LVMThread(QtCore.QThread):
         self.EllipsoidRanges = EllipsoidRanges
         self.IntPoints = IntPoints
         self.Variogram = Variogram
-        self.MeanValue = MeanValue
         
     def run(self):
         '''Runs thread'''
@@ -24,8 +23,7 @@ class LVMThread(QtCore.QThread):
                                       self.Mean,
                                       self.EllipsoidRanges, 
                                       self.IntPoints, 
-                                      self.Variogram, 
-                                      self.MeanValue )
+                                      self.Variogram )
         self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
         
     def OutputLog(self, string, _):

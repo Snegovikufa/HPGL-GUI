@@ -12,6 +12,7 @@ import re
 from hpgl_run.ok_thread import *
 from hpgl_run.sk_thread import *
 from hpgl_run.sgs_thread import *
+from hpgl_run.lvm_thread import *
 import gui_widgets.skwidget as GWSk
 import gui_widgets.okwidget as GWOk
 import gui_widgets.sgswidget as GWSgs
@@ -36,7 +37,6 @@ class MainWindow(QtGui.QMainWindow):
         self.Cubes = []
         self.CubesInd = []
         self.CubesCont = []
-        self.ResultType = 0
         self.AlgorithmTypes = ['Simple Kriging', 'Ordinary Kriging', 
                                 'Indicator Kriging', 'LVM Kriging', 
                                 'Sequantial Indicator Simulation', 
@@ -285,7 +285,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.SillValueLabel = QtGui.QLabel(self.NuggetEffectGB)
         self.SillValue = QtGui.QLineEdit(self.NuggetEffectGB)
-        self.SillValue.setValidator(self.IntValidator)
+        self.SillValue.setValidator(self.DoubleValidator)
         self.NuggetValueLabel = QtGui.QLabel(self.NuggetEffectGB)
         self.NuggetValue = QtGui.QLineEdit(self.NuggetEffectGB)
         self.NuggetValue.setValidator(self.IntValidator)
@@ -529,13 +529,20 @@ class MainWindow(QtGui.QMainWindow):
             self.LoadCubeButton.setEnabled(1)
             
     def UpdateComboCont(self, string):
-        for i in len(self.ContCombo):
+        for i in xrange(len(self.ContCombo)):
             self.ContCombo[i].addItem(string)
+            self.ContCombo[i].setEnabled(1)
     
     def UpdateComboInd(self, string):
-        for i in len(self.IndCombo):
+        for i in xrange(len(self.IndCombo)):
             self.IndCombo[i].AddItem(string)
-    
+            
+    def DelComboInd(self, num):
+        self.IndCombo.remove(num)
+        
+    def DelComboCont(self, num):
+        self.ContCombo.remove(num)
+        
     def AlgorithmTypeChanged(self, value):
         self.AlgorithmWidget.setCurrentIndex(value)
             
@@ -664,7 +671,7 @@ class MainWindow(QtGui.QMainWindow):
         self.Variogram = CovarianceModel( int(self.VariogramType.currentIndex()),
                                           self.VariogramRanges, 
                                           self.VariogramAngles, 
-                                          int(self.SillValue.text()), 
+                                          float(self.SillValue.text()), 
                                           int(self.NuggetValue.text()) )
         
     def AlgorithmRun(self):
@@ -676,6 +683,7 @@ class MainWindow(QtGui.QMainWindow):
                     self.ProgressBar.show()
                     
                     self.GetVariogram()
+                    print "type of vario", type(self.Variogram).__name__
                     # Simple Kriging                                  
                     self.EllipsoidRanges = self.SKWidget.GetSearchRanges()
                     self.CurrCube = self.LoadedCubes.currentIndex()
@@ -694,7 +702,7 @@ class MainWindow(QtGui.QMainWindow):
                     QtCore.QObject.connect(self.NewThread, 
                                            QtCore.SIGNAL("Result(PyQt_PyObject)"), 
                                            self.CatchResult)
-                    self.ResultType = 1
+
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
                     
@@ -722,7 +730,7 @@ class MainWindow(QtGui.QMainWindow):
                     QtCore.QObject.connect(self.NewThread, 
                                            QtCore.SIGNAL("Result(PyQt_PyObject)"), 
                                            self.CatchResult)
-                    self.ResultType = 2
+
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
                     
@@ -738,7 +746,7 @@ class MainWindow(QtGui.QMainWindow):
                     self.IntPoints = self.LVMWidget.GetIntPoints()
                     self.Mean = self.LVMWidget.GetMean(self.Cubes, self.CubesCont)
                     
-                    self.NewThread = OKThread( self.Cubes[self.CurrCube][0], 
+                    self.NewThread = LVMThread( self.Cubes[self.CurrCube][0], 
                                                self.Cubes[self.CurrCube][3],
                                                self.Mean, 
                                                self.EllipsoidRanges, 
@@ -753,7 +761,7 @@ class MainWindow(QtGui.QMainWindow):
                     QtCore.QObject.connect(self.NewThread, 
                                            QtCore.SIGNAL("Result(PyQt_PyObject)"), 
                                            self.CatchResult)
-                    self.ResultType = 1
+
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
                     
@@ -764,6 +772,7 @@ class MainWindow(QtGui.QMainWindow):
                     self.ProgressBar.show()
                     
                     self.GetVariogram()
+
                     # Sequantial Gaussian Simulation
                     self.EllipsoidRanges = self.SGSWidget.GetSearchRanges()
                     self.CurrCube = self.LoadedCubes.currentIndex()
@@ -780,7 +789,6 @@ class MainWindow(QtGui.QMainWindow):
                                                 self.Variogram, self.Seed, 
                                                 self.KrType, self.Mean, 
                                                 self.UseHd, self.Mask )
-                    self.NewThread.start()
                     
                     QtCore.QObject.connect(self.NewThread, 
                                            QtCore.SIGNAL("msg(QString)"), 
@@ -791,7 +799,8 @@ class MainWindow(QtGui.QMainWindow):
                     QtCore.QObject.connect(self.NewThread, 
                                            QtCore.SIGNAL("Result(PyQt_PyObject)"), 
                                            self.CatchResult)
-                    
+                    self.NewThread.start()
+                    self.RunButton.setDisabled(1)
         
     def RetranslateUI(self, MainWindow):
         '''Adds text to widgets'''

@@ -17,27 +17,20 @@ class SGSThread(QtCore.QThread):
         self.Seed = Seed
         self.Mask = Mask
         self.UseHd = UseHd
-        
-        print KrType
-        if KrType == 0:
-            self.KrigingType = 'sk'
-        elif KrType == 1:
-            self.KrigingType = 'ok'
-        else:
-            self.emit(QtCore.SIGNAL("msg(QString)"), "Something's wrong with kriging type\n")
+        self.KrigingType = KrType
         
     def run(self):
         '''Runs thread'''
-        print "hello"
         set_output_handler(self.OutputLog, None)
         set_progress_handler(self.ProgressShow, None)
-
+        
         self.CdfData = calc_cdf(self.Prop)
-        self.Result = sgs_simulation( self.Prop, self.GridObject, 
+        
+        self.Result = sgs_simulation( self.Prop, self.GridObject, self.CdfData,
                                       self.EllipsoidRanges, 
                                       self.IntPoints, self.Variogram, 
                                       self.Seed, self.KrigingType, 
-                                      self.Mean, self.UseHd, self.CdfData,
+                                      self.Mean, self.UseHd,
                                       self.Mask )
         self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
         

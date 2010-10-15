@@ -18,16 +18,15 @@ import gui_widgets.okwidget as GWOk
 import gui_widgets.sgswidget as GWSgs
 import gui_widgets.lvmwidget as GWLvm
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtGui.QWidget):
     def __init__(self):
-        QtGui.QMainWindow.__init__(self)
+        QtGui.QWidget.__init__(self)
         
         self.setObjectName("MainWindow")
-        #self.setFixedWidth(700)
-        #self.setFixedHeight(520)
-        self.resize(700, 520)
+        self.resize(650, 450)
         self.CentralWidget = QtGui.QWidget()
         self.CentralLayout = QtGui.QGridLayout(self.CentralWidget)
+        self.setLayout(self.CentralLayout)
         self.TabWidget = QtGui.QTabWidget(self.CentralWidget)
         
         # Constants and variables
@@ -413,7 +412,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # Other Mainwindow layouths, bars, etc.
         
-        self.RunGB = QtGui.QGroupBox(self.CentralWidget)
+        self.RunGB = QtGui.QGroupBox(self)
         self.RunLayout = QtGui.QGridLayout(self.RunGB)
         
         self.RunButton = QtGui.QPushButton(self.RunGB)
@@ -437,7 +436,7 @@ class MainWindow(QtGui.QMainWindow):
         self.CentralLayout.addWidget(self.RunGB, 2, 0, 1, 2)      
         
         self.CentralLayout.addWidget(self.TabWidget, 0, 0, 1, 1)
-        self.ProgressBar = QtGui.QProgressBar(self.CentralWidget)
+        self.ProgressBar = QtGui.QProgressBar(self)
         self.ProgressBar.setProperty("value", 24)
         self.ProgressBar.setValue(0)
         self.ProgressBar.hide()
@@ -445,10 +444,7 @@ class MainWindow(QtGui.QMainWindow):
         
         self.Log = ''
         self.Err = ''
-        #self.ShowError('Error message')
-        
-        self.setCentralWidget(self.CentralWidget)
-        
+        #self.ShowError('Error message')        
         
         self.RetranslateUI(self)
         self.TabWidget.setCurrentIndex(0)
@@ -465,6 +461,9 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.AlgorithmType, 
                      QtCore.SIGNAL("currentIndexChanged(int)"), 
                      self.AlgorithmTypeChanged)
+        self.connect(self.LoadedCubes, 
+                     QtCore.SIGNAL("currentIndexChanged(int)"), 
+                     self.AlgorithmAccess )
         self.connect(self.RunButton, QtCore.SIGNAL("clicked()"), 
                      self.AlgorithmRun)
         self.connect(self.GridSizeX, QtCore.SIGNAL("textChanged(QString)"), 
@@ -514,7 +513,8 @@ class MainWindow(QtGui.QMainWindow):
         
     def CubeLoadAccess(self):
         '''Controls the grid size and allow to load cube'''
-        if int(self.GridSizeX.text()) > 0 and int(self.GridSizeY.text()) > 0 and int(self.GridSizeZ.text()) > 0:
+        if int(self.GridSizeX.text()) > 0 and int(self.GridSizeY.text()) > 0 and \
+                                               int(self.GridSizeZ.text()) > 0:
             self.LoadCubeButton.setEnabled(1)
             
     def ShowError(self, string):
@@ -528,7 +528,7 @@ class MainWindow(QtGui.QMainWindow):
     
     def UpdateComboInd(self, string):
         for i in xrange(len(self.IndCombo)):
-            self.IndCombo[i].AddItem(string)
+            self.IndCombo[i].addItem(string)
             
     def DelComboInd(self, num):
         self.index = self.IndCombo.index(num)
@@ -538,7 +538,6 @@ class MainWindow(QtGui.QMainWindow):
                 self.IndCombo[i].SetDisabled(1)
         
     def DelComboCont(self, num):
-        #print num
         self.index = self.ContCombo.index(num)
         self.ContCombo.remove(self.index)
         if self.ContCombo[0].count() == 0:
@@ -547,7 +546,28 @@ class MainWindow(QtGui.QMainWindow):
         
     def AlgorithmTypeChanged(self, value):
         self.AlgorithmWidget.setCurrentIndex(value)
-            
+        if self.AlgorithmWidgets[self.AlgorithmType.currentIndex()].isEnabled():
+            self.RunButton.setEnabled(1)
+        else:
+            self.RunButton.setDisabled(1)
+        
+    def AlgorithmAccess(self, value):
+        if self.Cubes[value][2] == None:
+            self.IKWidget.setDisabled(1)
+            self.SISWidget.setDisabled(1)
+            self.SKWidget.setEnabled(1)
+            self.OKWidget.setEnabled(1)
+            self.LVMWidget.setEnabled(1)
+            self.SGSWidget.setEnabled(1)
+        else:
+            self.IKWidget.setDisabled(0)
+            self.SISWidget.setDisabled(0)
+            self.SKWidget.setEnabled(0)
+            self.OKWidget.setEnabled(0)
+            self.LVMWidget.setEnabled(0)
+            self.SGSWidget.setEnabled(0)
+        self.AlgorithmTypeChanged(self.AlgorithmType.currentIndex())
+                    
     def CatchResult(self, Result):
         '''Catchs result of algorithm'''
         self.Result = Result
@@ -614,12 +634,14 @@ class MainWindow(QtGui.QMainWindow):
                                                   self.GridSize)
                     if self.Prop != None:
                         self.RunButton.setEnabled(1)
-                        self.LoadedCubesTab1.addItem(self.loaded_cube_fname)
-                        self.UpdateComboInd(self.loaded_cube_fname)
-                        self.LoadedCubes.addItem(self.loaded_cube_fname)
                         self.Cubes.append([self.Prop, self.undefined_value, 
                                            self.indicator_value,
                                            self.GridObject])
+                        
+                        self.LoadedCubesTab1.addItem(self.loaded_cube_fname)
+                        self.UpdateComboInd(self.loaded_cube_fname)
+                        self.LoadedCubes.addItem(self.loaded_cube_fname)
+                        
                         self.CubesInd.append(len(self.Cubes)-1)
                         del(self.Prop)
                         self.CubeDeleteButton.setEnabled(1)
@@ -633,12 +655,14 @@ class MainWindow(QtGui.QMainWindow):
                                                     self.GridSize )
                     if self.Prop != None:
                         self.RunButton.setEnabled(1)
-                        self.LoadedCubesTab1.addItem(self.loaded_cube_fname)
-                        self.UpdateComboCont(self.loaded_cube_fname)
-                        self.LoadedCubes.addItem(self.loaded_cube_fname)
                         self.Cubes.append([self.Prop, self.undefined_value, 
                                            None,
                                            self.GridObject])
+                        
+                        self.LoadedCubesTab1.addItem(self.loaded_cube_fname)
+                        self.UpdateComboCont(self.loaded_cube_fname)
+                        self.LoadedCubes.addItem(self.loaded_cube_fname)
+                        
                         self.CubesCont.append(len(self.Cubes)-1)
                         del(self.Prop)
                         self.CubeDeleteButton.setEnabled(1)

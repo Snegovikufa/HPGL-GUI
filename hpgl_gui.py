@@ -17,6 +17,7 @@ import gui_widgets.skwidget as GWSk
 import gui_widgets.okwidget as GWOk
 import gui_widgets.sgswidget as GWSgs
 import gui_widgets.lvmwidget as GWLvm
+import gui_widgets.varwidget as VW
 
 class MainWindow(QtGui.QWidget):
     def __init__(self):
@@ -408,7 +409,20 @@ class MainWindow(QtGui.QWidget):
                                   self.Tab3WidgetsPlaces)
         
         self.TabWidget.addTab(self.Tab3, "")
+        # Tab 4
+        self.Tab4 = QtGui.QWidget()
+        self.Tab4Layout = QtGui.QGridLayout(self.Tab4)
         
+        self.Tab4TabWidget = QtGui.QTabWidget(self.Tab4)
+        self.Tab4Tabs = range(10)
+        self.Tab4TabsNames = ['0', '1', '2', '3', '4',
+                              '5', '6', '7', '8', '9']
+        for i in xrange(10):
+            self.Tab4Tabs[i] = VW.varwidget()
+            self.Tab4TabWidget.addTab(self.Tab4Tabs[i], self.Tab4TabsNames[i])
+        self.Tab4Layout.addWidget(self.Tab4TabWidget, 0, 0, 1, 1)
+        
+        #self.TabWidget.addTab(self.Tab4, "Variograms")
         
         # Other Mainwindow layouths, bars, etc.
         
@@ -443,8 +457,7 @@ class MainWindow(QtGui.QWidget):
         self.CentralLayout.addWidget(self.ProgressBar, 1, 0, 1, 1)
         
         self.Log = ''
-        self.Err = ''
-        #self.ShowError('Error message')        
+        self.Err = ''      
         
         self.RetranslateUI(self)
         self.TabWidget.setCurrentIndex(0)
@@ -531,18 +544,24 @@ class MainWindow(QtGui.QWidget):
             self.IndCombo[i].addItem(string)
             
     def DelComboInd(self, num):
-        self.index = self.IndCombo.index(num)
-        self.IndCombo.remove(self.index)
+        print num
+        print self.IndCombo
+        self.index = self.CubesInd.index(num)
+        for i in xrange(len(self.IndCombo)):
+            self.IndCombo[i].removeItem(self.index)
         if self.IndCombo[0].count() == 0:
             for i in xrange(len(self.IndCombo)):
-                self.IndCombo[i].SetDisabled(1)
+                self.IndCombo[i].setDisabled(1)
         
     def DelComboCont(self, num):
-        self.index = self.ContCombo.index(num)
-        self.ContCombo.remove(self.index)
+        print num
+        print self.CubesCont
+        self.index = self.CubesCont.index(num)
+        for i in xrange(len(self.ContCombo)):
+            self.ContCombo[i].removeItem(self.index)
         if self.ContCombo[0].count() == 0:
             for i in xrange(len(self.ContCombo)):
-                self.ContCombo[i].SetDisabled(1)
+                self.ContCombo[i].setDisabled(1)
         
     def AlgorithmTypeChanged(self, value):
         self.AlgorithmWidget.setCurrentIndex(value)
@@ -552,13 +571,15 @@ class MainWindow(QtGui.QWidget):
             self.RunButton.setDisabled(1)
         
     def AlgorithmAccess(self, value):
-        if self.Cubes[value][2] == None:
+        if value < 0 or self.Cubes[value][2] == None:
             self.IKWidget.setDisabled(1)
             self.SISWidget.setDisabled(1)
             self.SKWidget.setEnabled(1)
             self.OKWidget.setEnabled(1)
             self.LVMWidget.setEnabled(1)
             self.SGSWidget.setEnabled(1)
+            self.TabWidget.removeTab(2)
+            self.TabWidget.addTab(self.Tab3, 'Variogram')
         else:
             self.IKWidget.setDisabled(0)
             self.SISWidget.setDisabled(0)
@@ -566,6 +587,8 @@ class MainWindow(QtGui.QWidget):
             self.OKWidget.setEnabled(0)
             self.LVMWidget.setEnabled(0)
             self.SGSWidget.setEnabled(0)
+            self.TabWidget.removeTab(2)
+            self.TabWidget.addTab(self.Tab4, 'Variogram')
         self.AlgorithmTypeChanged(self.AlgorithmType.currentIndex())
                     
     def CatchResult(self, Result):

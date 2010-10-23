@@ -13,10 +13,12 @@ import hpgl_run.ok_thread as OKT
 import hpgl_run.sk_thread as SKT
 import hpgl_run.lvm_thread as LVMT
 import hpgl_run.sgs_thread as SGST
+import hpgl_run.ik_thread as IKT
 import gui_widgets.skwidget as GWSk
 import gui_widgets.okwidget as GWOk
 import gui_widgets.sgswidget as GWSgs
 import gui_widgets.lvmwidget as GWLvm
+import gui_widgets.ikwidget as GWIk
 import gui_widgets.varwidget as VW
 
 class MainWindow(QtGui.QWidget):
@@ -41,6 +43,7 @@ class MainWindow(QtGui.QWidget):
                                 'Indicator Kriging', 'LVM Kriging', 
                                 'Sequantial Indicator Simulation', 
                                 'Sequantial Gaussian Simulation']
+        self.MaxVariograms = 10
         
         # TAB 1
         self.Tab1 = QtGui.QWidget()
@@ -226,7 +229,7 @@ class MainWindow(QtGui.QWidget):
         self.AlgorithmWidget = QtGui.QStackedWidget()
         self.SKWidget = GWSk.skwidget()
         self.OKWidget = GWOk.okwidget()
-        self.IKWidget = QtGui.QWidget()
+        self.IKWidget = GWIk.ikwidget()
         self.LVMWidget = GWLvm.lvmwidget()
         self.SISWidget = QtGui.QWidget()
         self.SGSWidget = GWSgs.sgswidget()
@@ -414,10 +417,10 @@ class MainWindow(QtGui.QWidget):
         self.Tab4Layout = QtGui.QGridLayout(self.Tab4)
         
         self.Tab4TabWidget = QtGui.QTabWidget(self.Tab4)
-        self.Tab4Tabs = range(10)
+        self.Tab4Tabs = range(self.MaxVariograms)
         self.Tab4TabsNames = ['0', '1', '2', '3', '4',
                               '5', '6', '7', '8', '9']
-        for i in xrange(10):
+        for i in xrange(self.MaxVariograms):
             self.Tab4Tabs[i] = VW.varwidget()
             self.Tab4TabWidget.addTab(self.Tab4Tabs[i], self.Tab4TabsNames[i])
         self.Tab4Layout.addWidget(self.Tab4TabWidget, 0, 0, 1, 1)
@@ -776,6 +779,46 @@ class MainWindow(QtGui.QWidget):
                                                self.EllipsoidRanges, 
                                                self.IntPoints, self.Variogram )
                     
+                    QtCore.QObject.connect(self.NewThread, 
+                                           QtCore.SIGNAL("msg(QString)"), 
+                                           self.UpdateUI)
+                    QtCore.QObject.connect(self.NewThread, 
+                                           QtCore.SIGNAL("progress(QString)"), 
+                                           self.UpdateProgress)
+                    QtCore.QObject.connect(self.NewThread, 
+                                           QtCore.SIGNAL("Result(PyQt_PyObject)"), 
+                                           self.CatchResult)
+
+                    self.NewThread.start()
+                    self.RunButton.setDisabled(1)
+                    
+            elif self.AlgorithmType.currentIndex() == 2:
+                k = 0
+                self.MaxIndicators = len(self.Cubes[self.LoadedCubesTab1.currentIndex()][2])
+                for i in xrange(self.MaxIndicators):
+                    k += self.Tab4Tabs[i].VariogramCheck()
+                    print k
+                if k == self.MaxIndicators:
+                    self.Log += "Starting Indicator Kriging Algorithm\n"
+                    self.ProgressBar.show()
+                    self.Variograms = range(self.MaxVariograms)
+                    self.MargProbs = range(self.MaxVariograms)
+                    self.CurrCube = self.LoadedCubes.currentIndex()
+                    self.EllipsoidRanges = self.IKWidget.GetSearchRanges()
+                    self.IntPoints = self.IKWidget.GetIntPoints()
+                    self.VarData = range(self.MaxVariograms)
+
+                    for i in xrange(self.MaxIndicators):
+                        self.Variograms[i] = self.Tab4Tabs[i].GetVariogram()
+                        self.VarData[i] = [self.Variograms[i], 
+                                           self.EllipsoidRanges,
+                                           self.IntPoints]
+                    self.MargProbs = [0.8, 0.2]
+                    
+                    self.NewThread = IKT.IKThread(self.Cubes[self.CurrCube][0], 
+                                                  self.Cubes[self.CurrCube][3], 
+                                                  self.VarData,
+                                                  self.MargProbs)
                     QtCore.QObject.connect(self.NewThread, 
                                            QtCore.SIGNAL("msg(QString)"), 
                                            self.UpdateUI)

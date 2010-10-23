@@ -146,6 +146,7 @@ class skwidget(QtGui.QWidget):
         return (int(self.SearchRanges0.text()),
                  int(self.SearchRanges90.text()),
                  int(self.SearchRangesV.text()))
+        
     def GetMean(self):
         return float(self.MeanValue.text())
         

@@ -43,7 +43,8 @@ class MainWindow(QtGui.QWidget):
                                 'Indicator Kriging', 'LVM Kriging', 
                                 'Sequantial Indicator Simulation', 
                                 'Sequantial Gaussian Simulation']
-        self.MaxVariograms = 10
+        self.MaxVariograms = 256
+        self.WasVariograms = 0
         
         # TAB 1
         self.Tab1 = QtGui.QWidget()
@@ -418,14 +419,12 @@ class MainWindow(QtGui.QWidget):
         
         self.Tab4TabWidget = QtGui.QTabWidget(self.Tab4)
         self.Tab4Tabs = range(self.MaxVariograms)
-        self.Tab4TabsNames = ['0', '1', '2', '3', '4',
-                              '5', '6', '7', '8', '9']
+        self.Tab4TabsNames = range(self.MaxVariograms)
         for i in xrange(self.MaxVariograms):
-            self.Tab4Tabs[i] = VW.varwidget()
-            self.Tab4TabWidget.addTab(self.Tab4Tabs[i], self.Tab4TabsNames[i])
+            self.Tab4TabsNames[i] = str(i)
+            
         self.Tab4Layout.addWidget(self.Tab4TabWidget, 0, 0, 1, 1)
         
-        #self.TabWidget.addTab(self.Tab4, "Variograms")
         
         # Other Mainwindow layouths, bars, etc.
         
@@ -480,6 +479,9 @@ class MainWindow(QtGui.QWidget):
         self.connect(self.LoadedCubes, 
                      QtCore.SIGNAL("currentIndexChanged(int)"), 
                      self.AlgorithmAccess )
+        self.connect(self.LoadedCubes, 
+                     QtCore.SIGNAL("currentIndexChanged(int)"), 
+                     self.UpdateVariogramTabs )
         self.connect(self.RunButton, QtCore.SIGNAL("clicked()"), 
                      self.AlgorithmRun)
         self.connect(self.GridSizeX, QtCore.SIGNAL("textChanged(QString)"), 
@@ -581,8 +583,6 @@ class MainWindow(QtGui.QWidget):
             self.OKWidget.setEnabled(1)
             self.LVMWidget.setEnabled(1)
             self.SGSWidget.setEnabled(1)
-            self.TabWidget.removeTab(2)
-            self.TabWidget.addTab(self.Tab3, 'Variogram')
         else:
             self.IKWidget.setDisabled(0)
             self.SISWidget.setDisabled(0)
@@ -590,9 +590,27 @@ class MainWindow(QtGui.QWidget):
             self.OKWidget.setEnabled(0)
             self.LVMWidget.setEnabled(0)
             self.SGSWidget.setEnabled(0)
+        self.AlgorithmTypeChanged(self.AlgorithmType.currentIndex())
+        
+    def UpdateVariogramTabs(self, value):
+        if self.Cubes[value][2] == None:
+            # Add cont variogram tab
+            for i in xrange(self.WasVariograms):
+                self.Tab4TabWidget.removeTab(0)
+                del(self.Tab4Tabs[0])
+            self.WasVariograms = 0
+            self.TabWidget.removeTab(2)
+            self.TabWidget.addTab(self.Tab3, 'Variogram')
+        else:
             self.TabWidget.removeTab(2)
             self.TabWidget.addTab(self.Tab4, 'Variogram')
-        self.AlgorithmTypeChanged(self.AlgorithmType.currentIndex())
+            for i in xrange(self.WasVariograms):
+                self.Tab4TabWidget.removeTab(0)
+                del(self.Tab4Tabs[0])
+            for i in xrange(len(self.Cubes[value][2])):
+                self.Tab4Tabs[i] = VW.varwidget()
+                self.Tab4TabWidget.addTab(self.Tab4Tabs[i], self.Tab4TabsNames[i])
+                self.WasVariograms = i
                     
     def CatchResult(self, Result):
         '''Catchs result of algorithm'''
@@ -810,10 +828,10 @@ class MainWindow(QtGui.QWidget):
 
                     for i in xrange(self.MaxIndicators):
                         self.Variograms[i] = self.Tab4Tabs[i].GetVariogram()
+                        self.MargProbs[i] = self.Tab4Tabs[i].GetMargProbs()
                         self.VarData[i] = [self.Variograms[i], 
                                            self.EllipsoidRanges,
                                            self.IntPoints]
-                    self.MargProbs = [0.8, 0.2]
                     
                     self.NewThread = IKT.IKThread(self.Cubes[self.CurrCube][0], 
                                                   self.Cubes[self.CurrCube][3], 

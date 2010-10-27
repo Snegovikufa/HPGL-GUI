@@ -121,6 +121,11 @@ class varwidget(QtGui.QWidget):
         self.NuggetValueLabel = QtGui.QLabel(self.NuggetEffectGB)
         self.NuggetValue = QtGui.QLineEdit(self.NuggetEffectGB)
         self.NuggetValue.setValidator(self.IntValidator)
+        self.MargProbsLabel = QtGui.QLabel(self.NuggetEffectGB)
+        self.MargProbs = QtGui.QDoubleSpinBox(self.NuggetEffectGB)
+        self.MargProbs.setMaximum(0.99)
+        self.MargProbs.setMinimum(0)
+        self.MargProbs.setSingleStep(0.01)
         NuggetEffectSpacerL = QtGui.QSpacerItem(40, 20, 
                                                 QtGui.QSizePolicy.Expanding, 
                                                 QtGui.QSizePolicy.Minimum)
@@ -130,10 +135,13 @@ class varwidget(QtGui.QWidget):
         
         self.NuggetEffectWidgets = [self.SillValueLabel, self.SillValue,
                                     self.NuggetValueLabel, self.NuggetValue,
+                                    self.MargProbsLabel, self.MargProbs,
                                     NuggetEffectSpacerL, NuggetEffectSpacerR]
         self.NuggetEffectWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
                                           [1, 1, 1, 1], [1, 2, 1, 1],
+                                          [2, 1, 1, 1], [2, 2, 1, 1],
                                           [0, 0, 1, 1], [0, 3, 1, 1]]
+        
         
         self.Spacer = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, 
                                        QtGui.QSizePolicy.Expanding)
@@ -199,6 +207,7 @@ class varwidget(QtGui.QWidget):
         self.SillValue.setText(self.__tr("1"))
         self.NuggetValueLabel.setText(self.__tr("\"Nugget\" effect value"))
         self.NuggetValue.setText(self.__tr("0"))
+        self.MargProbsLabel.setText(self.__tr("Marginal probability:"))
         
     def VariogramCheck(self):
         if self.EllipsoidRanges0.text() == "":
@@ -238,6 +247,9 @@ class varwidget(QtGui.QWidget):
                                           float(self.SillValue.text()), 
                                           int(self.NuggetValue.text()) )
         return self.Variogram
+    
+    def GetMargProbs(self):
+        return float(self.MargProbs.value())
     
     def ShowError(self, string):
         self.ErrorWindow = QtGui.QMessageBox()

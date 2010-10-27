@@ -17,3 +17,4 @@ class ikwidget(skwidget):
     def OwnWidgetsInit(self):
         self.MeanValueLabel.hide()
         self.MeanValue.hide()
+        

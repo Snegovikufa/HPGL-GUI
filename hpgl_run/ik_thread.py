@@ -17,6 +17,7 @@ class IKThread(QtCore.QThread):
         '''Runs thread'''
         set_output_handler(self.OutputLog, None)
         set_progress_handler(self.ProgressShow, None)
+        
         self.Result = indicator_kriging(self.Prop, self.GridObject, 
                                         self.Data, self.MargProbs)
         self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)

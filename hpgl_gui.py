@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4 import QtCore, QtGui
-
 from geo_bsd import write_property
 from geo_bsd import SugarboxGrid
 from geo_bsd import load_cont_property
 from geo_bsd import load_ind_property
 from geo_bsd import CovarianceModel
+from geo_bsd.routines import CalcMean
+from geo_bsd.routines import CalcMarginalProbsIndicator
 import re
 import hpgl_run.ok_thread as OKT
 import hpgl_run.sk_thread as SKT
@@ -81,7 +82,7 @@ class MainWindow(QtGui.QWidget):
         self.ManageCubesGB = QtGui.QGroupBox(self.Tab1)
         self.ManageCubesLayout = QtGui.QGridLayout(self.ManageCubesGB)
         
-        self.LoadedCubesTab1 = QtGui.QComboBox(self.ManageCubesGB)
+        self.LoadedCubes = QtGui.QComboBox(self.ManageCubesGB)
         self.CubeDeleteButton = QtGui.QPushButton(self.ManageCubesGB)
         self.CubeDeleteButton.setDisabled(1)
         self.CubeDeleteButton.setSizePolicy(QtGui.QSizePolicy.Maximum, 
@@ -93,7 +94,7 @@ class MainWindow(QtGui.QWidget):
                                                QtGui.QSizePolicy.Maximum, 
                                                QtGui.QSizePolicy.Minimum)
         
-        self.ManageCubesWidgets = [self.LoadedCubesTab1, self.CubeDeleteButton,
+        self.ManageCubesWidgets = [self.LoadedCubes, self.CubeDeleteButton,
                                    ManageCubesSpacerL, ManageCubesSpacerR]
         self.ManageCubesWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
                                          [0, 0, 1, 1], [0, 3, 1, 1]]
@@ -208,25 +209,6 @@ class MainWindow(QtGui.QWidget):
         self.AlgorithmTypeWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
                                            [0, 0, 1, 1], [0, 3, 1, 1]]
         
-        self.LoadedCubesGB = QtGui.QGroupBox(self.Tab2)
-        self.LoadedCubesLayout = QtGui.QGridLayout(self.LoadedCubesGB)
-        
-        self.LoadedCubesLabel = QtGui.QLabel(self.LoadedCubesGB)
-        self.LoadedCubes = QtGui.QComboBox(self.LoadedCubesGB)
-        self.LoadedCubes.setSizePolicy(QtGui.QSizePolicy.Expanding, 
-                                       QtGui.QSizePolicy.Fixed)
-        LoadedCubesSpacerL = QtGui.QSpacerItem(10, 20, 
-                                               QtGui.QSizePolicy.Maximum, 
-                                               QtGui.QSizePolicy.Maximum)
-        LoadedCubesSpacerR = QtGui.QSpacerItem(10, 20, 
-                                               QtGui.QSizePolicy.Maximum, 
-                                               QtGui.QSizePolicy.Minimum)
-        
-        self.LoadedCubesWidgets = [self.LoadedCubesLabel, self.LoadedCubes,
-                                   LoadedCubesSpacerL, LoadedCubesSpacerR]
-        self.LoadedCubesWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
-                                         [0, 0, 1, 1], [0, 3, 1, 1]]
-        
         self.AlgorithmWidget = QtGui.QStackedWidget()
         self.SKWidget = GWSk.skwidget()
         self.OKWidget = GWOk.okwidget()
@@ -245,14 +227,11 @@ class MainWindow(QtGui.QWidget):
         self.Tab2Spacer = QtGui.QSpacerItem(20, 40, 
                                             QtGui.QSizePolicy.Minimum, 
                                             QtGui.QSizePolicy.Expanding)
-        self.Tab2Widgets = [self.AlgorithmTypeGB, self.LoadedCubesGB,
+        self.Tab2Widgets = [self.AlgorithmTypeGB,
                             self.AlgorithmWidget, self.Tab2Spacer]
-        self.Tab2WidgetsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1],
+        self.Tab2WidgetsPlaces = [[0, 0, 1, 1],
                                   [1, 0, 1, 2], [3, 1, 1, 1]]
         
-        self.PlaceWidgetsAtPlaces(self.LoadedCubesLayout, 
-                                  self.LoadedCubesWidgets, 
-                                  self.LoadedCubesWidgetsPlaces)
         self.PlaceWidgetsAtPlaces(self.AlgorithmTypeLayout, 
                                   self.AlgorithmTypeWidgets, 
                                   self.AlgorithmTypeWidgetsPlaces)
@@ -482,6 +461,9 @@ class MainWindow(QtGui.QWidget):
         self.connect(self.LoadedCubes, 
                      QtCore.SIGNAL("currentIndexChanged(int)"), 
                      self.UpdateVariogramTabs )
+        self.connect(self.LoadedCubes, 
+                     QtCore.SIGNAL("currentIndexChanged(int)"), 
+                     self.UpdateMean )
         self.connect(self.RunButton, QtCore.SIGNAL("clicked()"), 
                      self.AlgorithmRun)
         self.connect(self.GridSizeX, QtCore.SIGNAL("textChanged(QString)"), 
@@ -507,19 +489,33 @@ class MainWindow(QtGui.QWidget):
 
     def DeleteCube(self):
         '''Deletes cube from memory and UI'''
-        self.current_index = self.LoadedCubesTab1.currentIndex()
-        if self.Cubes[self.current_index][2] == None:
-            self.DelComboCont(self.current_index)
+        self.CurrCube = self.LoadedCubes.currentIndex()
+        if self.Cubes[self.CurrCube][2] == None:
+            for i in xrange(len(self.ContCombo)):
+                self.ContCombo[i].removeItem(self.CubesCont.index(self.CurrCube))
+                if self.ContCombo[i].count() == 0:
+                    self.ContCombo[i].setDisabled(1)
         else:
-            self.DelComboInd(self.current_index)
-        del (self.Cubes[self.current_index])
-        self.LoadedCubesTab1.removeItem(self.current_index)
-        self.LoadedCubes.removeItem(self.current_index)
-        
-        self.Log +='Cube deleted\n'
-        if self.LoadedCubesTab1.count() == 0:
+            for i in xrange(len(self.IndCombo)):
+                self.IndCombo[i].removeItem(self.CubesInd.index(self.CurrCube))
+                if self.IndCombo[i].count() == 0:
+                    self.IndCombo[i].setDisabled(1)
+        del (self.CubesCont)
+        del (self.CubesInd)
+        del (self.Cubes[self.CurrCube])
+        self.LoadedCubes.removeItem(self.CurrCube)
+        if self.LoadedCubes.count() == 0:
             self.RunButton.setDisabled(1)
             self.CubeDeleteButton.setDisabled(1)
+        
+        self.CubesCont = range(len(self.Cubes))
+        self.CubesInd = range(len(self.Cubes))
+        for i in xrange(len(self.Cubes)):
+            if self.Cubes[i][2] == None:
+                self.CubesCont[i] = i
+            else:
+                self.CubesInd[i] = i
+        self.Log +='Cube deleted\n'
 
     def UpdateUI(self, string):
         '''Outputs HPGL\'s output to log'''
@@ -547,26 +543,15 @@ class MainWindow(QtGui.QWidget):
     def UpdateComboInd(self, string):
         for i in xrange(len(self.IndCombo)):
             self.IndCombo[i].addItem(string)
+            self.IndCombo[i].setEnabled(1)
             
-    def DelComboInd(self, num):
-        print num
-        print self.IndCombo
-        self.index = self.CubesInd.index(num)
-        for i in xrange(len(self.IndCombo)):
-            self.IndCombo[i].removeItem(self.index)
-        if self.IndCombo[0].count() == 0:
-            for i in xrange(len(self.IndCombo)):
-                self.IndCombo[i].setDisabled(1)
-        
-    def DelComboCont(self, num):
-        print num
-        print self.CubesCont
-        self.index = self.CubesCont.index(num)
-        for i in xrange(len(self.ContCombo)):
-            self.ContCombo[i].removeItem(self.index)
-        if self.ContCombo[0].count() == 0:
-            for i in xrange(len(self.ContCombo)):
-                self.ContCombo[i].setDisabled(1)
+    def UpdateMean(self):
+        self.CurrCube = self.LoadedCubes.currentIndex()
+        if self.Cubes[self.CurrCube][2] == None:
+            self.Mean = CalcMean(self.Cubes[self.CurrCube][0][0],
+                                 self.Cubes[self.CurrCube][0][1])
+            self.SKWidget.MeanValue.setText(str(self.Mean))
+            self.SGSWidget.MeanValue.setText(str(self.Mean))
         
     def AlgorithmTypeChanged(self, value):
         self.AlgorithmWidget.setCurrentIndex(value)
@@ -593,7 +578,7 @@ class MainWindow(QtGui.QWidget):
         self.AlgorithmTypeChanged(self.AlgorithmType.currentIndex())
         
     def UpdateVariogramTabs(self, value):
-        if self.Cubes[value][2] == None:
+        if value < 0 or self.Cubes[value][2] == None:
             # Add cont variogram tab
             for i in xrange(self.WasVariograms):
                 self.Tab4TabWidget.removeTab(0)
@@ -604,13 +589,22 @@ class MainWindow(QtGui.QWidget):
         else:
             self.TabWidget.removeTab(2)
             self.TabWidget.addTab(self.Tab4, 'Variogram')
+            self.MargProbs = self.UpdateMargProbs()
             for i in xrange(self.WasVariograms):
                 self.Tab4TabWidget.removeTab(0)
                 del(self.Tab4Tabs[0])
             for i in xrange(len(self.Cubes[value][2])):
                 self.Tab4Tabs[i] = VW.varwidget()
                 self.Tab4TabWidget.addTab(self.Tab4Tabs[i], self.Tab4TabsNames[i])
+                self.Tab4Tabs[i].MargProbs.setValue(float(self.MargProbs[i]))
                 self.WasVariograms = i
+                
+    def UpdateMargProbs(self):
+        self.CurrCube = self.LoadedCubes.currentIndex()
+        if self.Cubes[self.CurrCube][2] != None:
+            return CalcMarginalProbsIndicator(self.Cubes[self.CurrCube][0][0],
+                                          self.Cubes[self.CurrCube][0][1],
+                                          self.Cubes[self.CurrCube][2])
                     
     def CatchResult(self, Result):
         '''Catchs result of algorithm'''
@@ -682,13 +676,11 @@ class MainWindow(QtGui.QWidget):
                                            self.indicator_value,
                                            self.GridObject])
                         
-                        self.LoadedCubesTab1.addItem(self.loaded_cube_fname)
-                        self.UpdateComboInd(self.loaded_cube_fname)
-                        self.LoadedCubes.addItem(self.loaded_cube_fname)
-                        
+                        self.LoadedCubes.addItem(self.loaded_cube_fname+'(ind)')
+                        self.UpdateComboInd(self.loaded_cube_fname+'(ind)')
+                        self.CubeDeleteButton.setEnabled(1)
                         self.CubesInd.append(len(self.Cubes)-1)
                         del(self.Prop)
-                        self.CubeDeleteButton.setEnabled(1)
                     
                 elif self.IndValuesCheckbox.isChecked() == 0:
                     self.Log += 'Loaded cube\n'
@@ -703,13 +695,11 @@ class MainWindow(QtGui.QWidget):
                                            None,
                                            self.GridObject])
                         
-                        self.LoadedCubesTab1.addItem(self.loaded_cube_fname)
-                        self.UpdateComboCont(self.loaded_cube_fname)
-                        self.LoadedCubes.addItem(self.loaded_cube_fname)
-                        
+                        self.LoadedCubes.addItem(self.loaded_cube_fname+'(con)')
+                        self.UpdateComboCont(self.loaded_cube_fname+'(con)')
+                        self.CubeDeleteButton.setEnabled(1)
                         self.CubesCont.append(len(self.Cubes)-1)
                         del(self.Prop)
-                        self.CubeDeleteButton.setEnabled(1)
     
     def VariogramCheck(self):
         if self.EllipsoidRanges0.text() == "":
@@ -753,7 +743,7 @@ class MainWindow(QtGui.QWidget):
         '''Run algorithm'''
         if self.VariogramCheck() == 1:
             if self.AlgorithmType.currentIndex() == 0:
-                if self.SKWidget.ValuesCheck(self.LogTextbox) == 1:
+                if self.SKWidget.ValuesCheck(self.Log) == 1:
                     self.Log += "Starting Simple Kriging Algorithm\n"
                     self.ProgressBar.show()
                     
@@ -783,7 +773,7 @@ class MainWindow(QtGui.QWidget):
                     self.RunButton.setDisabled(1)
                     
             elif self.AlgorithmType.currentIndex() == 1:
-                if self.OKWidget.ValuesCheck(self.LogTextbox) == 1:
+                if self.OKWidget.ValuesCheck(self.Log) == 1:
                     self.Log += "Starting Ordinary Kriging Algorithm\n"
                     self.ProgressBar.show()
                     
@@ -812,27 +802,30 @@ class MainWindow(QtGui.QWidget):
                     
             elif self.AlgorithmType.currentIndex() == 2:
                 k = 0
-                self.MaxIndicators = len(self.Cubes[self.LoadedCubesTab1.currentIndex()][2])
+                self.MaxIndicators = len(self.Cubes[self.LoadedCubes.currentIndex()][2])
                 for i in xrange(self.MaxIndicators):
                     k += self.Tab4Tabs[i].VariogramCheck()
-                    print k
                 if k == self.MaxIndicators:
                     self.Log += "Starting Indicator Kriging Algorithm\n"
                     self.ProgressBar.show()
-                    self.Variograms = range(self.MaxVariograms)
-                    self.MargProbs = range(self.MaxVariograms)
+                    
+                    self.Variograms = range(self.MaxIndicators)
+                    self.MargProbs = range(self.MaxIndicators)
+                    self.VarData = range(self.MaxIndicators)
+                    
                     self.CurrCube = self.LoadedCubes.currentIndex()
                     self.EllipsoidRanges = self.IKWidget.GetSearchRanges()
                     self.IntPoints = self.IKWidget.GetIntPoints()
-                    self.VarData = range(self.MaxVariograms)
 
                     for i in xrange(self.MaxIndicators):
                         self.Variograms[i] = self.Tab4Tabs[i].GetVariogram()
                         self.MargProbs[i] = self.Tab4Tabs[i].GetMargProbs()
-                        self.VarData[i] = [self.Variograms[i], 
-                                           self.EllipsoidRanges,
-                                           self.IntPoints]
-                    
+                        self.VarData[i] = { "cov_model" : self.Variograms[i],
+                                            "max_neighbours" : self.IntPoints,
+                                            "radiuses" : self.EllipsoidRanges 
+                                             }
+                    print self.VarData
+
                     self.NewThread = IKT.IKThread(self.Cubes[self.CurrCube][0], 
                                                   self.Cubes[self.CurrCube][3], 
                                                   self.VarData,
@@ -851,7 +844,7 @@ class MainWindow(QtGui.QWidget):
                     self.RunButton.setDisabled(1)
                     
             elif self.AlgorithmType.currentIndex() == 3:
-                if self.LVMWidget.ValuesCheck(self.LogTextbox) == 1:
+                if self.LVMWidget.ValuesCheck(self.Log) == 1:
                     self.Log += "Starting Locale Varying Mean Algorithm\n"
                     self.ProgressBar.show()
                     
@@ -883,7 +876,7 @@ class MainWindow(QtGui.QWidget):
                     
                 
             elif self.AlgorithmType.currentIndex() == 5:
-                if self.SGSWidget.ValuesCheck(self.LogTextbox) == 1:
+                if self.SGSWidget.ValuesCheck(self.Log) == 1:
                     self.Log += "Starting Sequantial Gaussian Algorithm\n"
                     self.ProgressBar.show()
                     
@@ -945,9 +938,6 @@ class MainWindow(QtGui.QWidget):
                                   (self.__tr("Load cube")))
         
         # Tab 2
-        self.LoadedCubesGB.setTitle(self.__tr("Cubes"))
-        self.LoadedCubesLabel.setText(self.__tr("Select cube:"))
-        
         self.RunGB.setTitle(self.__tr("Solve algorithm"))
         self.RunButton.setText(self.__tr("Run"))
         self.SaveButton.setText(self.__tr("Save"))

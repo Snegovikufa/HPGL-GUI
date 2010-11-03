@@ -15,11 +15,13 @@ import hpgl_run.sk_thread as SKT
 import hpgl_run.lvm_thread as LVMT
 import hpgl_run.sgs_thread as SGST
 import hpgl_run.ik_thread as IKT
+import hpgl_run.sis_thread as SIST
 import gui_widgets.skwidget as GWSk
 import gui_widgets.okwidget as GWOk
 import gui_widgets.sgswidget as GWSgs
 import gui_widgets.lvmwidget as GWLvm
 import gui_widgets.ikwidget as GWIk
+import gui_widgets.siswidget as GWSis
 import gui_widgets.varwidget as VW
 
 class MainWindow(QtGui.QWidget):
@@ -214,7 +216,7 @@ class MainWindow(QtGui.QWidget):
         self.OKWidget = GWOk.okwidget()
         self.IKWidget = GWIk.ikwidget()
         self.LVMWidget = GWLvm.lvmwidget()
-        self.SISWidget = QtGui.QWidget()
+        self.SISWidget = GWSis.siswidget()
         self.SGSWidget = GWSgs.sgswidget()
         self.AlgorithmWidgets = [self.SKWidget, self.OKWidget, 
                                  self.IKWidget, self.LVMWidget, 
@@ -874,6 +876,55 @@ class MainWindow(QtGui.QWidget):
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
                     
+            elif self.AlgorithmType.currentIndex() == 4:
+                k = 0
+                self.MaxIndicators = len(self.Cubes[self.LoadedCubes.currentIndex()][2])
+                for i in xrange(self.MaxIndicators):
+                    k += self.Tab4Tabs[i].VariogramCheck()
+                if k == self.MaxIndicators:
+                    self.Log += "Starting Sequantial Indicator Algorithm\n"
+                    self.ProgressBar.show()
+                    
+                    self.Variograms = range(self.MaxIndicators)
+                    self.MargProbs = range(self.MaxIndicators)
+                    self.VarData = range(self.MaxIndicators)
+                    
+                    self.CurrCube = self.LoadedCubes.currentIndex()
+                    self.EllipsoidRanges = self.SISWidget.GetSearchRanges()
+                    self.IntPoints = self.SISWidget.GetIntPoints()
+                    self.Seed = self.SISWidget.GetSeed()
+                    self.UseCorr = self.SISWidget.GetUseCorr()
+                    self.Mask = self.SISWidget.GetMask(self.Cubes, self.CubesInd) # is right?
+
+                    for i in xrange(self.MaxIndicators):
+                        self.Variograms[i] = self.Tab4Tabs[i].GetVariogram()
+                        self.MargProbs[i] = self.Tab4Tabs[i].GetMargProbs()
+                        self.VarData[i] = { "cov_model" : self.Variograms[i],
+                                            "max_neighbours" : self.IntPoints,
+                                            "radiuses" : self.EllipsoidRanges 
+                                             }
+                    print self.VarData
+
+                    self.NewThread = IKT.IKThread(self.Cubes[self.CurrCube][0], 
+                                                  self.Cubes[self.CurrCube][3], 
+                                                  self.VarData,
+                                                  self.MargProbs)
+                    SIST.SISThread(self.Cubes[self.CurrCube][0], 
+                                   self.Cubes[self.CurrCube][3], 
+                                   self.VarData, self.MargProbs, 
+                                   self.Seed, self.UseCorr, self.Mask)
+                    QtCore.QObject.connect(self.NewThread, 
+                                           QtCore.SIGNAL("msg(QString)"), 
+                                           self.UpdateUI)
+                    QtCore.QObject.connect(self.NewThread, 
+                                           QtCore.SIGNAL("progress(QString)"), 
+                                           self.UpdateProgress)
+                    QtCore.QObject.connect(self.NewThread, 
+                                           QtCore.SIGNAL("Result(PyQt_PyObject)"), 
+                                           self.CatchResult)
+
+                    self.NewThread.start()
+                    self.RunButton.setDisabled(1)
                 
             elif self.AlgorithmType.currentIndex() == 5:
                 if self.SGSWidget.ValuesCheck(self.Log) == 1:

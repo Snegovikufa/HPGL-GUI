@@ -445,8 +445,9 @@ class MainWindow(QtGui.QWidget):
         self.RetranslateUI(self)
         self.TabWidget.setCurrentIndex(0)
         
-        #
-        self.IndCombo = [self.SGSWidget.MaskCombobox]
+        # Comboboxes
+        self.IndCombo = [self.SGSWidget.MaskCombobox,
+                         self.SISWidget.MaskCombobox]
         self.ContCombo = [self.LVMWidget.MeanCombobox, 
                           self.SGSWidget.MeanCombobox]
         # Signals and slots

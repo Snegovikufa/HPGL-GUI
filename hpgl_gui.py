@@ -23,6 +23,7 @@ import gui_widgets.lvmwidget as GWLvm
 import gui_widgets.ikwidget as GWIk
 import gui_widgets.siswidget as GWSis
 import gui_widgets.varwidget as VW
+import gui_widgets.errorwindow as EW
 
 class MainWindow(QtGui.QWidget):
     def __init__(self):
@@ -44,8 +45,8 @@ class MainWindow(QtGui.QWidget):
         self.CubesCont = []
         self.AlgorithmTypes = ['Simple Kriging', 'Ordinary Kriging', 
                                 'Indicator Kriging', 'LVM Kriging', 
-                                'Sequantial Indicator Simulation', 
-                                'Sequantial Gaussian Simulation']
+                                'Sequential Indicator Simulation', 
+                                'Sequential Gaussian Simulation']
         self.MaxVariograms = 256
         self.WasVariograms = 0
         
@@ -416,6 +417,7 @@ class MainWindow(QtGui.QWidget):
         self.RunButton.setDisabled(1)
         self.SaveButton = QtGui.QPushButton(self.RunGB)
         self.SaveButton.setDisabled(1)
+        self.LogButton = QtGui.QPushButton(self.RunGB)
         RunSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, 
                                        QtGui.QSizePolicy.Minimum)
         RunSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, 
@@ -424,9 +426,11 @@ class MainWindow(QtGui.QWidget):
                                        QtGui.QSizePolicy.Expanding)
         
         self.RunWidgets = [self.RunButton, self.SaveButton,
-                           RunSpacerL, RunSpacerR, RunSpacerD]
+                           RunSpacerL, RunSpacerR, self.LogButton,
+                           RunSpacerD]
         self.RunWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
-                                 [0, 0, 1, 1], [0, 3, 1, 1], [2, 0, 1, 2]]
+                                 [0, 0, 1, 1], [0, 3, 1, 1], [0, 4, 1, 1],
+                                 [2, 0, 1, 2]]
         self.PlaceWidgetsAtPlaces(self.RunLayout, 
                                   self.RunWidgets, 
                                   self.RunWidgetsPlaces)
@@ -469,6 +473,8 @@ class MainWindow(QtGui.QWidget):
                      self.UpdateMean )
         self.connect(self.RunButton, QtCore.SIGNAL("clicked()"), 
                      self.AlgorithmRun)
+        self.connect(self.LogButton, QtCore.SIGNAL("clicked()"),
+                     self.ShowLog)
         self.connect(self.GridSizeX, QtCore.SIGNAL("textChanged(QString)"), 
                      self.CubeLoadAccess)
         self.connect(self.GridSizeY, QtCore.SIGNAL("textChanged(QString)"), 
@@ -530,13 +536,28 @@ class MainWindow(QtGui.QWidget):
         
     def CubeLoadAccess(self):
         '''Controls the grid size and allow to load cube'''
-        if int(self.GridSizeX.text()) > 0 and int(self.GridSizeY.text()) > 0 and \
-                                               int(self.GridSizeZ.text()) > 0:
+        if self.GridSizeX.text() == '' or \
+            self.GridSizeX.text() == '-' or \
+            self.GridSizeY.text() == '' or \
+            self.GridSizeX.text() == '-' or \
+            self.GridSizeZ.text() == '' or \
+            self.GridSizeZ.text() == '-':
+            self.LoadCubeButton.setDisabled(1)
+        elif int(self.GridSizeX.text()) > 0 and \
+            int(self.GridSizeY.text()) > 0 and \
+            int(self.GridSizeZ.text()) > 0:
             self.LoadCubeButton.setEnabled(1)
+        else:
+            self.LoadCubeButton.setDisabled(0)
             
     def ShowError(self, string):
         self.ErrorWindow = QtGui.QMessageBox()
         self.ErrorWindow.warning(None, "Error", string)
+        
+    def ShowLog(self):
+        self.LogWindow = EW.error_window()
+        #self.LogWindow.information(None, "Log", self.Log)
+        self.LogWindow.showmessage("Log", self.Log)
             
     def UpdateComboCont(self, string):
         for i in xrange(len(self.ContCombo)):
@@ -553,8 +574,8 @@ class MainWindow(QtGui.QWidget):
         if self.Cubes[self.CurrCube][2] == None:
             self.Mean = CalcMean(self.Cubes[self.CurrCube][0][0],
                                  self.Cubes[self.CurrCube][0][1])
-            self.SKWidget.MeanValue.setText(str(self.Mean))
-            self.SGSWidget.MeanValue.setText(str(self.Mean))
+            self.SKWidget.MeanValue.setText(str(self.Mean)[:-8])
+            self.SGSWidget.MeanValue.setText(str(self.Mean)[:-8])
         
     def AlgorithmTypeChanged(self, value):
         self.AlgorithmWidget.setCurrentIndex(value)
@@ -562,6 +583,16 @@ class MainWindow(QtGui.QWidget):
             self.RunButton.setEnabled(1)
         else:
             self.RunButton.setDisabled(1)
+        if value == 4 or value == 5:
+            self.SISWidget.SeedGB.show()
+            self.SISWidget.MaskGB.show()
+            self.SGSWidget.SeedGB.show()
+            self.SGSWidget.MaskGB.show()
+        else:
+            self.SISWidget.SeedGB.hide()
+            self.SISWidget.MaskGB.hide()
+            self.SGSWidget.SeedGB.hide()
+            self.SGSWidget.MaskGB.hide()
         
     def AlgorithmAccess(self, value):
         if value < 0 or self.Cubes[value][2] == None:
@@ -679,8 +710,8 @@ class MainWindow(QtGui.QWidget):
                                            self.indicator_value,
                                            self.GridObject])
                         
-                        self.LoadedCubes.addItem(self.loaded_cube_fname+'(ind)')
-                        self.UpdateComboInd(self.loaded_cube_fname+'(ind)')
+                        self.LoadedCubes.addItem(self.loaded_cube_fname+' (ind)')
+                        self.UpdateComboInd(self.loaded_cube_fname+' (ind)')
                         self.CubeDeleteButton.setEnabled(1)
                         self.CubesInd.append(len(self.Cubes)-1)
                         del(self.Prop)
@@ -698,8 +729,8 @@ class MainWindow(QtGui.QWidget):
                                            None,
                                            self.GridObject])
                         
-                        self.LoadedCubes.addItem(self.loaded_cube_fname+'(con)')
-                        self.UpdateComboCont(self.loaded_cube_fname+'(con)')
+                        self.LoadedCubes.addItem(self.loaded_cube_fname+' (con)')
+                        self.UpdateComboCont(self.loaded_cube_fname+' (con)')
                         self.CubeDeleteButton.setEnabled(1)
                         self.CubesCont.append(len(self.Cubes)-1)
                         del(self.Prop)
@@ -746,7 +777,9 @@ class MainWindow(QtGui.QWidget):
         '''Run algorithm'''
         if self.VariogramCheck() == 1:
             if self.AlgorithmType.currentIndex() == 0:
-                if self.SKWidget.ValuesCheck(self.Log) == 1:
+                if self.SKWidget.ValuesCheck(self.Err) == 0:
+                    self.ShowError(self.Err)
+                else:
                     self.Log += "Starting Simple Kriging Algorithm\n"
                     self.ProgressBar.show()
                     
@@ -993,6 +1026,7 @@ class MainWindow(QtGui.QWidget):
         self.RunGB.setTitle(self.__tr("Solve algorithm"))
         self.RunButton.setText(self.__tr("Run"))
         self.SaveButton.setText(self.__tr("Save"))
+        self.LogButton.setText(self.__tr("Show log"))
         
         self.AlgorithmTypeGB.setTitle(self.__tr("Algorithm"))
         self.AlgorithmTypeLabel.setText(self.__tr("Algorithm type"))
@@ -1009,7 +1043,7 @@ class MainWindow(QtGui.QWidget):
         for i in xrange(len(self.VariogramTypes)):
             self.VariogramType.setItemText(i, (self.__tr(self.VariogramTypes[i])))
             
-        self.EllipsoidRangesGB.setTitle(self.__tr("Ellipsoid ranges"))
+        self.EllipsoidRangesGB.setTitle(self.__tr("Variogram ranges"))
         self.EllipsoidRanges0Label.setText(self.__tr("0"))
         self.EllipsoidRanges0.setText(self.__tr("20"))
         self.EllipsoidRanges90Label.setText(self.__tr("90"))

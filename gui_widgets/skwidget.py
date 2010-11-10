@@ -99,17 +99,17 @@ class skwidget(QtGui.QWidget):
                 layout.addWidget(widgets[i], places[i][0], places[i][1], 
                                  places[i][2], places[i][3])
                 
-    def ValuesCheck(self, Log):
+    def ValuesCheck(self, Err):
         if self.SearchRanges0.text() == "":
-            Log += '"Search ranges 0" is empty\n'
+            Err += '"Search ranges 0" is empty\n'
         elif self.SearchRanges90.text() == "":
-            Log += '"Search ranges 90" is empty\n'
+            Err += '"Search ranges 90" is empty\n'
         elif self.SearchRangesV.text() == "":
-            Log += '"Search ranges vertical" is empty\n'
+            Err += '"Search ranges vertical" is empty\n'
         elif self.InterpolationPoints.text() == "":
-            Log += '"Interpolation points" is empty\n'
+            Err += '"Interpolation points" is empty\n'
         elif self.MeanValue.text() == "":
-            Log += '"Mean value" is empty\n'
+            Err += '"Mean value" is empty\n'
         else:
             return 1
         return 0

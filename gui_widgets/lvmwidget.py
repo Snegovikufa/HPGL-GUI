@@ -46,21 +46,23 @@ class lvmwidget(skwidget):
             self.Mean = Cubes[self.CurrIndex][0][0]
             return self.Mean
 
-    def ValuesCheck(self, LogTextbox):
+    def ValuesCheck(self):
+        Err = ''
         if self.SearchRanges0.text() == "":
-            LogTextbox.insertPlainText('"Search ranges 0" is empty\n')
-        elif self.SearchRanges90.text() == "":
-            LogTextbox.insertPlainText('"Search ranges 90" is empty\n')
-        elif self.SearchRangesV.text() == "":
-            LogTextbox.insertPlainText('"Search ranges vertical" is empty\n')
-        elif self.InterpolationPoints.text() == "":
-            LogTextbox.insertPlainText('"Interpolation points" is empty\n')
+            Err += '"Search ranges 0" is empty\n'
+        if self.SearchRanges90.text() == "":
+            Err += '"Search ranges 90" is empty\n'
+        if self.SearchRangesV.text() == "":
+            Err += '"Search ranges vertical" is empty\n'
+        if self.InterpolationPoints.text() == "":
+            Err += '"Interpolation points" is empty\n'
         # Also check for cont properties in MeanCombobox
-        elif self.MeanCombobox.count() == 0:
-            LogTextbox.insertPlainText('No cont property loaded yet')
+        if self.MeanCombobox.count() == 0:
+            Err += 'No cont property loaded yet'
+        if Err == '':
+            return 1, None
         else:
-            return 1
-        return 0
+            return 0, Err
     
     def RetranslateOwn(self):
         self.MeanLabel.setText(self.__tr("Mean (cube):"))

@@ -13,7 +13,9 @@ class skwidget(QtGui.QWidget):
 
     def BaseWidgetsInit(self):
         self.IntValidator = QtGui.QIntValidator(self)
+        self.IntValidator.setBottom(0)
         self.DoubleValidator = QtGui.QDoubleValidator(self)
+        self.DoubleValidator.setBottom(0)
         
         self.SearchRangesGB = QtGui.QGroupBox(self)
         self.SearchRangesLayout = QtGui.QGridLayout(self.SearchRangesGB)
@@ -99,20 +101,22 @@ class skwidget(QtGui.QWidget):
                 layout.addWidget(widgets[i], places[i][0], places[i][1], 
                                  places[i][2], places[i][3])
                 
-    def ValuesCheck(self, Err):
+    def ValuesCheck(self):
+        self.Err = ''
         if self.SearchRanges0.text() == "":
-            Err += '"Search ranges 0" is empty\n'
-        elif self.SearchRanges90.text() == "":
-            Err += '"Search ranges 90" is empty\n'
-        elif self.SearchRangesV.text() == "":
-            Err += '"Search ranges vertical" is empty\n'
-        elif self.InterpolationPoints.text() == "":
-            Err += '"Interpolation points" is empty\n'
-        elif self.MeanValue.text() == "":
-            Err += '"Mean value" is empty\n'
+            self.Err += '"Search ranges 0" is empty\n'
+        if self.SearchRanges90.text() == "":
+            self.Err += '"Search ranges 90" is empty\n'
+        if self.SearchRangesV.text() == "":
+            self.Err += '"Search ranges vertical" is empty\n'
+        if self.InterpolationPoints.text() == "":
+            self.Err += '"Interpolation points" is empty\n'
+        if self.MeanValue.text() == "":
+            self.Err += '"Mean value" is empty\n'
+        if self.Err == '':
+            return 1, None
         else:
-            return 1
-        return 0
+            return 0, self.Err
     
     def Retranslate(self):
         self.SearchRangesGB.setTitle(self.__tr("Search ellipsoid ranges"))

@@ -552,7 +552,7 @@ class MainWindow(QtGui.QWidget):
             
     def ShowError(self, string):
         self.ErrorWindow = QtGui.QMessageBox()
-        self.ErrorWindow.warning(None, "Error", string)
+        self.ErrorWindow.warning(None, "Error", str(string))
         
     def ShowLog(self):
         self.LogWindow = EW.error_window()
@@ -583,6 +583,12 @@ class MainWindow(QtGui.QWidget):
             self.RunButton.setEnabled(1)
         else:
             self.RunButton.setDisabled(1)
+            
+        if self.LoadedCubes.count() == 0:
+            self.RunButton.setDisabled(1)
+        else:
+            self.RunButton.setEnabled(1)
+            
         if value == 4 or value == 5:
             self.SISWidget.SeedGB.show()
             self.SISWidget.MaskGB.show()
@@ -736,6 +742,7 @@ class MainWindow(QtGui.QWidget):
                         del(self.Prop)
     
     def VariogramCheck(self):
+        self.Err = ''
         if self.EllipsoidRanges0.text() == "":
             self.Err +='"Ellipsoid ranges 0" is empty\n'
         if self.EllipsoidRanges90.text() == "":
@@ -777,7 +784,8 @@ class MainWindow(QtGui.QWidget):
         '''Run algorithm'''
         if self.VariogramCheck() == 1:
             if self.AlgorithmType.currentIndex() == 0:
-                if self.SKWidget.ValuesCheck(self.Err) == 0:
+                check, self.Err = self.SKWidget.ValuesCheck()
+                if check == 0:
                     self.ShowError(self.Err)
                 else:
                     self.Log += "Starting Simple Kriging Algorithm\n"
@@ -809,7 +817,10 @@ class MainWindow(QtGui.QWidget):
                     self.RunButton.setDisabled(1)
                     
             elif self.AlgorithmType.currentIndex() == 1:
-                if self.OKWidget.ValuesCheck(self.Log) == 1:
+                check, self.Err = self.OKWidget.ValuesCheck()
+                if check == 0:
+                    self.ShowError(self.Err)
+                else:
                     self.Log += "Starting Ordinary Kriging Algorithm\n"
                     self.ProgressBar.show()
                     
@@ -840,8 +851,13 @@ class MainWindow(QtGui.QWidget):
                 k = 0
                 self.MaxIndicators = len(self.Cubes[self.LoadedCubes.currentIndex()][2])
                 for i in xrange(self.MaxIndicators):
-                    k += self.Tab4Tabs[i].VariogramCheck()
-                if k == self.MaxIndicators:
+                    j, errors = self.Tab4Tabs[i].VariogramCheck()
+                    if j == 0:
+                        self.Err += 'In tab #' + str(i) +':\n' + errors
+                    k += j
+                if k != self.MaxIndicators:
+                    self.ShowError(self.Err)
+                else:
                     self.Log += "Starting Indicator Kriging Algorithm\n"
                     self.ProgressBar.show()
                     
@@ -860,7 +876,6 @@ class MainWindow(QtGui.QWidget):
                                             "max_neighbours" : self.IntPoints,
                                             "radiuses" : self.EllipsoidRanges 
                                              }
-                    print self.VarData
 
                     self.NewThread = IKT.IKThread(self.Cubes[self.CurrCube][0], 
                                                   self.Cubes[self.CurrCube][3], 
@@ -880,7 +895,10 @@ class MainWindow(QtGui.QWidget):
                     self.RunButton.setDisabled(1)
                     
             elif self.AlgorithmType.currentIndex() == 3:
-                if self.LVMWidget.ValuesCheck(self.Log) == 1:
+                check, self.Err = self.LVMWidget.ValuesCheck()
+                if check == 0:
+                    self.ShowError(self.Err)
+                else:
                     self.Log += "Starting Locale Varying Mean Algorithm\n"
                     self.ProgressBar.show()
                     
@@ -914,8 +932,13 @@ class MainWindow(QtGui.QWidget):
                 k = 0
                 self.MaxIndicators = len(self.Cubes[self.LoadedCubes.currentIndex()][2])
                 for i in xrange(self.MaxIndicators):
-                    k += self.Tab4Tabs[i].VariogramCheck()
-                if k == self.MaxIndicators:
+                    j, errors = self.Tab4Tabs[i].VariogramCheck()
+                    if j == 0:
+                        self.Err += 'In variogram tab #' + str(i) +':\n' + errors
+                    k += j
+                if k != self.MaxIndicators:
+                    self.ShowError(self.Err)
+                else:
                     self.Log += "Starting Sequantial Indicator Algorithm\n"
                     self.ProgressBar.show()
                     
@@ -937,7 +960,6 @@ class MainWindow(QtGui.QWidget):
                                             "max_neighbours" : self.IntPoints,
                                             "radiuses" : self.EllipsoidRanges 
                                              }
-                    print self.VarData
 
                     self.NewThread = IKT.IKThread(self.Cubes[self.CurrCube][0], 
                                                   self.Cubes[self.CurrCube][3], 
@@ -961,7 +983,10 @@ class MainWindow(QtGui.QWidget):
                     self.RunButton.setDisabled(1)
                 
             elif self.AlgorithmType.currentIndex() == 5:
-                if self.SGSWidget.ValuesCheck(self.Log) == 1:
+                check, self.Err = self.SGSWidget.ValuesCheck(self.Err)
+                if check == 0:
+                    self.ShowError(self.Err)
+                else:
                     self.Log += "Starting Sequantial Gaussian Algorithm\n"
                     self.ProgressBar.show()
                     

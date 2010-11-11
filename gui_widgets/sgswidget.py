@@ -104,22 +104,24 @@ class sgswidget(skwidget):
         else:
             return None
     
-    def ValuesCheck(self, LogTextbox):
+    def ValuesCheck(self, Err):
+        Err = ''
         if self.SearchRanges0.text() == "":
-            LogTextbox.insertPlainText('"Search ranges 0" is empty\n')
-        elif self.SearchRanges90.text() == "":
-            LogTextbox.insertPlainText('"Search ranges 90" is empty\n')
-        elif self.SearchRangesV.text() == "":
-            LogTextbox.insertPlainText('"Search ranges vertical" is empty\n')
-        elif self.InterpolationPoints.text() == "":
-            LogTextbox.insertPlainText('"Interpolation points" is empty\n')
-        elif self.MeanValue.text() == "":
-            LogTextbox.insertPlainText('"Mean value" is empty\n')
-        elif self.SeedNum.text() == "":
-            LogTextbox.insertPlainText('"Seed value" is empty')
+            Err += '"Search ranges 0" is empty\n'
+        if self.SearchRanges90.text() == "":
+            Err += '"Search ranges 90" is empty\n'
+        if self.SearchRangesV.text() == "":
+            Err += '"Search ranges vertical" is empty\n'
+        if self.InterpolationPoints.text() == "":
+            Err += '"Interpolation points" is empty\n'
+        if self.MeanValue.text() == "":
+            Err += '"Mean value" is empty\n'
+        if self.SeedNum.text() == "":
+            Err += '"Seed value" is empty'
+        if Err == '':
+            return 1, None
         else:
-            return 1
-        return 0
+            return 0, Err
         
     def RetranslateOwn(self):
         self.SeedLabel.setText(self.__tr("Seed value:"))

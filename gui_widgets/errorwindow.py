@@ -31,5 +31,5 @@ class error_window(QtGui.QDialog):
     def SaveLog(self):
         self.fname = QtGui.QFileDialog.getSaveFileName(self,'Save as ... ')
         if self.fname:
-            f = open(self.fname, 'wb')
+            f = open(self.fname, 'w')
             f.write(self.message)

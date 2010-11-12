@@ -10,6 +10,7 @@ class skwidget(QtGui.QWidget):
         self.BaseWidgetsInit()
         self.Retranslate()
         self.AddSpacer()
+        self.AddTooltips()
 
     def BaseWidgetsInit(self):
         self.IntValidator = QtGui.QIntValidator(self)
@@ -142,6 +143,11 @@ class skwidget(QtGui.QWidget):
         self.InterpolationGB.setTitle(self.__tr("Interpolation"))
         self.InterpolationPointsLabel.setText(self.__tr("Maximum interpolation points"))
         self.InterpolationPoints.setText(self.__tr("20"))
+        
+    def AddTooltips(self):
+        self.SearchRanges0.setToolTip(self.__tr("Must be >= Vario ranges"))
+        self.SearchRanges90.setToolTip(self.__tr("Must be >= Vario ranges"))
+        self.SearchRangesV.setToolTip(self.__tr("Must be >= Vario ranges"))
                   
     def GetIntPoints(self):
         return int(self.InterpolationPoints.text())

@@ -147,6 +147,7 @@ class MainWindow(QtGui.QWidget):
         
         self.LoadCubeButton = QtGui.QPushButton(self.LoadCubeGB)
         self.LoadCubeButton.setDisabled(1)
+        self.LoadCubeButton.setToolTip(self.__tr("Enter grid sizes first"))
         LoadCubeSpacerL = QtGui.QSpacerItem(241, 20, 
                                             QtGui.QSizePolicy.Expanding, 
                                             QtGui.QSizePolicy.Minimum)
@@ -415,14 +416,16 @@ class MainWindow(QtGui.QWidget):
         
         self.RunButton = QtGui.QPushButton(self.RunGB)
         self.RunButton.setDisabled(1)
+        self.RunButton.setToolTip(self.__tr("Load cubes first"))
         self.SaveButton = QtGui.QPushButton(self.RunGB)
         self.SaveButton.setDisabled(1)
+        self.SaveButton.setToolTip(self.__tr("There is no algorithm result yet"))
         self.LogButton = QtGui.QPushButton(self.RunGB)
         RunSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, 
                                        QtGui.QSizePolicy.Minimum)
         RunSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, 
                                        QtGui.QSizePolicy.Minimum)
-        RunSpacerD = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, 
+        RunSpacerD = QtGui.QSpacerItem(20, 10, QtGui.QSizePolicy.Minimum, 
                                        QtGui.QSizePolicy.Expanding)
         
         self.RunWidgets = [self.RunButton, self.SaveButton,
@@ -515,6 +518,7 @@ class MainWindow(QtGui.QWidget):
         self.LoadedCubes.removeItem(self.CurrCube)
         if self.LoadedCubes.count() == 0:
             self.RunButton.setDisabled(1)
+            self.RunButton.setToolTip(self.__tr("Load cubes first"))
             self.CubeDeleteButton.setDisabled(1)
         
         self.CubesCont = range(len(self.Cubes))
@@ -543,33 +547,41 @@ class MainWindow(QtGui.QWidget):
             self.GridSizeZ.text() == '' or \
             self.GridSizeZ.text() == '-':
             self.LoadCubeButton.setDisabled(1)
+            self.LoadCubeButton.setToolTip(self.__tr("Enter grid sizes first"))
         elif int(self.GridSizeX.text()) > 0 and \
             int(self.GridSizeY.text()) > 0 and \
             int(self.GridSizeZ.text()) > 0:
             self.LoadCubeButton.setEnabled(1)
+            self.LoadCubeButton.setToolTip('')
         else:
             self.LoadCubeButton.setDisabled(0)
+            self.LoadCubeButton.setToolTip(self.__tr("Enter grid sizes first"))
             
     def ShowError(self, string):
+        '''Error output widget'''
         self.ErrorWindow = QtGui.QMessageBox()
         self.ErrorWindow.warning(None, "Error", str(string))
         
     def ShowLog(self):
+        '''Log show widget'''
         self.LogWindow = EW.error_window()
         #self.LogWindow.information(None, "Log", self.Log)
         self.LogWindow.showmessage("Log", self.Log)
             
     def UpdateComboCont(self, string):
+        '''Updates cont comboboxes on widgets'''
         for i in xrange(len(self.ContCombo)):
             self.ContCombo[i].addItem(string)
             self.ContCombo[i].setEnabled(1)
     
     def UpdateComboInd(self, string):
+        '''Updates indicator comboboxes on widgets'''
         for i in xrange(len(self.IndCombo)):
             self.IndCombo[i].addItem(string)
             self.IndCombo[i].setEnabled(1)
             
     def UpdateMean(self):
+        '''Puts calculated mean value to cont cubes\' widgets'''
         self.CurrCube = self.LoadedCubes.currentIndex()
         if self.Cubes[self.CurrCube][2] == None:
             self.Mean = CalcMean(self.Cubes[self.CurrCube][0][0],
@@ -578,16 +590,19 @@ class MainWindow(QtGui.QWidget):
             self.SGSWidget.MeanValue.setText(str(self.Mean)[:-8])
         
     def AlgorithmTypeChanged(self, value):
+        '''Locks and unlocks widgets for cont and ind cubes'''
         self.AlgorithmWidget.setCurrentIndex(value)
-        if self.AlgorithmWidgets[self.AlgorithmType.currentIndex()].isEnabled():
+        
+        if self.AlgorithmWidgets[self.AlgorithmType.currentIndex()].isEnabled() and \
+            self.LoadedCubes.count() != 0:
             self.RunButton.setEnabled(1)
-        else:
+            self.RunButton.setToolTip('')
+        elif self.AlgorithmWidgets[self.AlgorithmType.currentIndex()].isEnabled() == 0:
             self.RunButton.setDisabled(1)
-            
-        if self.LoadedCubes.count() == 0:
+            self.RunButton.setToolTip(self.__tr("This algorithm cannot run with this cube"))
+        elif self.LoadedCubes.count() == 0:
             self.RunButton.setDisabled(1)
-        else:
-            self.RunButton.setEnabled(1)
+            self.RunButton.setToolTip(self.__tr("Load cubes first"))
             
         if value == 4 or value == 5:
             self.SISWidget.SeedGB.show()
@@ -601,6 +616,7 @@ class MainWindow(QtGui.QWidget):
             self.SGSWidget.MaskGB.hide()
         
     def AlgorithmAccess(self, value):
+        '''Locks and unlocks widgets for cont and ind widgets'''
         if value < 0 or self.Cubes[value][2] == None:
             self.IKWidget.setDisabled(1)
             self.SISWidget.setDisabled(1)
@@ -618,6 +634,7 @@ class MainWindow(QtGui.QWidget):
         self.AlgorithmTypeChanged(self.AlgorithmType.currentIndex())
         
     def UpdateVariogramTabs(self, value):
+        '''Show one or multiple variogram tabs for loaded cube'''
         if value < 0 or self.Cubes[value][2] == None:
             # Add cont variogram tab
             for i in xrange(self.WasVariograms):
@@ -640,6 +657,7 @@ class MainWindow(QtGui.QWidget):
                 self.WasVariograms = i
                 
     def UpdateMargProbs(self):
+        '''Puts marginal probs to indicator cubes\' widgets'''
         self.CurrCube = self.LoadedCubes.currentIndex()
         if self.Cubes[self.CurrCube][2] != None:
             return CalcMarginalProbsIndicator(self.Cubes[self.CurrCube][0][0],
@@ -650,8 +668,10 @@ class MainWindow(QtGui.QWidget):
         '''Catchs result of algorithm'''
         self.Result = Result
         self.RunButton.setEnabled(1)
+        self.RunButton.setToolTip('')
         if self.Result != None:
             self.SaveButton.setEnabled(1)
+            self.SaveButton.setToolTip('')
             self.Result_values = [self.Cubes[self.CurrCube][1], 
                                   self.Cubes[self.CurrCube][2]]
         
@@ -668,6 +688,7 @@ class MainWindow(QtGui.QWidget):
                                 "SK_RESULT", self.Result_values[0] )
             
     def CheckCubeLoad(self):
+        '''Check values before loading cube'''
         if self.GridSizeX.text() == "":
             self.Err += '"Grid size x" is empty\n'
         if self.GridSizeY.text() == "":
@@ -712,6 +733,7 @@ class MainWindow(QtGui.QWidget):
                                                   self.GridSize)
                     if self.Prop != None:
                         self.RunButton.setEnabled(1)
+                        self.RunButton.setToolTip('')
                         self.Cubes.append([self.Prop, self.undefined_value, 
                                            self.indicator_value,
                                            self.GridObject])
@@ -731,6 +753,7 @@ class MainWindow(QtGui.QWidget):
                                                     self.GridSize )
                     if self.Prop != None:
                         self.RunButton.setEnabled(1)
+                        self.RunButton.setToolTip('')
                         self.Cubes.append([self.Prop, self.undefined_value, 
                                            None,
                                            self.GridObject])
@@ -742,6 +765,7 @@ class MainWindow(QtGui.QWidget):
                         del(self.Prop)
     
     def VariogramCheck(self):
+        '''Checks variogram values before running algorithm'''
         self.Err = ''
         if self.EllipsoidRanges0.text() == "":
             self.Err +='"Ellipsoid ranges 0" is empty\n'
@@ -759,21 +783,36 @@ class MainWindow(QtGui.QWidget):
             self.Err +='"Sill value" is empty\n'
         if self.NuggetValue.text() == "":
             self.Err +='"Nugget effect value" is empty\n'
+        # Additional check
+        self.SR = self.AlgorithmWidgets[self.AlgorithmType.currentIndex()].GetSearchRanges()
+        self.VR = self.GetVariogramRanges()
+        if self.SR < self.VR:
+            self.Err +='"Search Ranges" are smaller than "Variogram Ranges"\n'
+        
         if self.Err == '':
             return 1
         else:
             self.ShowError(self.Err)
             self.Err = ''
             return 0
+        
+    def GetVariogramRanges(self):
+        '''Returns variogram ranges'''
+        return ( int(self.EllipsoidRanges0.text()), 
+                 int(self.EllipsoidRanges90.text()), 
+                 int(self.EllipsoidRangesV.text()) )
+        
+    def GetVariogramAngles(self):
+        '''Returns variogram angles'''
+        return ( int(self.EllipsoidAnglesX.text()), 
+                 int(self.EllipsoidAnglesY.text()), 
+                 int(self.EllipsoidAnglesZ.text()) )
     
     def GetVariogram(self):
+        '''Returns variogram from entered variogram values'''
         # Variogram
-        self.VariogramRanges = ( int(self.EllipsoidRanges0.text()), 
-                                 int(self.EllipsoidRanges90.text()), 
-                                 int(self.EllipsoidRangesV.text()) )
-        self.VariogramAngles = ( int(self.EllipsoidAnglesX.text()), 
-                                 int(self.EllipsoidAnglesY.text()), 
-                                 int(self.EllipsoidAnglesZ.text()) )
+        self.VariogramRanges = self.GetVariogramRanges()
+        self.VariogramAngles = self.GetVariogramAngles()
         self.Variogram = CovarianceModel( int(self.VariogramType.currentIndex()),
                                           self.VariogramRanges, 
                                           self.VariogramAngles, 
@@ -815,6 +854,7 @@ class MainWindow(QtGui.QWidget):
 
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
+                    self.RunButton.setToolTip(self.__tr("Wait while algorithm is processing"))
                     
             elif self.AlgorithmType.currentIndex() == 1:
                 check, self.Err = self.OKWidget.ValuesCheck()
@@ -846,6 +886,7 @@ class MainWindow(QtGui.QWidget):
 
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
+                    self.RunButton.setToolTip(self.__tr("Wait while algorithm is processing"))
                     
             elif self.AlgorithmType.currentIndex() == 2:
                 k = 0
@@ -893,6 +934,7 @@ class MainWindow(QtGui.QWidget):
 
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
+                    self.RunButton.setToolTip(self.__tr("Wait while algorithm is processing"))
                     
             elif self.AlgorithmType.currentIndex() == 3:
                 check, self.Err = self.LVMWidget.ValuesCheck()
@@ -927,6 +969,7 @@ class MainWindow(QtGui.QWidget):
 
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
+                    self.RunButton.setToolTip(self.__tr("Wait while algorithm is processing"))
                     
             elif self.AlgorithmType.currentIndex() == 4:
                 k = 0
@@ -981,6 +1024,7 @@ class MainWindow(QtGui.QWidget):
 
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
+                    self.RunButton.setToolTip(self.__tr("Wait while algorithm is processing"))
                 
             elif self.AlgorithmType.currentIndex() == 5:
                 check, self.Err = self.SGSWidget.ValuesCheck(self.Err)
@@ -1020,6 +1064,7 @@ class MainWindow(QtGui.QWidget):
                                            self.CatchResult)
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
+                    self.RunButton.setToolTip(self.__tr("Wait while algorithm is processing"))
         
     def RetranslateUI(self, MainWindow):
         '''Adds text to widgets'''

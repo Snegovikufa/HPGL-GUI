@@ -88,9 +88,9 @@ class sgswidget(skwidget):
         else:
             return "ok"
     
-    def GetMean(self, Cubes, CubesCont):
+    def GetMean(self, Cubes):
         if self.MeanCheckbox.isChecked() == 1:
-            self.CurrIndex = CubesCont[self.MeanCombobox.currentIndex()]
+            self.CurrIndex = self.MeanCombobox.currentIndex()
             self.Mean = Cubes[self.CurrIndex][0][0]
         else:
             self.Mean = float(self.MeanValue.text())

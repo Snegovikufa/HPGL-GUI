@@ -42,7 +42,7 @@ class lvmwidget(skwidget):
 
     def GetMean(self, Cubes, CubesCont):
         if self.MeanCombobox.count() != 0:
-            self.CurrIndex = CubesCont[self.MeanCombobox.currentIndex()]
+            self.CurrIndex = self.MeanCombobox.currentIndex()
             self.Mean = Cubes[self.CurrIndex][0][0]
             return self.Mean
 

@@ -68,9 +68,9 @@ class siswidget(skwidget):
     def GetUseCorr(self):
         return self.Correlogram.isChecked()
     
-    def GetMask(self, Cubes, CubesInd):
+    def GetMask(self, Cubes):
         if self.MaskCheckbox.isChecked() == 1:
-            self.CurrIndex = CubesInd[self.MaskCombobox.currentIndex()]
+            self.CurrIndex = self.MaskCombobox.currentIndex()
             self.Mask = Cubes[self.CurrIndex][0]
             return self.Mask
         else:

@@ -8,8 +8,10 @@ from geo_bsd.routines import CalcMarginalProbsIndicator
 from geo_bsd import write_property
 
 class IndAlgWidget(QtGui.QWidget):
-    def __init__(self):
+    def __init__(self, iterator = 0):
         QtGui.QWidget.__init__(self)
+        self.iterator = iterator
+        
         # Const
         self.MaxVariograms = 256
         self.WasVariograms = 0
@@ -192,6 +194,13 @@ class IndAlgWidget(QtGui.QWidget):
             self.SaveButton.setToolTip('')
             self.Result_values = [self.Cubes[self.CurrIndex][1], 
                                   self.Cubes[self.CurrIndex][2]]
+            self.ResultCube = [self.Result, 
+                               self.Cubes[self.CurrIndex][1],
+                               self.Cubes[self.CurrIndex][2],
+                               self.Cubes[self.CurrIndex][3],
+                               self.Cubes[self.CurrIndex][4]+'_'+str(self.iterator)]
+            self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.ResultCube)
+            
     def ResultSave(self):
         '''Saves the result of algorithm'''
         if self.Result != None:

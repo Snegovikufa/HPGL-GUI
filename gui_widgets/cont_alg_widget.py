@@ -10,12 +10,11 @@ import gui_widgets.skwidget as GWSk
 import gui_widgets.okwidget as GWOk
 import gui_widgets.sgswidget as GWSgs
 import gui_widgets.lvmwidget as GWLvm
-import gui_widgets.varwidget as VW
-import gui_widgets.errorwindow as EW
 
 class ContAlgWidget(QtGui.QWidget):
-    def __init__(self):
+    def __init__(self, iterator = 0):
         QtGui.QWidget.__init__(self)
+        self.iterator = iterator
         self.resize(650, 450)
         
         self.AlgorithmTypes = ['Simple Kriging', 'Ordinary Kriging',
@@ -420,6 +419,12 @@ class ContAlgWidget(QtGui.QWidget):
             self.SaveButton.setToolTip('')
             self.Result_values = [self.Cubes[self.CurrIndex][1], 
                                   self.Cubes[self.CurrIndex][2]]
+            self.ResultCube = [self.Result, 
+                               self.Cubes[self.CurrIndex][1],
+                               self.Cubes[self.CurrIndex][2],
+                               self.Cubes[self.CurrIndex][3],
+                               self.Cubes[self.CurrIndex][4]+'_'+str(self.iterator)]
+            self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.ResultCube)
         
     def AlgorithmRun(self):
         if self.VariogramCheck() == 1:

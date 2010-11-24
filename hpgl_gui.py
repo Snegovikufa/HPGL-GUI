@@ -11,6 +11,8 @@ class MainWindow(QtGui.QWidget):
         self.Toolbar = QtGui.QToolBar()
         self.resize(800, 400)
         
+        self.iterator = 0 # iterator for cubes' names
+        
         # Load cube button
         self.LoadCubeButton = QtGui.QPushButton()
         
@@ -109,11 +111,16 @@ class MainWindow(QtGui.QWidget):
     def ApplyAlgorithm(self):
         self.index = self.Tree.currentIndex()
         if self.IndBranch.indexOfChild(self.Tree.currentItem()) != -1:
-            self.IndAlgWidget = IAW.IndAlgWidget()
+            self.IndAlgWidget = IAW.IndAlgWidget(self.iterator)
             self.IndAlgWidget.Push(self.CubesInd, self.index.row())
+            self.connect(self.IndAlgWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"),
+                         self.CatchCube)
         else:
-            self.ContAlgWidget = CAW.ContAlgWidget()
+            self.ContAlgWidget = CAW.ContAlgWidget(self.iterator)
             self.ContAlgWidget.Push(self.CubesCont, self.index.row())
+            self.connect(self.ContAlgWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"),
+                         self.CatchCube)
+        self.iterator += 1
         
     def DeleteCube(self):
         self.index = self.Tree.currentIndex()

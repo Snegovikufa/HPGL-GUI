@@ -2,6 +2,7 @@ from PyQt4 import QtGui, QtCore
 import gui_widgets.load_cube_widget as LCW
 import gui_widgets.cont_alg_widget as CAW
 import gui_widgets.ind_alg_widget as IAW
+import gui_widgets.statistics_window as SW
 
 class MainWindow(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -47,6 +48,8 @@ class MainWindow(QtGui.QWidget):
         
         # 3D View
         self.View = QtGui.QGraphicsView()
+        self.StatWindow = SW.Statistics()
+        self.StatWindow.show()
         
         # Placing on form
         self.Widgets = [self.LoadCubeButton, self.Tree,

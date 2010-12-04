@@ -316,6 +316,7 @@ class IndAlgWidget(QtGui.QWidget):
                 self.RunButton.setToolTip(self.__tr("Wait while algorithm is processing"))
         
     def RetranslateUI(self, MainWindow):
+        self.setWindowTitle(self.__tr("HPGL GUI: Indicator Algorithms"))
         # Tab 2
         self.RunGB.setTitle(self.__tr("Solve algorithm"))
         self.RunButton.setText(self.__tr("Run"))

@@ -224,7 +224,7 @@ class LoadCube(QtGui.QWidget):
         
     def RetranslateUI(self, MainWindow):
         '''Adds text to widgets'''
-        self.setWindowTitle(self.__tr("HPGL GUI"))
+        self.setWindowTitle(self.__tr("HPGL GUI: Load cube"))
         
         # Tab 1
         self.GridSizeGB.setTitle(self.__tr("Grid Size"))

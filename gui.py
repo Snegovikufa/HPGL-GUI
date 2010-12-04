@@ -81,6 +81,7 @@ class MainWindow(QtGui.QWidget):
         self.connect(self.StatisticsAction, QtCore.SIGNAL("triggered()"),
                      self.ShowStatistics)
         
+        
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
         for i in xrange(len(widgets)):
@@ -145,6 +146,7 @@ class MainWindow(QtGui.QWidget):
     
     def RetranslateUI(self, MainWindow):
         self.LoadCubeButton.setText(self.__tr("Load cube"))
+        self.setWindowTitle('HPGL GUI')
         
 if __name__ == "__main__":
     import sys

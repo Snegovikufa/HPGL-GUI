@@ -578,6 +578,7 @@ class ContAlgWidget(QtGui.QWidget):
         
     def RetranslateUI(self, MainWindow):
         '''Adds text to widgets'''
+        self.setWindowTitle('HPGL GUI: Continuous Algorithms')
         # Tab 2
         self.RunGB.setTitle(self.__tr("Solve algorithm"))
         self.RunButton.setText(self.__tr("Run"))

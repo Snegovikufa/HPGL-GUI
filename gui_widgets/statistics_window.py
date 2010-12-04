@@ -1,8 +1,15 @@
 from PyQt4 import QtGui, QtCore
+import numpy
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import matplotlib.path as path
+from matplotlib import pyplot
 
 class Statistics(QtGui.QWidget):
-    def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+    def __init__(self, ValuesArray, UndefValue, Parent=None):
+        QtGui.QWidget.__init__(self, Parent)
+        self.ValuesArray = ValuesArray
+        self.UndefValue = UndefValue
         
         self.Layout = QtGui.QGridLayout()
         self.setLayout(self.Layout)
@@ -15,7 +22,8 @@ class Statistics(QtGui.QWidget):
         self.MaxLabel = QtGui.QLabel(self.ValuesGB)
         self.MinLabel = QtGui.QLabel(self.ValuesGB)
         self.MedianLabel = QtGui.QLabel(self.ValuesGB)
-        self.PointsLabel = QtGui.QLabel(self.ValuesGB)
+        self.DefPointsLabel = QtGui.QLabel(self.ValuesGB)
+        self.AllPointsLabel = QtGui.QLabel(self.ValuesGB)
         
         self.MeanField = QtGui.QLineEdit(self.ValuesGB)
         self.MeanField.setReadOnly(1)
@@ -27,19 +35,22 @@ class Statistics(QtGui.QWidget):
         self.MinField.setReadOnly(1)
         self.MedianField = QtGui.QLineEdit(self.ValuesGB)
         self.MedianField.setReadOnly(1)
-        self.PointsField = QtGui.QLineEdit(self.ValuesGB)
-        self.PointsField.setReadOnly(1)
+        self.DefPointsField = QtGui.QLineEdit(self.ValuesGB)
+        self.DefPointsField.setReadOnly(1)
+        self.AllPointsField = QtGui.QLineEdit(self.ValuesGB)
+        self.AllPointsField.setReadOnly(1)
         
         self.ValuesSpacer = QtGui.QSpacerItem(40, 20, 
                                               QtGui.QSizePolicy.Expanding, 
                                               QtGui.QSizePolicy.Minimum)
         
-        self.ValuesWidgets = [self.MeanLabel, self.MeanField,
-                              self.VarianceLabel, self.VarianceField,
-                              self.MaxLabel, self.MaxField,
+        self.ValuesWidgets = [self.MaxLabel, self.MaxField,
                               self.MinLabel, self.MinField,
+                              self.MeanLabel, self.MeanField,
+                              self.VarianceLabel, self.VarianceField,
                               self.MedianLabel, self.MedianField,
-                              self.PointsLabel, self.PointsField,
+                              self.DefPointsLabel, self.DefPointsField,
+                              self.AllPointsLabel, self.AllPointsField,
                               self.ValuesSpacer
                               ]
         self.ValuesWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
@@ -48,6 +59,7 @@ class Statistics(QtGui.QWidget):
                                     [3, 1, 1, 1], [3, 2, 1, 1],
                                     [4, 1, 1, 1], [4, 2, 1, 1],
                                     [5, 1, 1, 1], [5, 2, 1, 1],
+                                    [6, 1, 1, 1], [6, 2, 1, 1],
                                     [0, 0, 1, 1]]
         self.PlaceWidgetsAtPlaces(self.ValuesGBLayout, self.ValuesWidgets, 
                                   self.ValuesWidgetsPlaces)
@@ -57,6 +69,7 @@ class Statistics(QtGui.QWidget):
         
         self.RowCountLabel = QtGui.QLabel(self.ViewConfigGB)
         self.RowCount = QtGui.QSpinBox(self.ViewConfigGB)
+        self.RowCount.setValue(10)
         self.ViewConfigWidgets = [self.RowCountLabel,
                                   self.RowCount]
         self.ViewConfigWidgetsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1]]
@@ -75,6 +88,10 @@ class Statistics(QtGui.QWidget):
                                   self.WindowWidgetsPlaces)
         
         self.RetranslateUI(self)
+        
+        self.CalculateValues()
+        self.UpdateHistogram()
+        
                 
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
@@ -86,13 +103,44 @@ class Statistics(QtGui.QWidget):
                 layout.addWidget(widgets[i], places[i][0], places[i][1], 
                                  places[i][2], places[i][3])
                 
+    def CalculateValues(self):
+        self.ClearValues = self.ValuesArray[numpy.nonzero(self.ValuesArray != self.UndefValue)]
+        
+        self.Max = '%.2f' % numpy.max(self.ClearValues)
+        self.Mean = '%.2f' % numpy.mean(self.ClearValues)
+        self.Min = '%.2f' % numpy.min(self.ClearValues)
+        self.Median = '%.2f' % numpy.median(self.ClearValues)
+        self.Variance = '%.2f' % numpy.var(self.ClearValues)
+        self.DefPoints = numpy.size(self.ClearValues)
+        self.AllPoints = numpy.size(self.ValuesArray)
+        
+        self.MaxField.setText(str(self.Max))
+        self.MinField.setText(str(self.Min))
+        self.MeanField.setText(str(self.Mean))
+        self.VarianceField.setText(str(self.Variance))
+        self.MedianField.setText(str(self.Median))
+        self.DefPointsField.setText(str(self.DefPoints))
+        self.AllPointsField.setText(str(self.AllPoints))
+        
+    def UpdateHistogram(self):
+        self.Histogram = numpy.histogram(self.ClearValues, self.RowCount.value())
+#        fig = plt.figure()
+#        ax = fig.add_subplot(111)
+#        barpath = path.Path.make_compound_path_from_polys(self.Histogram)
+#        patch = patches.PathPatch(barpath, facecolor='blue', edgecolor='gray', alpha=0.8)
+#        ax.add_patch(patch)
+#        #ax.set_xlim(left[0], right[-1])
+#        ax.set_ylim(numpy.min(self.ClearValues[1]), numpy.max(self.ClearValues[1]))
+#        plt.show()
+                
     def RetranslateUI(self, MainWindow):
         self.MeanLabel.setText(self.__tr('Mean:'))
         self.VarianceLabel.setText(self.__tr('Variance:'))
         self.MaxLabel.setText(self.__tr('Max:'))
         self.MinLabel.setText(self.__tr('Min:'))
         self.MedianLabel.setText(self.__tr('Median:'))
-        self.PointsLabel.setText(self.__tr('Number of points:'))
+        self.DefPointsLabel.setText(self.__tr('Defined points:'))
+        self.AllPointsLabel.setText(self.__tr('Total points:'))
         self.RowCountLabel.setText(self.__tr('Row count:'))
         
         self.ValuesGB.setTitle(self.__tr('Values:'))

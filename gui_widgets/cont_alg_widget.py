@@ -12,9 +12,9 @@ import gui_widgets.sgswidget as GWSgs
 import gui_widgets.lvmwidget as GWLvm
 
 class ContAlgWidget(QtGui.QWidget):
-    def __init__(self, iterator = 0):
-        QtGui.QWidget.__init__(self)
-        self.iterator = iterator
+    def __init__(self, iterator = 0, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.Iterator = iterator
         self.resize(650, 450)
         
         self.AlgorithmTypes = ['Simple Kriging', 'Ordinary Kriging',
@@ -84,6 +84,8 @@ class ContAlgWidget(QtGui.QWidget):
         self.Tab3Layout = QtGui.QGridLayout(self.Tab3)
         
         self.VariogramTypeGB = QtGui.QGroupBox(self.Tab3)
+        self.VariogramTypeGB.setSizePolicy(QtGui.QSizePolicy.Maximum,
+                                           QtGui.QSizePolicy.Preferred)
         self.VariogramTypeLayout = QtGui.QGridLayout(self.VariogramTypeGB)
                
         self.VariogramType_label = QtGui.QLabel(self.VariogramTypeGB)
@@ -107,6 +109,8 @@ class ContAlgWidget(QtGui.QWidget):
                                            [0, 0, 1, 1], [0, 3, 1, 1]]
         
         self.EllipsoidRangesGB = QtGui.QGroupBox(self.Tab3)
+        self.EllipsoidRangesGB.setSizePolicy(QtGui.QSizePolicy.Maximum,
+                                           QtGui.QSizePolicy.Preferred)
         self.EllipsoidRangesLayout = QtGui.QGridLayout(self.EllipsoidRangesGB)
         
         self.EllipsoidRanges0Label = QtGui.QLabel(self.EllipsoidRangesGB)
@@ -143,6 +147,8 @@ class ContAlgWidget(QtGui.QWidget):
                                              [1, 3, 1, 1]]
                
         self.EllipsoidAnglesGB = QtGui.QGroupBox(self.Tab3)
+        self.EllipsoidAnglesGB.setSizePolicy(QtGui.QSizePolicy.Maximum,
+                                           QtGui.QSizePolicy.Preferred)
         self.EllipsoidAnglesLayout = QtGui.QGridLayout(self.EllipsoidAnglesGB)
         
         self.EllipsoidAnglesXLabel = QtGui.QLabel(self.EllipsoidAnglesGB)
@@ -180,6 +186,8 @@ class ContAlgWidget(QtGui.QWidget):
                                              [1, 3, 1, 1]]
                 
         self.NuggetEffectGB = QtGui.QGroupBox(self.Tab3)
+        self.NuggetEffectGB.setSizePolicy(QtGui.QSizePolicy.Maximum,
+                                           QtGui.QSizePolicy.Preferred)
         self.NuggetEffectLayout = QtGui.QGridLayout(self.NuggetEffectGB)
         
         self.SillValueLabel = QtGui.QLabel(self.NuggetEffectGB)
@@ -395,8 +403,8 @@ class ContAlgWidget(QtGui.QWidget):
         if self.Cubes[self.CurrIndex][2] == None:
             self.Mean = CalcMean(self.Cubes[self.CurrIndex][0][0],
                                  self.Cubes[self.CurrIndex][0][1])
-            self.SKWidget.MeanValue.setText(str(self.Mean)[:-8])
-            self.SGSWidget.MeanValue.setText(str(self.Mean)[:-8])
+            self.SKWidget.MeanValue.setText(str('%5.2f' % self.Mean))
+            self.SGSWidget.MeanValue.setText(str('%5.2f' % self.Mean))
             
     def Push(self, Cubes, Curr_index):
         self.CurrIndex = Curr_index
@@ -423,7 +431,7 @@ class ContAlgWidget(QtGui.QWidget):
                                self.Cubes[self.CurrIndex][1],
                                self.Cubes[self.CurrIndex][2],
                                self.Cubes[self.CurrIndex][3],
-                               self.Cubes[self.CurrIndex][4]+'_'+str(self.iterator)]
+                               self.Cubes[self.CurrIndex][4]+'_'+str(self.Iterator)]
             self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.ResultCube)
         
     def AlgorithmRun(self):

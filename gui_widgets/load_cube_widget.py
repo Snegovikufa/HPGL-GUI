@@ -5,8 +5,9 @@ from geo_bsd import SugarboxGrid
 import re
 
 class LoadCube(QtGui.QWidget):
-    def __init__(self):
-        QtGui.QWidget.__init__(self)
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.resize(500, 160)
         
         self.Layout = QtGui.QGridLayout(self)
         self.IntValidator = QtGui.QIntValidator(self)

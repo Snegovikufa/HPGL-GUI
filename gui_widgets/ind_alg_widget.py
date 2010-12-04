@@ -10,7 +10,7 @@ from geo_bsd import write_property
 class IndAlgWidget(QtGui.QWidget):
     def __init__(self, iterator = 0):
         QtGui.QWidget.__init__(self)
-        self.iterator = iterator
+        self.Iterator = iterator
         
         # Const
         self.MaxVariograms = 256
@@ -173,7 +173,7 @@ class IndAlgWidget(QtGui.QWidget):
         for i in xrange(self.IndCount):
             self.Tab4Tabs[i] = VW.varwidget()
             self.Tab4TabWidget.addTab(self.Tab4Tabs[i], self.Tab4TabsNames[i])
-            self.Tab4Tabs[i].MargProbs.setValue(float(self.MargProbs[i]))
+            self.Tab4Tabs[i].MargProbs.setValue('%.2f' % self.MargProbs[i])
             self.WasVariograms = i
         
         self.show()
@@ -198,7 +198,7 @@ class IndAlgWidget(QtGui.QWidget):
                                self.Cubes[self.CurrIndex][1],
                                self.Cubes[self.CurrIndex][2],
                                self.Cubes[self.CurrIndex][3],
-                               self.Cubes[self.CurrIndex][4]+'_'+str(self.iterator)]
+                               self.Cubes[self.CurrIndex][4]+'_'+str(self.Iterator)]
             self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.ResultCube)
             
     def ResultSave(self):

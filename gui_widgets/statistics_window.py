@@ -6,67 +6,50 @@ from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import matplotlib.path as path
 
+class TableModel(QtCore.QAbstractTableModel):
+    def __init__(self, Datain, Header, Parent=None):
+        QtCore.QAbstractTableModel.__init__(self, Parent)
+        self.ArrayData = Datain
+        self.HeaderData = Header
+
+    def rowCount(self, parent):
+        return len(self.ArrayData[0])
+
+    def columnCount(self, parent):
+        return len(self.ArrayData)
+
+    def data(self, index, role):
+        if not index.isValid():
+            return QtCore.QVariant()
+        elif role != QtCore.Qt.DisplayRole:
+            return QtCore.QVariant()
+        return QtCore.QVariant(self.ArrayData[index.column()][index.row()])
+    
+    def headerData(self, col, orientation, role):
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+            return QtCore.QVariant(self.HeaderData[col])
+        return QtCore.QVariant()
+
 class Statistics(QtGui.QDialog):
     def __init__(self, ValuesArray, UndefValue, CubeName, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        self.resize(720, 600)
+        self.resize(800, 500)
         self.ValuesArray = ValuesArray
         self.UndefValue = UndefValue
         
         # Layouts, groupboxes
-        self.Layout = QtGui.QGridLayout()
+        self.Layout = QtGui.QHBoxLayout()
         self.setLayout(self.Layout)
         
+        # Values GroupBox
         self.ValuesGB = QtGui.QGroupBox()
         self.ValuesGB.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Maximum)
-        self.ValuesGBLayout = QtGui.QGridLayout(self.ValuesGB)
+        self.ValuesGBLayout = QtGui.QVBoxLayout(self.ValuesGB)
         
-        self.MeanLabel = QtGui.QLabel(self.ValuesGB)
-        self.VarianceLabel = QtGui.QLabel(self.ValuesGB)
-        self.MaxLabel = QtGui.QLabel(self.ValuesGB)
-        self.MinLabel = QtGui.QLabel(self.ValuesGB)
-        self.MedianLabel = QtGui.QLabel(self.ValuesGB)
-        self.DefPointsLabel = QtGui.QLabel(self.ValuesGB)
-        self.AllPointsLabel = QtGui.QLabel(self.ValuesGB)
+        self.ValuesTable = QtGui.QTableView()
+        self.ValuesGBLayout.addWidget(self.ValuesTable)
         
-        self.MeanField = QtGui.QLineEdit(self.ValuesGB)
-        self.MeanField.setReadOnly(1)
-        self.VarianceField = QtGui.QLineEdit(self.ValuesGB)
-        self.VarianceField.setReadOnly(1)
-        self.MaxField = QtGui.QLineEdit(self.ValuesGB)
-        self.MaxField.setReadOnly(1)
-        self.MinField = QtGui.QLineEdit(self.ValuesGB)
-        self.MinField.setReadOnly(1)
-        self.MedianField = QtGui.QLineEdit(self.ValuesGB)
-        self.MedianField.setReadOnly(1)
-        self.DefPointsField = QtGui.QLineEdit(self.ValuesGB)
-        self.DefPointsField.setReadOnly(1)
-        self.AllPointsField = QtGui.QLineEdit(self.ValuesGB)
-        self.AllPointsField.setReadOnly(1)
-        
-        self.ValuesSpacer = QtGui.QSpacerItem(40, 20, 
-                                              QtGui.QSizePolicy.Expanding, 
-                                              QtGui.QSizePolicy.Minimum)
-        
-        self.ValuesWidgets = [self.MaxLabel, self.MaxField,
-                              self.MinLabel, self.MinField,
-                              self.MeanLabel, self.MeanField,
-                              self.MedianLabel, self.MedianField,
-                              self.VarianceLabel, self.VarianceField,
-                              self.DefPointsLabel, self.DefPointsField,
-                              self.AllPointsLabel, self.AllPointsField,
-                              ]
-        self.ValuesWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
-                                    [0, 3, 1, 1], [0, 4, 1, 1],
-                                    [1, 1, 1, 1], [1, 2, 1, 1],
-                                    [1, 3, 1, 1], [1, 4, 1, 1],
-                                    [2, 3, 1, 1], [2, 4, 1, 1],
-                                    [4, 1, 1, 1], [4, 2, 1, 1],
-                                    [4, 3, 1, 1], [4, 4, 1, 1],
-                                    ]
-        self.PlaceWidgetsAtPlaces(self.ValuesGBLayout, self.ValuesWidgets, 
-                                  self.ValuesWidgetsPlaces)
-        
+        # Histogram configuring widgets
         self.ViewConfigGB = QtGui.QGroupBox()
         self.ViewConfigGB.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Maximum)
         self.ViewConfigGBLayout = QtGui.QGridLayout(self.ViewConfigGB)
@@ -76,8 +59,16 @@ class Statistics(QtGui.QDialog):
         self.RowCount.setValue(10)
         self.RowCount.setSingleStep(20)
         self.RowCount.setRange(10, 150)
-        self.ViewConfigWidgets = [self.RowCountLabel, self.RowCount,]
-        self.ViewConfigWidgetsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1]]
+        
+        self.ProbabilityChange = QtGui.QCheckBox()
+        self.ProbabilityChange.setLayoutDirection(QtCore.Qt.RightToLeft)
+        
+        self.ViewConfigWidgets = [self.RowCountLabel, self.RowCount,
+                                  self.ProbabilityChange,]
+        self.ViewConfigWidgetsPlaces = [[0, 0, 1, 1], 
+                                        [0, 1, 1, 1],
+                                        [1, 0, 1, 1],
+                                        ]
         self.PlaceWidgetsAtPlaces(self.ViewConfigGBLayout, 
                                   self.ViewConfigWidgets,
                                   self.ViewConfigWidgetsPlaces)
@@ -86,15 +77,7 @@ class Statistics(QtGui.QDialog):
         self.GraphBGLayout = QtGui.QGridLayout(self.GraphBG)
         self.GraphWidget = QtGui.QWidget()
         self.GraphBGLayout.addWidget(self.GraphWidget)
-        
-        self.WindowWidgets = [self.ViewConfigGB,
-                              self.GraphBG,
-                              self.ValuesGB]
-        self.WindowWidgetsPlaces = [[0, 0, 1, 1], [0, 1, 3, 1],
-                                    [2, 0, 1, 1]]
-        self.PlaceWidgetsAtPlaces(self.Layout, self.WindowWidgets, 
-                                  self.WindowWidgetsPlaces)
-        
+                
         self.RetranslateUI(self)
         
         # Let's draw graph and calculate cube's values
@@ -102,17 +85,28 @@ class Statistics(QtGui.QDialog):
         self.CreateHistogramFrame()
         self.UpdateHistogram()
         
+        # Layouts
+        LeftVBox = QtGui.QVBoxLayout()
+        LeftVBox.addWidget(self.ViewConfigGB)
+        LeftVBox.addWidget(self.ValuesGB)
+        LeftVBox.addWidget(QtGui.QWidget())
+        
+        RightVBox = QtGui.QVBoxLayout()
+        RightVBox.addWidget(self.GraphBG)
+        self.Layout.addLayout(LeftVBox)
+        self.Layout.addLayout(RightVBox)
+        self.Layout.setStretch(1, 1)
+        
+        # Signals and slots
         self.connect(self.RowCount, QtCore.SIGNAL('valueChanged(int)'),
+                     self.UpdateHistogram)
+        self.connect(self.ProbabilityChange, QtCore.SIGNAL('stateChanged(int)'),
                      self.UpdateHistogram)
                 
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
         for i in xrange(len(widgets)):
-            if type(widgets[i]) == type(self.ValuesSpacer):
-                layout.addItem(widgets[i], places[i][0], places[i][1], 
-                               places[i][2], places[i][3])
-            else:
-                layout.addWidget(widgets[i], places[i][0], places[i][1], 
+            layout.addWidget(widgets[i], places[i][0], places[i][1], 
                                  places[i][2], places[i][3])
                 
     def CalculateValues(self):
@@ -125,29 +119,24 @@ class Statistics(QtGui.QDialog):
         Variance = '%.2f' % numpy.var(self.ClearValues)
         DefPoints = numpy.size(self.ClearValues)
         AllPoints = numpy.size(self.ValuesArray)
+        Values = [['Max', 'Min', 'Mean', 'Median',
+                  'Variance', 'Defined points', 'Total points'],
+                  [Max, Min, Mean, Median, Variance,
+                   DefPoints, AllPoints]]
+        Header = ['Property', 'Value']
         
-        self.MaxField.setText(str(Max))
-        self.MinField.setText(str(Min))
-        self.MeanField.setText(str(Mean))
-        self.VarianceField.setText(str(Variance))
-        self.MedianField.setText(str(Median))
-        self.DefPointsField.setText(str(DefPoints))
-        self.AllPointsField.setText(str(AllPoints))
+        self.TableModel = TableModel(Values, Header, self)
+        self.ValuesTable.setModel(self.TableModel)
+        self.ValuesTable.resizeColumnsToContents()
         
     def CreateHistogramFrame(self):
         self.dpi = 100
         self.Fig = Figure((5.0, 4.0), dpi=self.dpi)
         self.Canvas = FigureCanvas(self.Fig)
         self.Canvas.setParent(self.GraphWidget)
-        self.Canvas.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
-        self.CanvasToolbar = NavigationToolbar(self.Canvas, self.GraphWidget)
+        self.Canvas.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         
         self.Axes = self.Fig.add_subplot(111)
-        
-        GraphLayout = QtGui.QVBoxLayout()
-        GraphLayout.addWidget(self.Canvas)
-        GraphLayout.addWidget(self.CanvasToolbar)
-        self.GraphWidget.setLayout(GraphLayout)
         
     def UpdateHistogram(self):
         self.Axes.clear()
@@ -156,10 +145,13 @@ class Statistics(QtGui.QDialog):
         Left = numpy.array(Bins[:-1])
         Right = numpy.array(Bins[1:])
         Bottom = numpy.zeros(len(Left))
-        # if checked :
-        Top = (Bottom + N)/N.max()
-        # else:
-        # Top = Bottom+N
+        
+        if self.ProbabilityChange.isChecked():
+            Top = (Bottom + N)/N.max()
+            self.Axes.set_ylabel(self.__tr("Probability"))
+        else:
+            Top = Bottom+N
+            self.Axes.set_ylabel(self.__tr("Number of cells"))
         
         XY = numpy.array([[Left,Left,Right,Right], [Bottom,Top,Top,Bottom]]).T
         BarPath = path.Path.make_compound_path_from_polys(XY)
@@ -177,17 +169,11 @@ class Statistics(QtGui.QDialog):
     def RetranslateUI(self, MainWindow):
         self.setWindowTitle(self.__tr("HPGL GUI: Statistics"))
         
-        self.MeanLabel.setText(self.__tr('Mean:'))
-        self.VarianceLabel.setText(self.__tr('Variance:'))
-        self.MaxLabel.setText(self.__tr('Max:'))
-        self.MinLabel.setText(self.__tr('Min:'))
-        self.MedianLabel.setText(self.__tr('Median:'))
-        self.DefPointsLabel.setText(self.__tr('Defined points:'))
-        self.AllPointsLabel.setText(self.__tr('Total points:'))
-        self.RowCountLabel.setText(self.__tr('Row count:'))
-        
         self.ValuesGB.setTitle(self.__tr("Values:"))
         self.ViewConfigGB.setTitle(self.__tr("Histogram config"))
+        
+        self.RowCountLabel.setText(self.__tr('Row count:'))
+        self.ProbabilityChange.setText(self.__tr('Show as probability'))
     
     def __tr(self, string, dis=None):
         '''Small function to translate'''

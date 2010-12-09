@@ -8,7 +8,9 @@ def CreateModel(parent=None):
     Model = QtGui.QStandardItemModel(2, 2, parent)
     
     ContBranch = QtGui.QStandardItem("Continuous cubes")
+    ContBranch.setEditable(0)
     IndBranch = QtGui.QStandardItem("Indicator cubes")
+    IndBranch.setEditable(0)
     Model.setItem(0, 0, ContBranch)
     Model.setItem(1, 0, IndBranch)
                     
@@ -35,6 +37,7 @@ class MainWindow(QtGui.QWidget):
         self.Model = CreateModel(self)
         self.Tree.setModel(self.Model)
         self.Tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ResizeColumn()
         
         # Actions
         self.DeleteAction = QtGui.QAction(self.__tr("Delete"), self)
@@ -76,6 +79,10 @@ class MainWindow(QtGui.QWidget):
                      self.LoadCube)
         self.connect(self.Tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint&)'), 
                      self.ContextMenu)
+        self.connect(self.Tree, QtCore.SIGNAL('collapsed(const QModelIndex &)'),
+                     self.ResizeColumn)
+        self.connect(self.Tree, QtCore.SIGNAL('expanded(const QModelIndex &)'),
+                     self.ResizeColumn)
         self.connect(self.DeleteAction, QtCore.SIGNAL("triggered()"),
                      self.DeleteCube)
         self.connect(self.AlgorithmAction, QtCore.SIGNAL("triggered()"),
@@ -95,13 +102,21 @@ class MainWindow(QtGui.QWidget):
     def LoadCube(self):
         self.LoadCubesWidget.show()
         
+    def ResizeColumn(self):
+        self.Tree.resizeColumnToContents(0)
+        self.Tree.resizeColumnToContents(1)
+        self.Tree.resizeColumnToContents(2)
+        
     def CatchCube(self, Cube):
         child = QtGui.QStandardItem(self.__tr(Cube[4]))
+        child.setEditable(0)
         child_size = QtGui.QStandardItem(str(Cube[5]))
+        child_size.setEditable(0)
         if Cube[2] != None:
             child_indicators = QtGui.QStandardItem(str(len(Cube[2])))
         else:
             child_indicators = QtGui.QStandardItem(str('-'))
+        child_indicators.setEditable(0)
         list = [child, child_size, child_indicators]
         if Cube[2] == None:
             # This is Continuous cube
@@ -141,7 +156,7 @@ class MainWindow(QtGui.QWidget):
             self.connect(self.IndAlgWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"),
                          self.CatchCube)
         self.Iterator += 1
-    
+
     def ShowStatistics(self):
         Index = self.Tree.currentIndex()
         if Index.parent().row() == 0:
@@ -166,6 +181,7 @@ class MainWindow(QtGui.QWidget):
 if __name__ == "__main__":
     import sys
     app = QtGui.QApplication(sys.argv)
+    #app.setStyle(QtGui.)
     gui = MainWindow()
     gui.show()
     sys.exit(app.exec_())

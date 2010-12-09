@@ -279,8 +279,6 @@ class ContAlgWidget(QtGui.QDialog):
                      self.AlgorithmTypeChanged)
         self.connect(self.RunButton, QtCore.SIGNAL("clicked()"), 
                      self.AlgorithmRun)
-        self.connect(self.SaveButton, QtCore.SIGNAL("clicked()"), 
-                     self.ResultSave)
         
         
     def UpdateUI(self, string):

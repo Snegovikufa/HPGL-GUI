@@ -36,6 +36,7 @@ class Statistics(QtGui.QDialog):
         self.resize(840, 500)
         self.ValuesArray = ValuesArray
         self.UndefValue = UndefValue
+        self.setWindowTitle(self.__tr("HPGL GUI: Statistics for: " + CubeName))
         
         # Layouts, groupboxes
         self.Layout = QtGui.QHBoxLayout()
@@ -61,29 +62,45 @@ class Statistics(QtGui.QDialog):
         self.ProbabilityChange = QtGui.QCheckBox()
         self.ProbabilityChange.setLayoutDirection(QtCore.Qt.RightToLeft)
         
+        self.XMin = QtGui.QSpinBox(self.ViewConfigGB)
+        self.XMinLabel = QtGui.QLabel(self.ViewConfigGB)
+        self.XMax = QtGui.QSpinBox(self.ViewConfigGB)
+        self.XMaxLabel = QtGui.QLabel(self.ViewConfigGB)
+        
         self.ViewConfigWidgets = [self.RowCountLabel, self.RowCount,
-                                  self.ProbabilityChange,]
+                                  self.ProbabilityChange,
+                                  self.XMinLabel, self.XMin,
+                                  self.XMaxLabel, self.XMax,]
         self.ViewConfigWidgetsPlaces = [[0, 0, 1, 1], 
                                         [0, 1, 1, 1],
                                         [1, 0, 1, 1],
+                                        [2, 0, 1, 1], [2, 1, 1, 1],
+                                        [3, 0, 1, 1], [3, 1, 1, 1],
                                         ]
         self.PlaceWidgetsAtPlaces(self.ViewConfigGBLayout, 
                                   self.ViewConfigWidgets,
                                   self.ViewConfigWidgetsPlaces)
+        
         # Graphics
-        self.GraphBG = QtGui.QGroupBox()
-        self.GraphBGLayout = QtGui.QGridLayout(self.GraphBG)
         self.GraphWidget = QtGui.QWidget()
-        self.testLayout = QtGui.QVBoxLayout(self.GraphWidget)
-        self.GraphBGLayout.addWidget(self.GraphWidget)
-                
+        self.GraphLayout = QtGui.QVBoxLayout(self.GraphWidget)
+        
+        self.CloseButtonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
+        
+        # Translating UI
         self.RetranslateUI(self)
         
         # Let's draw graph and calculate cube's values
         self.CalculateValues()
         self.CreateHistogramFrame()
-        self.testLayout.addWidget(self.Canvas)
+        
+        # Catching Histogram window
+        self.GraphLayout.addWidget(self.Canvas)
+        self.GraphLayout.addWidget(self.CloseButtonBox)
+        
+        # Update Histogram and set ranges
         self.UpdateHistogram()
+        self.InitRanges()
         
         # Layouts
         LeftVBox = QtGui.QVBoxLayout()
@@ -103,6 +120,12 @@ class Statistics(QtGui.QDialog):
                      self.UpdateHistogram)
         self.connect(self.ProbabilityChange, QtCore.SIGNAL('stateChanged(int)'),
                      self.UpdateHistogram)
+        self.connect(self.XMax, QtCore.SIGNAL('valueChanged(int)'),
+                     self.UpdateHistogram)
+        self.connect(self.XMin, QtCore.SIGNAL('valueChanged(int)'),
+                     self.UpdateHistogram)
+        self.connect(self.CloseButtonBox, QtCore.SIGNAL('rejected()'),
+                     self, QtCore.SLOT('close()'))
                 
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
@@ -128,15 +151,19 @@ class Statistics(QtGui.QDialog):
         
         self.TableModel = TableModel(Values, Header, self)
         self.ValuesTable.setModel(self.TableModel)
-        self.ValuesTable.resizeColumnsToContents()
+        self.ValuesTable.resizeColumnToContents(0)
         
     def CreateHistogramFrame(self):
         self.dpi = 100
         self.Fig = Figure((5.0, 4.0), dpi=self.dpi)
         self.Canvas = FigureCanvas(self.Fig)
-        #self.Canvas.setParent(self.GraphWidget)
         
         self.Axes = self.Fig.add_subplot(111)
+        
+    def InitRanges(self):
+        self.XMin.setValue(self.XMin.minimum())
+        self.XMax.setValue(self.XMax.maximum())
+        self.UpdateHistogram()
         
     def UpdateHistogram(self):
         self.Axes.clear()
@@ -155,10 +182,15 @@ class Statistics(QtGui.QDialog):
         
         XY = numpy.array([[Left,Left,Right,Right], [Bottom,Top,Top,Bottom]]).T
         BarPath = path.Path.make_compound_path_from_polys(XY)
-        Patch = patches.PathPatch(BarPath, facecolor='blue', edgecolor='gray', alpha=0.8)
+        Patch = patches.PathPatch(BarPath, facecolor='blue', 
+                                  edgecolor='gray', alpha=0.8)
         
         self.Axes.add_patch(Patch)
-        self.Axes.set_xlim(Left[0], Right[-1])
+        
+        # Limits
+        self.XMin.setRange(Left[0], Right[-2])
+        self.XMax.setRange(self.XMin.value()+1, Right[-1])
+        self.Axes.set_xlim(self.XMin.value(), self.XMax.value())
         self.Axes.set_ylim(Bottom.min(), Top.max())
         
         self.Axes.grid(1)
@@ -167,13 +199,13 @@ class Statistics(QtGui.QDialog):
         self.Canvas.draw()
         
     def RetranslateUI(self, MainWindow):
-        self.setWindowTitle(self.__tr("HPGL GUI: Statistics"))
-        
         self.ValuesGB.setTitle(self.__tr("Values:"))
         self.ViewConfigGB.setTitle(self.__tr("Histogram config"))
         
         self.RowCountLabel.setText(self.__tr('Row count:'))
         self.ProbabilityChange.setText(self.__tr('Show as probability'))
+        self.XMaxLabel.setText(self.__tr("X max:"))
+        self.XMinLabel.setText(self.__tr("X min:"))
     
     def __tr(self, string, dis=None):
         '''Small function to translate'''

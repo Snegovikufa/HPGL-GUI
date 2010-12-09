@@ -4,7 +4,7 @@ from geo_bsd import load_ind_property
 from geo_bsd import SugarboxGrid
 import re
 
-class LoadCube(QtGui.QWidget):
+class LoadCube(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.resize(500, 160)
@@ -187,7 +187,8 @@ class LoadCube(QtGui.QWidget):
                         self.Cube = [self.Prop, self.undefined_value, 
                                            self.indicator_value,
                                            self.GridObject,
-                                           self.loaded_cube_fname]
+                                           self.loaded_cube_fname,
+                                           self.GridSize]
                         del(self.Prop)
                         self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.Cube)
                         self.hide()
@@ -202,7 +203,8 @@ class LoadCube(QtGui.QWidget):
                     if self.Prop != None:
                         self.Cube = [self.Prop, self.undefined_value, 
                                       None, self.GridObject,
-                                      self.loaded_cube_fname]
+                                      self.loaded_cube_fname,
+                                      self.GridSize]
                         del(self.Prop)
                         self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.Cube)
                         self.hide()

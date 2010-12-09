@@ -14,6 +14,7 @@ def CreateModel(parent=None):
                     
     Model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Cube"))
     Model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Size"))
+    Model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Indicators"))
     return Model
 
 class MainWindow(QtGui.QWidget):
@@ -39,6 +40,7 @@ class MainWindow(QtGui.QWidget):
         self.DeleteAction = QtGui.QAction(self.__tr("Delete"), self)
         self.StatisticsAction = QtGui.QAction(self.__tr("Statistics"), self)
         self.AlgorithmAction = QtGui.QAction(self.__tr("Apply algorithm"), self)
+        self.SaveAction = QtGui.QAction(self.__tr("Save"), self)
         
         # Menu
         self.PopMenu = QtGui.QMenu( self )
@@ -60,7 +62,7 @@ class MainWindow(QtGui.QWidget):
         self.PlaceWidgetsAtPlaces(self.Layout, self.Widgets, self.WidgetsPlaces)
         
         # Other widgets, etc.
-        self.LoadCubesWidget = LCW.LoadCube()
+        self.LoadCubesWidget = LCW.LoadCube(self)
         self.connect(self.LoadCubesWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"),
                      self.CatchCube)
         self.CubesCont = []
@@ -80,6 +82,8 @@ class MainWindow(QtGui.QWidget):
                      self.ApplyAlgorithm)
         self.connect(self.StatisticsAction, QtCore.SIGNAL("triggered()"),
                      self.ShowStatistics)
+        self.connect(self.SaveAction, QtCore.SIGNAL("triggered()"),
+                     self.SaveCube)
         
         
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
@@ -93,13 +97,19 @@ class MainWindow(QtGui.QWidget):
         
     def CatchCube(self, Cube):
         child = QtGui.QStandardItem(self.__tr(Cube[4]))
+        child_size = QtGui.QStandardItem(str(Cube[5]))
+        if Cube[2] != None:
+            child_indicators = QtGui.QStandardItem(str(len(Cube[2])))
+        else:
+            child_indicators = QtGui.QStandardItem(str('-'))
+        list = [child, child_size, child_indicators]
         if Cube[2] == None:
             # This is Continuous cube
-            self.Model.item(0, 0).appendRow(child)
+            self.Model.item(0, 0).appendRow(list)
             self.CubesCont.append(Cube)
         else:
             # This is Indicator cube
-            self.Model.item(1, 0).appendRow(child)
+            self.Model.item(1, 0).appendRow(list)
             self.CubesInd.append(Cube)
     
     def ContextMenu(self, point):
@@ -114,6 +124,9 @@ class MainWindow(QtGui.QWidget):
             del(self.CubesCont[Index.row()])
         else:
             del(self.CubesInd[Index.row()])
+            
+    def SaveCube(self):
+        pass
     
     def ApplyAlgorithm(self):
         Index = self.Tree.currentIndex()
@@ -133,10 +146,12 @@ class MainWindow(QtGui.QWidget):
         Index = self.Tree.currentIndex()
         if Index.parent().row() == 0:
             self.StatWindow = SW.Statistics(self.CubesCont[Index.row()][0][0],
-                                            self.CubesCont[Index.row()][1])
+                                            self.CubesCont[Index.row()][1],
+                                            self.CubesCont[Index.row()][4])
         else:
             self.StatWindow = SW.Statistics(self.CubesInd[Index.row()][0][0],
-                                            self.CubesInd[Index.row()][1])
+                                            self.CubesInd[Index.row()][1],
+                                            self.CubesInd[Index.row()][4])
         self.StatWindow.show()
     
     def __tr(self, string, dis=None):

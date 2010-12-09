@@ -7,7 +7,7 @@ import gui_widgets.varwidget as VW
 from geo_bsd.routines import CalcMarginalProbsIndicator
 from geo_bsd import write_property
 
-class IndAlgWidget(QtGui.QWidget):
+class IndAlgWidget(QtGui.QDialog):
     def __init__(self, iterator = 0):
         QtGui.QWidget.__init__(self)
         self.Iterator = iterator

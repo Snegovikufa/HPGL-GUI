@@ -11,7 +11,7 @@ import gui_widgets.okwidget as GWOk
 import gui_widgets.sgswidget as GWSgs
 import gui_widgets.lvmwidget as GWLvm
 
-class ContAlgWidget(QtGui.QWidget):
+class ContAlgWidget(QtGui.QDialog):
     def __init__(self, iterator = 0, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.Iterator = iterator
@@ -246,17 +246,14 @@ class ContAlgWidget(QtGui.QWidget):
         self.RunLayout = QtGui.QGridLayout(self.RunGB)
         
         self.RunButton = QtGui.QPushButton(self.RunGB)
-        self.SaveButton = QtGui.QPushButton(self.RunGB)
-        self.SaveButton.setDisabled(1)
-        self.SaveButton.setToolTip(self.__tr("There is no algorithm result yet"))
         RunSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, 
                                        QtGui.QSizePolicy.Minimum)
         RunSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, 
                                        QtGui.QSizePolicy.Minimum)
         
-        self.RunWidgets = [self.RunButton, self.SaveButton,
+        self.RunWidgets = [self.RunButton, 
                            RunSpacerL, RunSpacerR]
-        self.RunWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
+        self.RunWidgetsPlaces = [[0, 1, 1, 1],
                                  [0, 0, 1, 1], [0, 3, 1, 1]]
         self.PlaceWidgetsAtPlaces(self.RunLayout, 
                                   self.RunWidgets, 
@@ -423,16 +420,16 @@ class ContAlgWidget(QtGui.QWidget):
         self.RunButton.setEnabled(1)
         self.RunButton.setToolTip('')
         if self.Result != None:
-            self.SaveButton.setEnabled(1)
-            self.SaveButton.setToolTip('')
             self.Result_values = [self.Cubes[self.CurrIndex][1], 
                                   self.Cubes[self.CurrIndex][2]]
             self.ResultCube = [self.Result, 
                                self.Cubes[self.CurrIndex][1],
                                self.Cubes[self.CurrIndex][2],
                                self.Cubes[self.CurrIndex][3],
-                               self.Cubes[self.CurrIndex][4]+'_'+str(self.Iterator)]
+                               self.Cubes[self.CurrIndex][4]+'_'+str(self.Iterator),
+                               self.Cubes[self.CurrIndex][5]]
             self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.ResultCube)
+            self.close()
         
     def AlgorithmRun(self):
         if self.VariogramCheck() == 1:
@@ -582,7 +579,6 @@ class ContAlgWidget(QtGui.QWidget):
         # Tab 2
         self.RunGB.setTitle(self.__tr("Solve algorithm"))
         self.RunButton.setText(self.__tr("Run"))
-        self.SaveButton.setText(self.__tr("Save"))
         
         self.AlgorithmTypeGB.setTitle(self.__tr("Algorithm"))
         self.AlgorithmTypeLabel.setText(self.__tr("Algorithm type"))

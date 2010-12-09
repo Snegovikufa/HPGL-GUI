@@ -33,7 +33,7 @@ class TableModel(QtCore.QAbstractTableModel):
 class Statistics(QtGui.QDialog):
     def __init__(self, ValuesArray, UndefValue, CubeName, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        self.resize(800, 500)
+        self.resize(840, 500)
         self.ValuesArray = ValuesArray
         self.UndefValue = UndefValue
         
@@ -43,7 +43,6 @@ class Statistics(QtGui.QDialog):
         
         # Values GroupBox
         self.ValuesGB = QtGui.QGroupBox()
-        self.ValuesGB.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Maximum)
         self.ValuesGBLayout = QtGui.QVBoxLayout(self.ValuesGB)
         
         self.ValuesTable = QtGui.QTableView()
@@ -51,7 +50,6 @@ class Statistics(QtGui.QDialog):
         
         # Histogram configuring widgets
         self.ViewConfigGB = QtGui.QGroupBox()
-        self.ViewConfigGB.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Maximum)
         self.ViewConfigGBLayout = QtGui.QGridLayout(self.ViewConfigGB)
         
         self.RowCountLabel = QtGui.QLabel(self.ViewConfigGB)
@@ -76,6 +74,7 @@ class Statistics(QtGui.QDialog):
         self.GraphBG = QtGui.QGroupBox()
         self.GraphBGLayout = QtGui.QGridLayout(self.GraphBG)
         self.GraphWidget = QtGui.QWidget()
+        self.testLayout = QtGui.QVBoxLayout(self.GraphWidget)
         self.GraphBGLayout.addWidget(self.GraphWidget)
                 
         self.RetranslateUI(self)
@@ -83,6 +82,7 @@ class Statistics(QtGui.QDialog):
         # Let's draw graph and calculate cube's values
         self.CalculateValues()
         self.CreateHistogramFrame()
+        self.testLayout.addWidget(self.Canvas)
         self.UpdateHistogram()
         
         # Layouts
@@ -92,7 +92,8 @@ class Statistics(QtGui.QDialog):
         LeftVBox.addWidget(QtGui.QWidget())
         
         RightVBox = QtGui.QVBoxLayout()
-        RightVBox.addWidget(self.GraphBG)
+        RightVBox.addWidget(self.GraphWidget)
+        
         self.Layout.addLayout(LeftVBox)
         self.Layout.addLayout(RightVBox)
         self.Layout.setStretch(1, 1)
@@ -133,8 +134,7 @@ class Statistics(QtGui.QDialog):
         self.dpi = 100
         self.Fig = Figure((5.0, 4.0), dpi=self.dpi)
         self.Canvas = FigureCanvas(self.Fig)
-        self.Canvas.setParent(self.GraphWidget)
-        self.Canvas.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        #self.Canvas.setParent(self.GraphWidget)
         
         self.Axes = self.Fig.add_subplot(111)
         

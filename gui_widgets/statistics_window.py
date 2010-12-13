@@ -35,6 +35,7 @@ class Statistics(QtGui.QDialog):
         QtGui.QWidget.__init__(self, parent)
         self.resize(840, 500)
         self.ValuesArray = ValuesArray
+        
         self.UndefValue = UndefValue
         self.setWindowTitle(self.__tr("HPGL GUI: Statistics for: " + CubeName))
         
@@ -70,14 +71,14 @@ class Statistics(QtGui.QDialog):
         self.ViewConfigWidgets = [self.RowCountLabel, self.RowCount,
                                   self.ProbabilityChange,
                                   self.XMinLabel, self.XMin,
-                                  self.XMaxLabel, self.XMax,]
-        self.ViewConfigWidgetsPlaces = [[0, 0, 1, 1], 
+                                  self.XMaxLabel, self.XMax, ]
+        self.ViewConfigWidgetsPlaces = [[0, 0, 1, 1],
                                         [0, 1, 1, 1],
                                         [1, 0, 1, 1],
                                         [2, 0, 1, 1], [2, 1, 1, 1],
                                         [3, 0, 1, 1], [3, 1, 1, 1],
                                         ]
-        self.PlaceWidgetsAtPlaces(self.ViewConfigGBLayout, 
+        self.PlaceWidgetsAtPlaces(self.ViewConfigGBLayout,
                                   self.ViewConfigWidgets,
                                   self.ViewConfigWidgetsPlaces)
         
@@ -130,7 +131,7 @@ class Statistics(QtGui.QDialog):
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
         for i in xrange(len(widgets)):
-            layout.addWidget(widgets[i], places[i][0], places[i][1], 
+            layout.addWidget(widgets[i], places[i][0], places[i][1],
                                  places[i][2], places[i][3])
                 
     def CalculateValues(self):
@@ -174,22 +175,22 @@ class Statistics(QtGui.QDialog):
         Bottom = numpy.zeros(len(Left))
         
         if self.ProbabilityChange.isChecked():
-            Top = (Bottom + N)/N.max()
+            Top = (Bottom + N) / N.max()
             self.Axes.set_ylabel(self.__tr("Probability"))
         else:
-            Top = Bottom+N
+            Top = Bottom + N
             self.Axes.set_ylabel(self.__tr("Number of cells"))
         
-        XY = numpy.array([[Left,Left,Right,Right], [Bottom,Top,Top,Bottom]]).T
+        XY = numpy.array([[Left, Left, Right, Right], [Bottom, Top, Top, Bottom]]).T
         BarPath = path.Path.make_compound_path_from_polys(XY)
-        Patch = patches.PathPatch(BarPath, facecolor='blue', 
+        Patch = patches.PathPatch(BarPath, facecolor='blue',
                                   edgecolor='gray', alpha=0.8)
         
         self.Axes.add_patch(Patch)
         
         # Limits
         self.XMin.setRange(Left[0], Right[-2])
-        self.XMax.setRange(self.XMin.value()+1, Right[-1])
+        self.XMax.setRange(self.XMin.value() + 1, Right[-1])
         self.Axes.set_xlim(self.XMin.value(), self.XMax.value())
         self.Axes.set_ylim(Bottom.min(), Top.max())
         
@@ -209,6 +210,6 @@ class Statistics(QtGui.QDialog):
     
     def __tr(self, string, dis=None):
         '''Small function to translate'''
-        return QtGui.qApp.translate("MainWindow", string, dis, 
+        return QtGui.qApp.translate("MainWindow", string, dis,
                                      QtGui.QApplication.UnicodeUTF8)
                 

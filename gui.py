@@ -3,6 +3,7 @@ import gui_widgets.load_cube_widget as LCW
 import gui_widgets.cont_alg_widget as CAW
 import gui_widgets.ind_alg_widget as IAW
 import gui_widgets.statistics_window as SW
+from gui_widgets.visualisator import Visualisator
 
 def CreateModel(parent=None):
     Model = QtGui.QStandardItemModel(2, 2, parent)
@@ -32,6 +33,9 @@ class MainWindow(QtGui.QWidget):
         self.LoadCubeButton = QtGui.QPushButton()
         self.LoadCubeButton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Fixed)
         
+        self.RenderButton = QtGui.QPushButton('Render cube')
+        self.RenderButton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Fixed)
+        
         # Tree
         self.Tree = QtGui.QTreeView()
         self.Model = CreateModel(self)
@@ -44,12 +48,14 @@ class MainWindow(QtGui.QWidget):
         self.StatisticsAction = QtGui.QAction(self.__tr("Statistics"), self)
         self.AlgorithmAction = QtGui.QAction(self.__tr("Apply algorithm"), self)
         self.SaveAction = QtGui.QAction(self.__tr("Save"), self)
+        self.RenderAction = QtGui.QAction(self.__tr("Render"), self)
         
         # Menu
-        self.PopMenu = QtGui.QMenu( self )
+        self.PopMenu = QtGui.QMenu(self)
         self.PopMenu.addAction(self.AlgorithmAction)
         self.PopMenu.addAction(self.DeleteAction)
         self.PopMenu.addAction(self.StatisticsAction)
+        self.PopMenu.addAction(self.RenderAction)
                 
         # 3D View
         self.View = QtGui.QGraphicsView()
@@ -60,8 +66,10 @@ class MainWindow(QtGui.QWidget):
         self.View.setFrameShape(QtGui.QFrame.StyledPanel)
         self.Splitter.addWidget(self.Tree)
         self.Splitter.addWidget(self.View)
-        self.Widgets = [self.LoadCubeButton, self.Splitter]
-        self.WidgetsPlaces = [[0, 0, 1, 2], [1, 0, 1, 1]]
+        self.Widgets = [self.LoadCubeButton,
+                        self.Splitter]
+        self.WidgetsPlaces = [[0, 0, 1, 1],
+                              [2, 0, 1, 1]]
         self.PlaceWidgetsAtPlaces(self.Layout, self.Widgets, self.WidgetsPlaces)
         
         # Other widgets, etc.
@@ -77,7 +85,7 @@ class MainWindow(QtGui.QWidget):
         # Signals and slots
         self.connect(self.LoadCubeButton, QtCore.SIGNAL("clicked()"),
                      self.LoadCube)
-        self.connect(self.Tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint&)'), 
+        self.connect(self.Tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint&)'),
                      self.ContextMenu)
         self.connect(self.Tree, QtCore.SIGNAL('collapsed(const QModelIndex &)'),
                      self.ResizeColumn)
@@ -91,12 +99,25 @@ class MainWindow(QtGui.QWidget):
                      self.ShowStatistics)
         self.connect(self.SaveAction, QtCore.SIGNAL("triggered()"),
                      self.SaveCube)
+        self.connect(self.RenderAction, QtCore.SIGNAL("triggered()"),
+                     self.RenderCube)
         
+    def RenderCube(self):
+        Index = self.Tree.currentIndex()
+        if Index.parent().row() == 0:
+            v = Visualisator(self.CubesCont[Index.row()][0][0],
+                                            self.CubesCont[Index.row()][1],
+                                            self.CubesCont[Index.row()][4])
+        else:
+            v = Visualisator(self.CubesInd[Index.row()][0][0],
+                                            self.CubesInd[Index.row()][1],
+                                            self.CubesInd[Index.row()][4])
+        v.run()
         
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
         for i in xrange(len(widgets)):
-            layout.addWidget(widgets[i], places[i][0], places[i][1], 
+            layout.addWidget(widgets[i], places[i][0], places[i][1],
                                  places[i][2], places[i][3])
             
     def LoadCube(self):
@@ -171,7 +192,7 @@ class MainWindow(QtGui.QWidget):
     
     def __tr(self, string, dis=None):
         '''Small function to translate'''
-        return QtGui.qApp.translate("MainWindow", string, dis, 
+        return QtGui.qApp.translate("MainWindow", string, dis,
                                      QtGui.QApplication.UnicodeUTF8)
     
     def RetranslateUI(self, MainWindow):
@@ -181,7 +202,6 @@ class MainWindow(QtGui.QWidget):
 if __name__ == "__main__":
     import sys
     app = QtGui.QApplication(sys.argv)
-    #app.setStyle(QtGui.)
     gui = MainWindow()
     gui.show()
     sys.exit(app.exec_())

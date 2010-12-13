@@ -1,7 +1,7 @@
 from geo_bsd import set_output_handler
 from geo_bsd import set_progress_handler
 from geo_bsd import simple_kriging
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore
 
 class SKThread(QtCore.QThread):
     def __init__(self, Prop, GridObject, EllipsoidRanges, IntPoints, 

@@ -1,7 +1,6 @@
 from PyQt4 import QtGui, QtCore
 import numpy
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import matplotlib.path as path
@@ -154,9 +153,17 @@ class Statistics(QtGui.QDialog):
         self.ValuesTable.setModel(self.TableModel)
         self.ValuesTable.resizeColumnToContents(0)
         
+        # Adding stretch to last header item
+        header = self.ValuesTable.horizontalHeader()
+        header.setStretchLastSection(1)
+        
     def CreateHistogramFrame(self):
+        # Firstly, set font size
+        import matplotlib as mpl
+        mpl.rcParams['font.size'] = 9
+        
         self.dpi = 100
-        self.Fig = Figure((5.0, 4.0), dpi=self.dpi)
+        self.Fig = Figure((5.0, 4.0), dpi=self.dpi, )
         self.Canvas = FigureCanvas(self.Fig)
         
         self.Axes = self.Fig.add_subplot(111)

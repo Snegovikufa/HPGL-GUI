@@ -3,7 +3,6 @@ import gui_widgets.load_cube_widget as LCW
 import gui_widgets.cont_alg_widget as CAW
 import gui_widgets.ind_alg_widget as IAW
 import gui_widgets.statistics_window as SW
-from gui_widgets.visualisator import Visualisator
 
 def CreateModel(parent=None):
     Model = QtGui.QStandardItemModel(2, 2, parent)
@@ -103,6 +102,7 @@ class MainWindow(QtGui.QWidget):
                      self.RenderCube)
         
     def RenderCube(self):
+        from gui_widgets.visualisator import Visualisator
         Index = self.Tree.currentIndex()
         if Index.parent().row() == 0:
             v = Visualisator(self.CubesCont[Index.row()][0][0],

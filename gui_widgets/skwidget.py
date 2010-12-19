@@ -7,29 +7,29 @@ class skwidget(QtGui.QWidget):
         self.Layout = QtGui.QGridLayout()
         self.setLayout(self.Layout)
         
-        self.BaseWidgetsInit()
+        self.InitBaseWidgets()
         self.Retranslate()
         self.AddSpacer()
         self.AddTooltips()
 
-    def BaseWidgetsInit(self):
-        self.IntValidator = QtGui.QIntValidator(self)
-        self.IntValidator.setBottom(0)
-        self.DoubleValidator = QtGui.QDoubleValidator(self)
-        self.DoubleValidator.setBottom(0)
+    def InitBaseWidgets(self):
+        IntValidator = QtGui.QIntValidator(self)
+        IntValidator.setBottom(0)
+        DoubleValidator = QtGui.QDoubleValidator(self)
+        DoubleValidator.setBottom(0)
         
         self.SearchRangesGB = QtGui.QGroupBox(self)
         self.SearchRangesLayout = QtGui.QGridLayout(self.SearchRangesGB)
         
         self.SearchRanges0Label = QtGui.QLabel(self.SearchRangesGB)
         self.SearchRanges0 = QtGui.QLineEdit(self.SearchRangesGB)
-        self.SearchRanges0.setValidator(self.IntValidator)
+        self.SearchRanges0.setValidator(IntValidator)
         self.SearchRanges90Label = QtGui.QLabel(self.SearchRangesGB)
         self.SearchRanges90 = QtGui.QLineEdit(self.SearchRangesGB)
-        self.SearchRanges90.setValidator(self.IntValidator)
+        self.SearchRanges90.setValidator(IntValidator)
         self.SearchRangesVLabel = QtGui.QLabel(self.SearchRangesGB)
         self.SearchRangesV = QtGui.QLineEdit(self.SearchRangesGB)
-        self.SearchRangesV.setValidator(self.IntValidator)
+        self.SearchRangesV.setValidator(IntValidator)
         self.SearchRangesSpacerL = QtGui.QSpacerItem(40, 20, 
                                                      QtGui.QSizePolicy.Expanding, 
                                                      QtGui.QSizePolicy.Minimum)
@@ -51,10 +51,10 @@ class skwidget(QtGui.QWidget):
         
         self.InterpolationPointsLabel = QtGui.QLabel(self.InterpolationGB)
         self.InterpolationPoints = QtGui.QLineEdit(self.InterpolationGB)
-        self.InterpolationPoints.setValidator(self.IntValidator)
+        self.InterpolationPoints.setValidator(IntValidator)
         self.MeanValueLabel = QtGui.QLabel(self.InterpolationGB)
         self.MeanValue = QtGui.QLineEdit(self.InterpolationGB)
-        self.MeanValue.setValidator(self.DoubleValidator)
+        self.MeanValue.setValidator(DoubleValidator)
         self.InterpolationSpacerL = QtGui.QSpacerItem(40, 20, 
                                                  QtGui.QSizePolicy.Expanding, 
                                                  QtGui.QSizePolicy.Minimum)
@@ -102,7 +102,7 @@ class skwidget(QtGui.QWidget):
                 layout.addWidget(widgets[i], places[i][0], places[i][1], 
                                  places[i][2], places[i][3])
                 
-    def ValuesCheck(self):
+    def isValuesValid(self):
         self.Err = ''
         if self.SearchRanges0.text() == "":
             self.Err += '"Search ranges 0" is empty\n'

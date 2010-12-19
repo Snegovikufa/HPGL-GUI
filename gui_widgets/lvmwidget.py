@@ -8,14 +8,14 @@ class lvmwidget(skwidget):
         self.Layout = QtGui.QGridLayout()
         self.setLayout(self.Layout)
         
-        self.BaseWidgetsInit()
-        self.OwnWidgetsInit()
+        self.InitBaseWidgets()
+        self.InitOwnWidgets()
         self.AddSpacer()
         
         self.Retranslate()
         self.RetranslateOwn()
         
-    def OwnWidgetsInit(self):
+    def InitOwnWidgets(self):
         self.MeanValueLabel.hide()
         self.MeanValue.hide()
               
@@ -40,13 +40,13 @@ class lvmwidget(skwidget):
                                   self.MeanWidgets, 
                                   self.MeanWidgetsPlaces)
 
-    def GetMean(self, Cubes, CubesCont):
+    def GetMean(self, Cubes):
         if self.MeanCombobox.count() != 0:
-            self.CurrIndex = self.MeanCombobox.currentIndex()
-            self.Mean = Cubes[self.CurrIndex][0][0]
-            return self.Mean
+            CurrIndex = self.MeanCombobox.currentIndex()
+            Mean = Cubes[CurrIndex][0][0]
+            return Mean
 
-    def ValuesCheck(self):
+    def isValuesValid(self):
         Err = ''
         if self.SearchRanges0.text() == "":
             Err += '"Search ranges 0" is empty\n'

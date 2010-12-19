@@ -10,21 +10,21 @@ class LoadCube(QtGui.QDialog):
         self.resize(500, 160)
         
         self.Layout = QtGui.QGridLayout(self)
-        self.IntValidator = QtGui.QIntValidator(self)
-        self.DoubleValidator = QtGui.QDoubleValidator(self)
+        IntValidator = QtGui.QIntValidator(self)
+        IntValidator.setBottom(1)
         
         self.GridSizeGB = QtGui.QGroupBox(self)
         self.GridLayout = QtGui.QGridLayout(self.GridSizeGB)
         
         self.GridSizeXLabel = QtGui.QLabel(self.GridSizeGB)
         self.GridSizeX = QtGui.QLineEdit(self.GridSizeGB)
-        self.GridSizeX.setValidator(self.IntValidator)
+        self.GridSizeX.setValidator(IntValidator)
         self.GridSizeYLabel = QtGui.QLabel(self.GridSizeGB)
         self.GridSizeY = QtGui.QLineEdit(self.GridSizeGB)
-        self.GridSizeY.setValidator(self.IntValidator)
+        self.GridSizeY.setValidator(IntValidator)
         self.GridSizeZLabel = QtGui.QLabel(self.GridSizeGB)
         self.GridSizeZ = QtGui.QLineEdit(self.GridSizeGB)
-        self.GridSizeZ.setValidator(self.IntValidator)
+        self.GridSizeZ.setValidator(IntValidator)
         self.GridSizeSpacerL = QtGui.QSpacerItem(40, 20, 
                                                  QtGui.QSizePolicy.Expanding, 
                                                  QtGui.QSizePolicy.Minimum)
@@ -52,7 +52,7 @@ class LoadCube(QtGui.QDialog):
         self.IndValuesCheckbox.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.UndefValueLabel = QtGui.QLabel(self.IndValuesGB)
         self.UndefValue = QtGui.QLineEdit(self.IndValuesGB)
-        self.UndefValue.setValidator(self.IntValidator)
+        self.UndefValue.setValidator(IntValidator)
         IndValuesSpacerL = QtGui.QSpacerItem(40, 20, 
                                              QtGui.QSizePolicy.Expanding, 
                                              QtGui.QSizePolicy.Minimum)
@@ -119,95 +119,61 @@ class LoadCube(QtGui.QDialog):
         
     def CubeLoadAccess(self):
         '''Controls the grid size and allow to load cube'''
-        if self.GridSizeX.text() == '' or \
-            self.GridSizeX.text() == '-' or \
+        if int(self.GridSizeX.text()) == 0 or \
+            int(self.GridSizeY.text()) == 0 or \
+            int(self.GridSizeZ.text()) == 0 or \
+            self.GridSizeX.text() == '' or \
             self.GridSizeY.text() == '' or \
-            self.GridSizeX.text() == '-' or \
-            self.GridSizeZ.text() == '' or \
-            self.GridSizeZ.text() == '-':
+            self.GridSizeZ.text() == '':
             self.LoadCubeButton.setDisabled(1)
             self.LoadCubeButton.setToolTip(self.__tr("Enter grid sizes first"))
-        elif int(self.GridSizeX.text()) > 0 and \
+            return
+        if int(self.GridSizeX.text()) > 0 and \
             int(self.GridSizeY.text()) > 0 and \
             int(self.GridSizeZ.text()) > 0:
             self.LoadCubeButton.setEnabled(1)
             self.LoadCubeButton.setToolTip('')
-        else:
-            self.LoadCubeButton.setDisabled(0)
-            self.LoadCubeButton.setToolTip(self.__tr("Enter grid sizes first"))
-            
-    #def CubeLoad(self):
-        #self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
-        
-    def CheckCubeLoad(self):
-        '''Check values before loading cube'''
-        if self.GridSizeX.text() == "" or int(self.GridSizeX.text()) < 1:
-            self.Err += '"Grid size x" incorrect, must be > 0\n'
-        if self.GridSizeY.text() == "" or int(self.GridSizeY.text()) < 1:
-            self.Err += '"Grid size y" incorrect, must be > 0\n'
-        if self.GridSizeZ.text() == "" or int(self.GridSizeZ.text()) < 1:
-            self.Err += '"Grid size z" incorrect, must be > 0\n'
-        if self.UndefValue.text() == "":
-            self.Err += '"Undefined value" is empty\n'
-        if self.Err == '':
-            return 1
-        else:
-            self.ShowError(self.Err)
-            self.Err = ''
-            return 0
         
     def CubeLoad(self):
-        '''Loads cube from file'''
-        if self.CheckCubeLoad() == 1:
-            filename = QtGui.QFileDialog.getOpenFileName(self, 'Select file')
-            if filename:
-                self.loaded_cube_fname = re.search('(.*\/)([\w.]*)', filename) 
-                self.loaded_cube_fname = self.loaded_cube_fname.group(self.loaded_cube_fname.lastindex)
-                self.Log += "Selected cube: " + self.loaded_cube_fname +'\n'
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Select file')
+        if filename:
+            # First, we must get cube's filename
+            CubeName = re.search('(.*\/)([\w.]*)', filename) 
+            CubeName = CubeName.group(CubeName.lastindex)
+            self.Log += "Selected cube: " + CubeName +'\n'
                 
-                self.GridObject = SugarboxGrid( int(self.GridSizeX.text()), 
-                                                int(self.GridSizeY.text()), 
-                                                int(self.GridSizeZ.text()) )
-                self.GridSize = ( int(self.GridSizeX.text()), 
-                                  int(self.GridSizeY.text()), 
-                                  int(self.GridSizeZ.text()) )
-                self.undefined_value = int(self.UndefValue.text())
+            GridObject = SugarboxGrid( int(self.GridSizeX.text()), 
+                                       int(self.GridSizeY.text()), 
+                                       int(self.GridSizeZ.text()) )
+            GridSize = (int(self.GridSizeX.text()), 
+                        int(self.GridSizeY.text()), 
+                        int(self.GridSizeZ.text()) )
+            UndefValue = int(self.UndefValue.text())
+
+            if self.IndValuesCheckbox.isChecked():
+                self.Log += 'Loading indicator cube\n'
                 
-            
-                if self.IndValuesCheckbox.isChecked():
-                    self.Log += 'Loading indicator cube\n'
-                
-                    self.indicator_value = range(int(self.IndValues.text()))
-                    # Starting load indicator cube with HPGL
-                    self.Prop = load_ind_property(str(filename), 
-                                                  self.undefined_value, 
-                                                  self.indicator_value, 
-                                                  self.GridSize)
-                    if self.Prop != None:
-                        self.Cube = [self.Prop, self.undefined_value, 
-                                           self.indicator_value,
-                                           self.GridObject,
-                                           self.loaded_cube_fname,
-                                           self.GridSize]
-                        del(self.Prop)
-                        self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.Cube)
-                        self.hide()
-                    
-                else:
-                    self.Log += 'Loaded continuous cube\n'
-                
-                    # Starting load cube with HPGL
-                    self.Prop = load_cont_property( str(filename), 
-                                                    self.undefined_value, 
-                                                    self.GridSize )
-                    if self.Prop != None:
-                        self.Cube = [self.Prop, self.undefined_value, 
-                                      None, self.GridObject,
-                                      self.loaded_cube_fname,
-                                      self.GridSize]
-                        del(self.Prop)
-                        self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.Cube)
-                        self.hide()
+                IndValue = range(int(self.IndValues.text()))
+                Prop = load_ind_property(unicode(filename), 
+                                             UndefValue, IndValue, GridSize)
+                if self.Prop != None:
+                    Cube = [Prop, UndefValue, IndValue,
+                            GridObject, CubeName, GridSize]
+                    del(Prop)
+                    self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), Cube)
+                    self.hide()
+            else:
+                self.Log += 'Loaded continuous cube\n'
+
+                self.Prop = load_cont_property( unicode(filename), 
+                                                UndefValue, 
+                                                GridSize )
+                if self.Prop != None:
+                    Cube = [self.Prop, UndefValue, None, 
+                            GridObject, CubeName, GridSize]
+                    del(self.Prop)
+                    self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), Cube)
+                    self.hide()
 
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
@@ -231,11 +197,11 @@ class LoadCube(QtGui.QDialog):
         # Tab 1
         self.GridSizeGB.setTitle(self.__tr("Grid Size"))
         self.GridSizeXLabel.setText(self.__tr("x"))
-        self.GridSizeX.setText(self.__tr("0"))
+        self.GridSizeX.setText('0')
         self.GridSizeYLabel.setText(self.__tr("y"))
-        self.GridSizeY.setText(self.__tr("0"))
+        self.GridSizeY.setText('0')
         self.GridSizeZLabel.setText(self.__tr("z"))
-        self.GridSizeZ.setText(self.__tr("0"))
+        self.GridSizeZ.setText('0')
         
         self.IndValuesGB.setTitle(self.__tr("Undefined values and indicators"))
         self.IndValuesCheckbox.setText(self.__tr("Indicator values"))

@@ -192,7 +192,7 @@ class IndAlgWidget(QtGui.QDialog):
         if self.Result != None:
             self.SaveButton.setEnabled(1)
             self.SaveButton.setToolTip('')
-            self.Result_values = [self.Cubes[self.CurrIndex][1], 
+            self.ResultValues = [self.Cubes[self.CurrIndex][1], 
                                   self.Cubes[self.CurrIndex][2]]
             self.ResultCube = [self.Result, 
                                self.Cubes[self.CurrIndex][1],
@@ -205,20 +205,20 @@ class IndAlgWidget(QtGui.QDialog):
         '''Saves the result of algorithm'''
         if self.Result != None:
             self.fname = QtGui.QFileDialog.getSaveFileName(self,'Save as ... ')
-            if self.fname and self.Result_values[1] != None:
+            if self.fname and self.ResultValues[1] != None:
                 write_property( self.Result, str(self.fname), 
-                                "SK_RESULT", self.Result_values[0], 
-                                self.Result_values[1] )
-            elif self.fname and self.Result_values[1] == None:
+                                "SK_RESULT", self.ResultValues[0], 
+                                self.ResultValues[1] )
+            elif self.fname and self.ResultValues[1] == None:
                 write_property( self.Result, str(self.fname), 
-                                "SK_RESULT", self.Result_values[0] )
+                                "SK_RESULT", self.ResultValues[0] )
         
     def AlgorithmRun(self):
         if self.AlgorithmType.currentIndex() == 0:
             k = 0
             self.MaxIndicators = len(self.Cubes[self.CurrIndex][2])
             for i in xrange(self.MaxIndicators):
-                j, errors = self.Tab4Tabs[i].VariogramCheck()
+                j, errors = self.Tab4Tabs[i].isVariogramValid()
                 if j == 0:
                     self.Err += 'In tab #' + str(i) +':\n' + errors
                 k += j
@@ -265,7 +265,7 @@ class IndAlgWidget(QtGui.QDialog):
             k = 0
             self.MaxIndicators = len(self.Cubes[self.CurrIndex][2])
             for i in xrange(self.MaxIndicators):
-                j, errors = self.Tab4Tabs[i].VariogramCheck()
+                j, errors = self.Tab4Tabs[i].isVariogramValid()
                 if j == 0:
                     self.Err += 'In variogram tab #' + str(i) +':\n' + errors
                 k += j

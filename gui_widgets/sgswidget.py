@@ -9,8 +9,8 @@ class sgswidget(skwidget):
         self.Layout = QtGui.QGridLayout()
         self.setLayout(self.Layout)
         
-        self.BaseWidgetsInit()
-        self.OwnWidgetsInit()
+        self.InitBaseWidgets()
+        self.InitOwnWidgets()
         self.AddSpacer()
         
         self.Retranslate()
@@ -24,12 +24,14 @@ class sgswidget(skwidget):
                      self.MeanValue,    QtCore.SLOT("setDisabled(bool)"))
         
     
-    def OwnWidgetsInit(self):
+    def InitOwnWidgets(self):
+        IntValidator = QtGui.QIntValidator()
+        
         self.SeedGB = QtGui.QGroupBox(self)
         self.SeedLayout = QtGui.QGridLayout(self.SeedGB)
         
         self.SeedNum = QtGui.QLineEdit(self.SeedGB)
-        self.SeedNum.setValidator(self.IntValidator)
+        self.SeedNum.setValidator(IntValidator)
         self.SeedLabel = QtGui.QLabel(self.SeedGB)
         self.KrigingType = QtGui.QComboBox(self.SeedGB)
         self.KrigingType.addItem("")
@@ -73,14 +75,14 @@ class sgswidget(skwidget):
         self.PlaceWidgetsAtPlaces(self.Layout, self.WidgetItems, self.WidgetItemsPlaces)
         
     def AddSpacer(self):
-        self.Spacer = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.Layout.addItem(self.Spacer, 2, 0, 1, 1)
+        Spacer = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.Layout.addItem(Spacer, 2, 0, 1, 1)
         
     def GetSeed(self):
         return int(self.SeedNum.text())
     
     def GetUseHd(self):
-        return 1 # It's unusable?
+        return 1 # It's unused?
     
     def GetKrType(self):
         if int(self.KrigingType.currentIndex()) == 0:
@@ -90,21 +92,21 @@ class sgswidget(skwidget):
     
     def GetMean(self, Cubes):
         if self.MeanCheckbox.isChecked() == 1:
-            self.CurrIndex = self.MeanCombobox.currentIndex()
-            self.Mean = Cubes[self.CurrIndex][0][0]
+            CurrIndex = self.MeanCombobox.currentIndex()
+            Mean = Cubes[CurrIndex][0][0]
         else:
-            self.Mean = float(self.MeanValue.text())
-        return self.Mean
+            Mean = float(self.MeanValue.text())
+        return Mean
     
-    def GetMask(self, Cubes, CubesInd):
+    def GetMask(self, Cubes):
         if self.MaskCheckbox.isChecked() == 1:
-            self.CurrIndex = CubesInd[self.MaskCombobox.currentIndex()]
-            self.Mask = Cubes[self.CurrIndex][0]
-            return self.Mask
+            CurrIndex = self.MaskCombobox.currentIndex()
+            Mask = Cubes[CurrIndex][0]
+            return Mask
         else:
             return None
     
-    def ValuesCheck(self, Err):
+    def isValuesValid(self, Err):
         Err = ''
         if self.SearchRanges0.text() == "":
             Err += '"Search ranges 0" is empty\n'

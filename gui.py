@@ -3,21 +3,7 @@ import gui_widgets.load_cube_widget as LCW
 import gui_widgets.cont_alg_widget as CAW
 import gui_widgets.ind_alg_widget as IAW
 import gui_widgets.statistics_window as SW
-
-def CreateModel(parent=None):
-    Model = QtGui.QStandardItemModel(2, 2, parent)
-    
-    ContBranch = QtGui.QStandardItem("Continuous cubes")
-    ContBranch.setEditable(0)
-    IndBranch = QtGui.QStandardItem("Indicator cubes")
-    IndBranch.setEditable(0)
-    Model.setItem(0, 0, ContBranch)
-    Model.setItem(1, 0, IndBranch)
-                    
-    Model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Cube"))
-    Model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Size"))
-    Model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Indicators"))
-    return Model
+from geo_bsd.geo import write_property
 
 class MainWindow(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -28,16 +14,34 @@ class MainWindow(QtGui.QWidget):
         
         self.Iterator = 0 # Iterator for cubes' names
         
-        # Load cube button
+        self.InitWidgets()
+        self.InitSignals()
+        self.RetranslateUI(self)
+        
+        self.CubesCont = []
+        self.CubesInd = []
+
+    def InitSignals(self):
+        # Signals and slots
+        self.connect(self.LoadCubesWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.CatchCube)
+        self.connect(self.LoadCubeButton, QtCore.SIGNAL("clicked()"), self.LoadCube)
+        self.connect(self.Tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint&)'), self.ContextMenu)
+        self.connect(self.Tree, QtCore.SIGNAL('collapsed(const QModelIndex &)'), self.ResizeColumn)
+        self.connect(self.Tree, QtCore.SIGNAL('expanded(const QModelIndex &)'), self.ResizeColumn)
+        self.connect(self.DeleteAction, QtCore.SIGNAL("triggered()"), self.DeleteCube)
+        self.connect(self.AlgorithmAction, QtCore.SIGNAL("triggered()"), self.ApplyAlgorithm)
+        self.connect(self.StatisticsAction, QtCore.SIGNAL("triggered()"), self.ShowStatistics)
+        self.connect(self.SaveAction, QtCore.SIGNAL("triggered()"), self.SaveCube)
+        self.connect(self.RenderAction, QtCore.SIGNAL("triggered()"), self.RenderCube)
+
+    def InitWidgets(self):
+        # Buttons
         self.LoadCubeButton = QtGui.QPushButton()
         self.LoadCubeButton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Fixed)
         
-        self.RenderButton = QtGui.QPushButton('Render cube')
-        self.RenderButton.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Fixed)
-        
         # Tree
         self.Tree = QtGui.QTreeView()
-        self.Model = CreateModel(self)
+        self.Model = self.CreateModel(self)
         self.Tree.setModel(self.Model)
         self.Tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.ResizeColumn()
@@ -52,10 +56,11 @@ class MainWindow(QtGui.QWidget):
         # Menu
         self.PopMenu = QtGui.QMenu(self)
         self.PopMenu.addAction(self.AlgorithmAction)
-        self.PopMenu.addAction(self.DeleteAction)
         self.PopMenu.addAction(self.StatisticsAction)
         self.PopMenu.addAction(self.RenderAction)
-                
+        self.PopMenu.addAction(self.SaveAction)
+        self.PopMenu.addAction(self.DeleteAction)
+        
         # 3D View
         self.View = QtGui.QGraphicsView()
         
@@ -65,54 +70,25 @@ class MainWindow(QtGui.QWidget):
         self.View.setFrameShape(QtGui.QFrame.StyledPanel)
         self.Splitter.addWidget(self.Tree)
         self.Splitter.addWidget(self.View)
-        self.Widgets = [self.LoadCubeButton,
-                        self.Splitter]
-        self.WidgetsPlaces = [[0, 0, 1, 1],
+        self.Widgets = [self.LoadCubeButton, self.Splitter]
+        self.WidgetsPlaces = [[0, 0, 1, 1], 
                               [2, 0, 1, 1]]
         self.PlaceWidgetsAtPlaces(self.Layout, self.Widgets, self.WidgetsPlaces)
-        
-        # Other widgets, etc.
+        # Other widgets
         self.LoadCubesWidget = LCW.LoadCube(self)
-        self.connect(self.LoadCubesWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"),
-                     self.CatchCube)
-        self.CubesCont = []
-        self.CubesInd = []
-        
-        # Retranslate
-        self.RetranslateUI(self)
-        
-        # Signals and slots
-        self.connect(self.LoadCubeButton, QtCore.SIGNAL("clicked()"),
-                     self.LoadCube)
-        self.connect(self.Tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint&)'),
-                     self.ContextMenu)
-        self.connect(self.Tree, QtCore.SIGNAL('collapsed(const QModelIndex &)'),
-                     self.ResizeColumn)
-        self.connect(self.Tree, QtCore.SIGNAL('expanded(const QModelIndex &)'),
-                     self.ResizeColumn)
-        self.connect(self.DeleteAction, QtCore.SIGNAL("triggered()"),
-                     self.DeleteCube)
-        self.connect(self.AlgorithmAction, QtCore.SIGNAL("triggered()"),
-                     self.ApplyAlgorithm)
-        self.connect(self.StatisticsAction, QtCore.SIGNAL("triggered()"),
-                     self.ShowStatistics)
-        self.connect(self.SaveAction, QtCore.SIGNAL("triggered()"),
-                     self.SaveCube)
-        self.connect(self.RenderAction, QtCore.SIGNAL("triggered()"),
-                     self.RenderCube)
-        
+
     def RenderCube(self):
         from gui_widgets.visualisator import Visualisator
         Index = self.Tree.currentIndex()
         if Index.parent().row() == 0:
-            v = Visualisator(self.CubesCont[Index.row()][0][0],
+            self.v = Visualisator(self.CubesCont[Index.row()][0][0],
                                             self.CubesCont[Index.row()][1],
                                             self.CubesCont[Index.row()][4])
         else:
-            v = Visualisator(self.CubesInd[Index.row()][0][0],
+            self.v = Visualisator(self.CubesInd[Index.row()][0][0],
                                             self.CubesInd[Index.row()][1],
                                             self.CubesInd[Index.row()][4])
-        v.run()
+        self.v.run()
         
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
@@ -162,7 +138,30 @@ class MainWindow(QtGui.QWidget):
             del(self.CubesInd[Index.row()])
             
     def SaveCube(self):
-        pass
+        Index = self.Tree.currentIndex()
+        Row = Index.row()
+        Fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ...')
+        if Fname and Index.parent().row() == 0:
+            write_property( self.CubesCont[Row][0], unicode(Fname), 'Output',
+                            self.CubesCont[Row][1], self.CubesCont[Row][2] )
+        elif Fname and Index.parent().row() == 1:
+            write_property( self.CubesInd[Row][0], unicode(Fname), 'Output',
+                            self.CubesInd[Row][1], self.CubesInd[Row][2])
+    
+    def CreateModel(self, parent=None):
+        Model = QtGui.QStandardItemModel(2, 2, parent)
+    
+        ContBranch = QtGui.QStandardItem("Continuous cubes")
+        ContBranch.setEditable(0)
+        IndBranch = QtGui.QStandardItem("Indicator cubes")
+        IndBranch.setEditable(0)
+        Model.setItem(0, 0, ContBranch)
+        Model.setItem(1, 0, IndBranch)
+                    
+        Model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Cube"))
+        Model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Size"))
+        Model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Indicators"))
+        return Model
     
     def ApplyAlgorithm(self):
         Index = self.Tree.currentIndex()

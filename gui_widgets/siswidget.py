@@ -8,7 +8,7 @@ class siswidget(skwidget):
         self.Layout = QtGui.QGridLayout()
         self.setLayout(self.Layout)
         
-        self.BaseWidgetsInit()
+        self.InitBaseWidgets()
         self.OwnWidgetsInit()
         self.AddSpacer()
         

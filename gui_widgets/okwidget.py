@@ -8,12 +8,12 @@ class okwidget(skwidget):
         self.Layout = QtGui.QGridLayout()
         self.setLayout(self.Layout)
         
-        self.BaseWidgetsInit()
-        self.OwnWidgetsInit()
+        self.InitBaseWidgets()
+        self.InitOwnWidgets()
         self.AddSpacer()
         
         self.Retranslate()
         
-    def OwnWidgetsInit(self):
+    def InitOwnWidgets(self):
         self.MeanValueLabel.hide()
         self.MeanValue.hide()

@@ -119,12 +119,12 @@ class LoadCube(QtGui.QDialog):
         
     def CubeLoadAccess(self):
         '''Controls the grid size and allow to load cube'''
-        if int(self.GridSizeX.text()) == 0 or \
-            int(self.GridSizeY.text()) == 0 or \
-            int(self.GridSizeZ.text()) == 0 or \
-            self.GridSizeX.text() == '' or \
+        if self.GridSizeX.text() == '' or \
             self.GridSizeY.text() == '' or \
-            self.GridSizeZ.text() == '':
+            self.GridSizeZ.text() == '' or \
+            int(self.GridSizeX.text()) == 0 or \
+            int(self.GridSizeY.text()) == 0 or \
+            int(self.GridSizeZ.text()) == 0:
             self.LoadCubeButton.setDisabled(1)
             self.LoadCubeButton.setToolTip(self.__tr("Enter grid sizes first"))
             return

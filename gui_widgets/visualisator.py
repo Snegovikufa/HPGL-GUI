@@ -1,26 +1,26 @@
 from numpy import arange
 from enthought.tvtk.api import tvtk
 from enthought.mayavi.scripts import mayavi2
-from numpy.core.numeric import ascontiguousarray, asfortranarray
+from numpy.core.numeric import ravel
 from PyQt4 import QtCore
 
 class Visualisator(QtCore.QThread):
     def __init__(self, ValuesArray, UndefValue, CubeName):
         QtCore.QThread.__init__(self)
-        self.ValuesArray = asfortranarray(ValuesArray)
+        self.ValuesArray = ValuesArray
 
     def CreateGrid(self):
         self.xRange = len(self.ValuesArray)
         self.yRange = len(self.ValuesArray[0])
         self.zRange = len(self.ValuesArray[0][0])
         
-        scalars = self.ValuesArray.ravel()
+        scalars = ravel(self.ValuesArray, order='F')
         for i in xrange(len(scalars)):
             if scalars[i] > 2:
                 scalars[i] = 2
         
         self.Grid = tvtk.RectilinearGrid()
-        self.Grid.point_data.scalars = self.ValuesArray.ravel()
+        self.Grid.point_data.scalars = scalars
         self.Grid.point_data.scalars.name = 'scalars'
         self.Grid.dimensions = self.ValuesArray.shape
         self.Grid.x_coordinates = arange(self.xRange)
@@ -41,3 +41,4 @@ class Visualisator(QtCore.QThread):
         mayavi.add_source(src) 
         mayavi.add_module(Outline())
         mayavi.add_module(Surface())
+

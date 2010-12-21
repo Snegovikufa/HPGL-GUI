@@ -62,9 +62,12 @@ class Statistics(QtGui.QDialog):
         self.ProbabilityChange = QtGui.QCheckBox()
         self.ProbabilityChange.setLayoutDirection(QtCore.Qt.RightToLeft)
         
+        DoubleValidator = QtGui.QDoubleValidator(self)
         self.XMin = QtGui.QLineEdit(self.ViewConfigGB)
+        self.XMin.setValidator(DoubleValidator)
         self.XMinLabel = QtGui.QLabel(self.ViewConfigGB)
         self.XMax = QtGui.QLineEdit(self.ViewConfigGB)
+        self.XMax.setValidator(DoubleValidator)
         self.XMaxLabel = QtGui.QLabel(self.ViewConfigGB)
         
         self.ViewConfigWidgets = [self.RowCountLabel, self.RowCount,
@@ -141,12 +144,12 @@ class Statistics(QtGui.QDialog):
         self.Min = '%.2f' % numpy.min(self.ClearValues)
         Median = '%.2f' % numpy.median(self.ClearValues)
         Variance = '%.2f' % numpy.var(self.ClearValues)
-        DefPoints = numpy.size(self.ClearValues)
+        self.DefPoints = numpy.size(self.ClearValues)
         AllPoints = numpy.size(self.ValuesArray)
         Values = [['Max', 'Min', 'Mean', 'Median',
                   'Variance', 'Defined points', 'Total points'],
                   [self.Max, self.Min, Mean, Median, Variance,
-                   DefPoints, AllPoints]]
+                   self.DefPoints, AllPoints]]
         Header = ['Property', 'Value']
         
         self.TableModel = TableModel(Values, Header, self)
@@ -205,7 +208,8 @@ class Statistics(QtGui.QDialog):
         Bottom = numpy.zeros(len(Left))
         
         if self.ProbabilityChange.isChecked():
-            Top = (Bottom + N) / N.max()
+#            Top = (Bottom + N) / N.max()
+            Top = (Bottom + N) / int(self.DefPoints)
             self.Axes.set_ylabel(self.__tr("Probability"))
         else:
             Top = Bottom + N

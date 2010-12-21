@@ -62,9 +62,9 @@ class Statistics(QtGui.QDialog):
         self.ProbabilityChange = QtGui.QCheckBox()
         self.ProbabilityChange.setLayoutDirection(QtCore.Qt.RightToLeft)
         
-        self.XMin = QtGui.QSpinBox(self.ViewConfigGB)
+        self.XMin = QtGui.QLineEdit(self.ViewConfigGB)
         self.XMinLabel = QtGui.QLabel(self.ViewConfigGB)
-        self.XMax = QtGui.QSpinBox(self.ViewConfigGB)
+        self.XMax = QtGui.QLineEdit(self.ViewConfigGB)
         self.XMaxLabel = QtGui.QLabel(self.ViewConfigGB)
         
         self.ViewConfigWidgets = [self.RowCountLabel, self.RowCount,
@@ -98,9 +98,9 @@ class Statistics(QtGui.QDialog):
         self.GraphLayout.addWidget(self.Canvas)
         self.GraphLayout.addWidget(self.CloseButtonBox)
         
-        # Update Histogram and set ranges
-        self.UpdateHistogram()
+        # Init Histogram ranges and updating histogram
         self.InitRanges()
+        self.UpdateCuts()
         
         # Layouts
         LeftVBox = QtGui.QVBoxLayout()
@@ -120,10 +120,10 @@ class Statistics(QtGui.QDialog):
                      self.UpdateHistogram)
         self.connect(self.ProbabilityChange, QtCore.SIGNAL('stateChanged(int)'),
                      self.UpdateHistogram)
-        self.connect(self.XMax, QtCore.SIGNAL('valueChanged(int)'),
-                     self.UpdateHistogram)
-        self.connect(self.XMin, QtCore.SIGNAL('valueChanged(int)'),
-                     self.UpdateHistogram)
+        self.connect(self.XMax, QtCore.SIGNAL('editingFinished()'),
+                     self.UpdateCuts)
+        self.connect(self.XMin, QtCore.SIGNAL('editingFinished()'),
+                     self.UpdateCuts)
         self.connect(self.CloseButtonBox, QtCore.SIGNAL('rejected()'),
                      self, QtCore.SLOT('close()'))
                 
@@ -136,16 +136,16 @@ class Statistics(QtGui.QDialog):
     def CalculateValues(self):
         self.ClearValues = self.ValuesArray[numpy.nonzero(self.ValuesArray != self.UndefValue)]
         
-        Max = '%.2f' % numpy.max(self.ClearValues)
+        self.Max = '%.2f' % numpy.max(self.ClearValues)
         Mean = '%.2f' % numpy.mean(self.ClearValues)
-        Min = '%.2f' % numpy.min(self.ClearValues)
+        self.Min = '%.2f' % numpy.min(self.ClearValues)
         Median = '%.2f' % numpy.median(self.ClearValues)
         Variance = '%.2f' % numpy.var(self.ClearValues)
         DefPoints = numpy.size(self.ClearValues)
         AllPoints = numpy.size(self.ValuesArray)
         Values = [['Max', 'Min', 'Mean', 'Median',
                   'Variance', 'Defined points', 'Total points'],
-                  [Max, Min, Mean, Median, Variance,
+                  [self.Max, self.Min, Mean, Median, Variance,
                    DefPoints, AllPoints]]
         Header = ['Property', 'Value']
         
@@ -169,13 +169,36 @@ class Statistics(QtGui.QDialog):
         self.Axes = self.Fig.add_subplot(111)
         
     def InitRanges(self):
-        self.XMin.setValue(self.XMin.minimum())
-        self.XMax.setValue(self.XMax.maximum())
+        self.CutValues = self.ClearValues
+        self.GlobalMin = float(self.Min)
+        self.GlobalMax = float(self.Max)
+        
+        self.XMin.setText(self.Min)
+        self.XMax.setText(self.Max)
+        
+    def UpdateCuts(self):
+        min = float(self.XMin.text())
+        max = float(self.XMax.text())
+        if min < self.GlobalMin or min > self.GlobalMax or min > max:
+            self.LocalMin = self.GlobalMin
+        else:
+            self.LocalMin = float(self.XMin.text())
+        if max < self.GlobalMin or max > self.GlobalMax or max < min:
+            self.LocalMax = self.GlobalMax
+        else:
+            self.LocalMax = float(self.XMax.text())
+            
+        self.XMin.setText(str(self.LocalMin))
+        self.XMax.setText(str(self.LocalMax))
+        
+        self.CutValues = self.ClearValues[numpy.nonzero(self.ClearValues >= self.LocalMin)]
+        self.CutValues = self.CutValues[numpy.nonzero(self.CutValues <= self.LocalMax)]
+        
         self.UpdateHistogram()
         
     def UpdateHistogram(self):
         self.Axes.clear()
-        N, Bins = numpy.histogram(self.ClearValues, self.RowCount.value())
+        N, Bins = numpy.histogram(self.CutValues, self.RowCount.value())
         
         Left = numpy.array(Bins[:-1])
         Right = numpy.array(Bins[1:])
@@ -196,9 +219,7 @@ class Statistics(QtGui.QDialog):
         self.Axes.add_patch(Patch)
         
         # Limits
-        self.XMin.setRange(Left[0], Right[-2])
-        self.XMax.setRange(self.XMin.value() + 1, Right[-1])
-        self.Axes.set_xlim(self.XMin.value(), self.XMax.value())
+        self.Axes.set_xlim(self.LocalMin, self.LocalMax)
         self.Axes.set_ylim(Bottom.min(), Top.max())
         
         self.Axes.grid(1)

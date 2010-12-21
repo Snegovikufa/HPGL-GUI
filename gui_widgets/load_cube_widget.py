@@ -156,7 +156,7 @@ class LoadCube(QtGui.QDialog):
                 IndValue = range(int(self.IndValues.text()))
                 Prop = load_ind_property(unicode(filename), 
                                              UndefValue, IndValue, GridSize)
-                if self.Prop != None:
+                if Prop != None:
                     Cube = [Prop, UndefValue, IndValue,
                             GridObject, CubeName, GridSize]
                     del(Prop)
@@ -165,13 +165,13 @@ class LoadCube(QtGui.QDialog):
             else:
                 self.Log += 'Loaded continuous cube\n'
 
-                self.Prop = load_cont_property( unicode(filename), 
+                Prop = load_cont_property( unicode(filename), 
                                                 UndefValue, 
                                                 GridSize )
-                if self.Prop != None:
-                    Cube = [self.Prop, UndefValue, None, 
+                if Prop != None:
+                    Cube = [Prop, UndefValue, None, 
                             GridObject, CubeName, GridSize]
-                    del(self.Prop)
+                    del(Prop)
                     self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), Cube)
                     self.hide()
 
@@ -192,7 +192,7 @@ class LoadCube(QtGui.QDialog):
         
     def RetranslateUI(self, MainWindow):
         '''Adds text to widgets'''
-        self.setWindowTitle(self.__tr("HPGL GUI: Load cube"))
+        self.setWindowTitle(self.__tr("HPGL GUI ") +self.tr("Load cube"))
         
         # Tab 1
         self.GridSizeGB.setTitle(self.__tr("Grid Size"))

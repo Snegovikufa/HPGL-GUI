@@ -16,8 +16,10 @@ class ContAlgWidget(QtGui.QDialog):
         self.resize(650, 450)
         
         self.Iterator = iterator
-        self.AlgorithmTypes = ['Simple Kriging', 'Ordinary Kriging',
-                               'LVM Kriging', 'Sequential Gaussian Simulation']
+        self.AlgorithmTypes = [self.__tr('Simple Kriging'), 
+                               self.__tr('Ordinary Kriging'),
+                               self.__tr('LVM Kriging'), 
+                               self.__tr('Sequential Gaussian Simulation')]
         self.Log = ''
         
         self.InitWidgets()
@@ -319,7 +321,7 @@ class ContAlgWidget(QtGui.QDialog):
     def ShowError(self, string):
         '''Error output widget'''
         self.ErrorWindow = QtGui.QMessageBox()
-        self.ErrorWindow.warning(None, "Error", str(string))
+        self.ErrorWindow.warning(None, self.__tr("Error"), self.__tr(string))
         
     def GetVariogramRanges(self):
         '''Returns variogram ranges'''

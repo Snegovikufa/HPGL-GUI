@@ -126,10 +126,10 @@ class sgswidget(skwidget):
             return 0, Err
         
     def RetranslateOwn(self):
-        self.SeedLabel.setText(self.__tr("Seed value:"))
+        self.SeedLabel.setText(self.__tr("Seed value"))
         self.SeedNum.setText(self.__tr("0"))
         self.SeedGB.setTitle(self.__tr("Seed"))
-        self.KrigingTypeLabel.setText(self.__tr("Kriging type:"))
+        self.KrigingTypeLabel.setText(self.__tr("Kriging type"))
         self.KrigingType.setItemText(0, "Simple Kriging")
         self.KrigingType.setItemText(1, "Ordinary Kriging")
         

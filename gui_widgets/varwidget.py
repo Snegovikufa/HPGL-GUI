@@ -13,10 +13,10 @@ class varwidget(QtGui.QWidget):
         self.DoubleValidator = QtGui.QDoubleValidator(self)
         self.DoubleValidator.setBottom(0)
         
-        self.OwnWidgetsInit()
+        self.InitOwnWidgets()
         self.Retranslate()
         
-    def OwnWidgetsInit(self):
+    def InitOwnWidgets(self):
         self.VariogramTypeGB = QtGui.QGroupBox(self)
         self.VariogramTypeLayout = QtGui.QGridLayout(self.VariogramTypeGB)
                
@@ -210,7 +210,7 @@ class varwidget(QtGui.QWidget):
         self.NuggetValue.setText(self.__tr("0"))
         self.MargProbsLabel.setText(self.__tr("Marginal probability:"))
         
-    def VariogramCheck(self):
+    def isVariogramValid(self):
         self.Err = ''
         if self.EllipsoidRanges0.text() == "":
             self.Err +='"Ellipsoid ranges 0" is empty\n'

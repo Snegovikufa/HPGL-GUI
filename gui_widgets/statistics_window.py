@@ -207,13 +207,13 @@ class Statistics(QtGui.QDialog):
         self.Canvas.draw()
         
     def RetranslateUI(self, MainWindow):
-        self.ValuesGB.setTitle(self.__tr("Values:"))
+        self.ValuesGB.setTitle(self.__tr("Values"))
         self.ViewConfigGB.setTitle(self.__tr("Histogram config"))
         
-        self.RowCountLabel.setText(self.__tr('Row count:'))
+        self.RowCountLabel.setText(self.__tr('Row count'))
         self.ProbabilityChange.setText(self.__tr('Show as probability'))
-        self.XMaxLabel.setText(self.__tr("X max:"))
-        self.XMinLabel.setText(self.__tr("X min:"))
+        self.XMaxLabel.setText(self.__tr("X max"))
+        self.XMinLabel.setText(self.__tr("X min"))
     
     def __tr(self, string, dis=None):
         '''Small function to translate'''

@@ -21,7 +21,8 @@ class IndAlgWidget(QtGui.QDialog):
         
         self.resize(650, 450)
         
-        self.AlgorithmTypes = ['Indicator Kriging', 'Sequential Gaussian Simulation']
+        self.AlgorithmTypes = [self.__tr('Indicator Kriging'), 
+                               self.__tr('Sequential Indicator Simulation')]
         self.Log = ''
         
         self.CentralWidget = QtGui.QWidget()
@@ -96,17 +97,14 @@ class IndAlgWidget(QtGui.QDialog):
         self.RunLayout = QtGui.QGridLayout(self.RunGB)
         
         self.RunButton = QtGui.QPushButton(self.RunGB)
-        self.SaveButton = QtGui.QPushButton(self.RunGB)
-        self.SaveButton.setDisabled(1)
-        self.SaveButton.setToolTip(self.__tr("There is no algorithm result yet"))
         RunSpacerL = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, 
                                        QtGui.QSizePolicy.Minimum)
         RunSpacerR = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, 
                                        QtGui.QSizePolicy.Minimum)
         
-        self.RunWidgets = [self.RunButton, self.SaveButton,
+        self.RunWidgets = [self.RunButton,
                            RunSpacerL, RunSpacerR]
-        self.RunWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
+        self.RunWidgetsPlaces = [[0, 1, 1, 1],
                                  [0, 0, 1, 1], [0, 3, 1, 1]]
         self.PlaceWidgetsAtPlaces(self.RunLayout, 
                                   self.RunWidgets, 
@@ -131,8 +129,6 @@ class IndAlgWidget(QtGui.QDialog):
                      self.AlgorithmTypeChanged)
         self.connect(self.RunButton, QtCore.SIGNAL("clicked()"), 
                      self.AlgorithmRun)
-        self.connect(self.SaveButton, QtCore.SIGNAL("clicked()"), 
-                     self.ResultSave)
         
         
     def UpdateUI(self, string):
@@ -173,7 +169,7 @@ class IndAlgWidget(QtGui.QDialog):
         for i in xrange(self.IndCount):
             self.Tab4Tabs[i] = VW.varwidget()
             self.Tab4TabWidget.addTab(self.Tab4Tabs[i], self.Tab4TabsNames[i])
-            self.Tab4Tabs[i].MargProbs.setValue('%.2f' % self.MargProbs[i])
+            self.Tab4Tabs[i].MargProbs.setValue(float('%.2f' % self.MargProbs[i]))
             self.WasVariograms = i
         
         self.show()
@@ -186,67 +182,52 @@ class IndAlgWidget(QtGui.QDialog):
     
     def CatchResult(self, Result):
         '''Catchs result of algorithm'''
-        self.Result = Result
         self.RunButton.setEnabled(1)
         self.RunButton.setToolTip('')
-        if self.Result != None:
-            self.SaveButton.setEnabled(1)
-            self.SaveButton.setToolTip('')
-            self.ResultValues = [self.Cubes[self.CurrIndex][1], 
-                                  self.Cubes[self.CurrIndex][2]]
-            self.ResultCube = [self.Result, 
+        if Result != None:
+            self.ResultCube = [Result,
                                self.Cubes[self.CurrIndex][1],
                                self.Cubes[self.CurrIndex][2],
                                self.Cubes[self.CurrIndex][3],
-                               self.Cubes[self.CurrIndex][4]+'_'+str(self.Iterator)]
+                               self.Cubes[self.CurrIndex][4]+'_'+str(self.Iterator),
+                               self.Cubes[self.CurrIndex][5]]
             self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.ResultCube)
-            
-    def ResultSave(self):
-        '''Saves the result of algorithm'''
-        if self.Result != None:
-            self.fname = QtGui.QFileDialog.getSaveFileName(self,'Save as ... ')
-            if self.fname and self.ResultValues[1] != None:
-                write_property( self.Result, str(self.fname), 
-                                "SK_RESULT", self.ResultValues[0], 
-                                self.ResultValues[1] )
-            elif self.fname and self.ResultValues[1] == None:
-                write_property( self.Result, str(self.fname), 
-                                "SK_RESULT", self.ResultValues[0] )
+            self.close()
         
     def AlgorithmRun(self):
         if self.AlgorithmType.currentIndex() == 0:
             k = 0
-            self.MaxIndicators = len(self.Cubes[self.CurrIndex][2])
-            for i in xrange(self.MaxIndicators):
+            MaxIndicators = len(self.Cubes[self.CurrIndex][2])
+            for i in xrange(MaxIndicators):
                 j, errors = self.Tab4Tabs[i].isVariogramValid()
                 if j == 0:
                     self.Err += 'In tab #' + str(i) +':\n' + errors
                 k += j
-            if k != self.MaxIndicators:
+            if k != MaxIndicators:
                 self.ShowError(self.Err)
             else:
                 self.Log += "Starting Indicator Kriging Algorithm\n"
                 self.ProgressBar.show()
                     
-                self.Variograms = range(self.MaxIndicators)
-                self.MargProbs = range(self.MaxIndicators)
-                self.VarData = range(self.MaxIndicators)
+                Variograms = range(MaxIndicators)
+                MargProbs = range(MaxIndicators)
+                VarData = range(MaxIndicators)
                 
-                self.EllipsoidRanges = self.IKWidget.GetSearchRanges()
-                self.IntPoints = self.IKWidget.GetIntPoints()
+                EllipsoidRanges = self.IKWidget.GetSearchRanges()
+                IntPoints = self.IKWidget.GetIntPoints()
 
-                for i in xrange(self.MaxIndicators):
-                    self.Variograms[i] = self.Tab4Tabs[i].GetVariogram()
-                    self.MargProbs[i] = self.Tab4Tabs[i].GetMargProbs()
-                    self.VarData[i] = { "cov_model" : self.Variograms[i],
-                                        "max_neighbours" : self.IntPoints,
-                                        "radiuses" : self.EllipsoidRanges 
-                                      }
+                for i in xrange(MaxIndicators):
+                    Variograms[i] = self.Tab4Tabs[i].GetVariogram()
+                    MargProbs[i] = self.Tab4Tabs[i].GetMargProbs()
+                    VarData[i] = { "cov_model" : Variograms[i],
+                                    "max_neighbours" : IntPoints,
+                                    "radiuses" : EllipsoidRanges 
+                                 }
 
                 self.NewThread = IKT.IKThread(self.Cubes[self.CurrIndex][0], 
                                                 self.Cubes[self.CurrIndex][3], 
-                                                self.VarData,
-                                                self.MargProbs)
+                                                VarData,
+                                                MargProbs)
                 QtCore.QObject.connect(self.NewThread, 
                                         QtCore.SIGNAL("msg(QString)"), 
                                         self.UpdateUI)
@@ -263,44 +244,44 @@ class IndAlgWidget(QtGui.QDialog):
                 
         elif self.AlgorithmType.currentIndex() == 1:
             k = 0
-            self.MaxIndicators = len(self.Cubes[self.CurrIndex][2])
-            for i in xrange(self.MaxIndicators):
+            MaxIndicators = len(self.Cubes[self.CurrIndex][2])
+            for i in xrange(MaxIndicators):
                 j, errors = self.Tab4Tabs[i].isVariogramValid()
                 if j == 0:
                     self.Err += 'In variogram tab #' + str(i) +':\n' + errors
                 k += j
-            if k != self.MaxIndicators:
+            if k != MaxIndicators:
                 self.ShowError(self.Err)
             else:
                 self.Log += "Starting Sequantial Indicator Algorithm\n"
                 self.ProgressBar.show()
                     
-                self.Variograms = range(self.MaxIndicators)
-                self.MargProbs = range(self.MaxIndicators)
-                self.VarData = range(self.MaxIndicators)
+                Variograms = range(MaxIndicators)
+                MargProbs = range(MaxIndicators)
+                VarData = range(MaxIndicators)
                 
-                self.EllipsoidRanges = self.SISWidget.GetSearchRanges()
-                self.IntPoints = self.SISWidget.GetIntPoints()
-                self.Seed = self.SISWidget.GetSeed()
-                self.UseCorr = self.SISWidget.GetUseCorr()
-                self.Mask = self.SISWidget.GetMask(self.Cubes) # is right?
+                EllipsoidRanges = self.SISWidget.GetSearchRanges()
+                IntPoints = self.SISWidget.GetIntPoints()
+                Seed = self.SISWidget.GetSeed()
+                UseCorr = self.SISWidget.GetUseCorr()
+                Mask = self.SISWidget.GetMask(self.Cubes) # is right?
 
-                for i in xrange(self.MaxIndicators):
-                    self.Variograms[i] = self.Tab4Tabs[i].GetVariogram()
-                    self.MargProbs[i] = self.Tab4Tabs[i].GetMargProbs()
-                    self.VarData[i] = { "cov_model" : self.Variograms[i],
-                                        "max_neighbours" : self.IntPoints,
-                                        "radiuses" : self.EllipsoidRanges 
+                for i in xrange(MaxIndicators):
+                    Variograms[i] = self.Tab4Tabs[i].GetVariogram()
+                    MargProbs[i] = self.Tab4Tabs[i].GetMargProbs()
+                    VarData[i] = { "cov_model" : Variograms[i],
+                                        "max_neighbours" : IntPoints,
+                                        "radiuses" : EllipsoidRanges 
                                       }
 
                 self.NewThread = IKT.IKThread(self.Cubes[self.CurrIndex][0], 
                                               self.Cubes[self.CurrIndex][3], 
-                                              self.VarData,
-                                              self.MargProbs)
+                                              VarData,
+                                              MargProbs)
                 SIST.SISThread(self.Cubes[self.CurrIndex][0], 
                                    self.Cubes[self.CurrIndex][3], 
-                                   self.VarData, self.MargProbs, 
-                                   self.Seed, self.UseCorr, self.Mask)
+                                   VarData, MargProbs, 
+                                   Seed, UseCorr, Mask)
                 QtCore.QObject.connect(self.NewThread, 
                                         QtCore.SIGNAL("msg(QString)"), 
                                         self.UpdateUI)
@@ -316,11 +297,10 @@ class IndAlgWidget(QtGui.QDialog):
                 self.RunButton.setToolTip(self.__tr("Wait while algorithm is processing"))
         
     def RetranslateUI(self, MainWindow):
-        self.setWindowTitle(self.__tr("HPGL GUI: Indicator Algorithms"))
+        self.setWindowTitle(self.__tr("HPGL GUI ") + self.__tr("Indicator Algorithms"))
         # Tab 2
         self.RunGB.setTitle(self.__tr("Solve algorithm"))
         self.RunButton.setText(self.__tr("Run"))
-        self.SaveButton.setText(self.__tr("Save"))
         
         self.AlgorithmTypeGB.setTitle(self.__tr("Algorithm"))
         self.AlgorithmTypeLabel.setText(self.__tr("Algorithm type"))

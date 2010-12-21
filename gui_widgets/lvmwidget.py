@@ -65,7 +65,7 @@ class lvmwidget(skwidget):
             return 0, Err
     
     def RetranslateOwn(self):
-        self.MeanLabel.setText(self.__tr("Mean (cube):"))
+        self.MeanLabel.setText(self.__tr("Mean (cube)"))
         
     def __tr(self, string, dis=None):
         '''Small function to translate'''

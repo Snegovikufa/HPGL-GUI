@@ -1,7 +1,6 @@
 from PyQt4 import QtCore, QtGui
 from geo_bsd import CovarianceModel
 from geo_bsd.routines import CalcMean
-from geo_bsd import write_property
 import hpgl_run.ok_thread as OKT
 import hpgl_run.sk_thread as SKT
 import hpgl_run.lvm_thread as LVMT

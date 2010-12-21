@@ -200,7 +200,7 @@ class MainWindow(QtGui.QWidget):
         
 if __name__ == "__main__":
     import sys
-    app = QtGui.QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv).instance()
     gui = MainWindow()
     gui.show()
     sys.exit(app.exec_())

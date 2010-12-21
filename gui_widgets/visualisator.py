@@ -1,8 +1,8 @@
 from numpy import arange
 from enthought.tvtk.api import tvtk
-from enthought.mayavi.scripts import mayavi2
 from numpy.core.numeric import ravel
 from PyQt4 import QtCore
+from enthought.mayavi import mlab
 
 class Visualisator(QtCore.QThread):
     def __init__(self, ValuesArray, UndefValue, CubeName):
@@ -10,35 +10,32 @@ class Visualisator(QtCore.QThread):
         self.ValuesArray = ValuesArray
 
     def CreateGrid(self):
-        self.xRange = len(self.ValuesArray)
-        self.yRange = len(self.ValuesArray[0])
-        self.zRange = len(self.ValuesArray[0][0])
+        xRange = len(self.ValuesArray)
+        yRange = len(self.ValuesArray[0])
+        zRange = len(self.ValuesArray[0][0])
         
-        scalars = ravel(self.ValuesArray, order='F')
-        for i in xrange(len(scalars)):
-            if scalars[i] > 2:
-                scalars[i] = 2
+        self.scalars = ravel(self.ValuesArray, order='F')
+        for i in xrange(len(self.scalars)):
+            if self.scalars[i] > 2:
+                self.scalars[i] = 2
         
-        self.Grid = tvtk.RectilinearGrid()
-        self.Grid.point_data.scalars = scalars
-        self.Grid.point_data.scalars.name = 'scalars'
-        self.Grid.dimensions = self.ValuesArray.shape
-        self.Grid.x_coordinates = arange(self.xRange)
-        self.Grid.y_coordinates = arange(self.yRange)
-        self.Grid.z_coordinates = arange(self.zRange)
+        Grid = tvtk.RectilinearGrid()
+        Grid.point_data.scalars = self.scalars
+        Grid.point_data.scalars.name = 'scalars'
+        Grid.dimensions = self.ValuesArray.shape
+        Grid.x_coordinates = arange(xRange)
+        Grid.y_coordinates = arange(yRange)
+        Grid.z_coordinates = arange(zRange)
+        
+        return Grid
     
-    @mayavi2.standalone
+    @mlab.show
     def run(self):
-        from enthought.mayavi.sources.vtk_data_source import VTKDataSource
-        from enthought.mayavi.modules.outline import Outline
-        from enthought.mayavi.modules.surface import Surface
-
-        self.CreateGrid()
-
-        mayavi.new_scene()
-        # The single type one
-        src = VTKDataSource(data = self.Grid)
-        mayavi.add_source(src) 
-        mayavi.add_module(Outline())
-        mayavi.add_module(Surface())
-
+        Grid = self.CreateGrid()
+        fig = mlab.figure(bgcolor=(0, 0, 0), fgcolor=(0, 0, 0), 
+                          figure=Grid.class_name[3:])
+        surf = mlab.pipeline.surface(Grid, opacity=0.8)
+        edges = mlab.pipeline.extract_edges(surf)
+#        edges.point_data.scalars = self.scalars
+#        edges.point_data.scalars.name = 'scalars'
+        mlab.pipeline.surface(edges)

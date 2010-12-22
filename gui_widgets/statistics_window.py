@@ -88,7 +88,8 @@ class Statistics(QtGui.QDialog):
         self.GraphWidget = QtGui.QWidget()
         self.GraphLayout = QtGui.QVBoxLayout(self.GraphWidget)
         
-        self.CloseButtonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
+        self.CloseButtonBox = QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
+        self.CloseButton = self.CloseButtonBox.addButton(self.__tr("Close"), QtGui.QDialogButtonBox.RejectRole)
         
         # Translating UI
         self.RetranslateUI(self)
@@ -127,7 +128,7 @@ class Statistics(QtGui.QDialog):
                      self.UpdateCuts)
         self.connect(self.XMin, QtCore.SIGNAL('editingFinished()'),
                      self.UpdateCuts)
-        self.connect(self.CloseButtonBox, QtCore.SIGNAL('rejected()'),
+        self.connect(self.CloseButton, QtCore.SIGNAL('clicked()'),
                      self, QtCore.SLOT('close()'))
                 
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
@@ -135,8 +136,15 @@ class Statistics(QtGui.QDialog):
         for i in xrange(len(widgets)):
             layout.addWidget(widgets[i], places[i][0], places[i][1],
                                  places[i][2], places[i][3])
+    def keyPressEvent(self, event):
+        '''Reimplement of key press Enter'''
+        if (event.type() == QtCore.QEvent.KeyPress
+                and (event.key() == QtCore.Qt.Key_Enter
+                    or event.key() == QtCore.Qt.Key_Return)):
+            self.UpdateHistogram()
                 
     def CalculateValues(self):
+        '''Calculate statistic values and place them in table'''
         self.ClearValues = self.ValuesArray[numpy.nonzero(self.ValuesArray != self.UndefValue)]
         
         self.Max = '%.2f' % numpy.max(self.ClearValues)

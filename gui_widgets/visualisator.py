@@ -30,13 +30,13 @@ class Visualisator(QtCore.QThread):
         zRange = len(self.ValuesArray[0][0])
         
         Grid = tvtk.RectilinearGrid()
-        scalars = self.CutScalars(self.Min, self.Median*1.5)
+        scalars = numpy.float32(self.CutScalars(self.Min, self.Median*1.5))
         Grid.point_data.scalars = scalars
         Grid.point_data.scalars.name = 'scalars'
-        Grid.dimensions = self.ValuesArray.shape
-        Grid.x_coordinates = arange(xRange)
-        Grid.y_coordinates = arange(yRange)
-        Grid.z_coordinates = arange(zRange)
+        Grid.dimensions = numpy.float32(self.ValuesArray.shape)
+        Grid.x_coordinates = numpy.float32(arange(xRange))
+        Grid.y_coordinates = numpy.float32(arange(yRange))
+        Grid.z_coordinates = numpy.float32(arange(zRange))
         
         return Grid
     
@@ -47,10 +47,10 @@ class Visualisator(QtCore.QThread):
         Fig = mlab.figure(bgcolor=(0, 0, 0), fgcolor=(0, 0, 0), 
                           figure=self.Grid.class_name[3:])
         
-        Surf = mlab.pipeline.surface(self.Grid, opacity=0.8)
+        Surf = mlab.pipeline.surface(self.Grid, opacity=1)
         Surf.actor.property.interpolation = 'flat'
         
-        edges = mlab.pipeline.extract_edges(Surf)
-        edgesSurf = mlab.pipeline.surface(edges)
-        edgesSurf.actor.property.interpolation = 'flat'
+#        edges = mlab.pipeline.extract_edges(Surf)
+#        edgesSurf = mlab.pipeline.surface(edges)
+#        edgesSurf.actor.property.interpolation = 'flat'
         

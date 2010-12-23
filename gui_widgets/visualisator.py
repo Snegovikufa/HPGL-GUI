@@ -53,4 +53,3 @@ class Visualisator(QtCore.QThread):
 #        edges = mlab.pipeline.extract_edges(Surf)
 #        edgesSurf = mlab.pipeline.surface(edges)
 #        edgesSurf.actor.property.interpolation = 'flat'
-        

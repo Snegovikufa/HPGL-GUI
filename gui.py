@@ -78,14 +78,14 @@ class MainWindow(QtGui.QWidget):
         self.LoadCubesWidget = LCW.LoadCube(self)
 
     def RenderCube(self):
-        from gui_widgets.visualisator import Visualisator
+        from gui_widgets.visualisator import MayaviQWidget
         Index = self.Tree.currentIndex()
         if Index.parent().row() == 0:
-            self.v = Visualisator(self.CubesCont[Index.row()][0][0],
+            self.v = MayaviQWidget(self.CubesCont[Index.row()][0][0],
                                             self.CubesCont[Index.row()][1],
                                             self.CubesCont[Index.row()][4])
         else:
-            self.v = Visualisator(self.CubesInd[Index.row()][0][0],
+            self.v = MayaviQWidget(self.CubesInd[Index.row()][0][0],
                                             self.CubesInd[Index.row()][1],
                                             self.CubesInd[Index.row()][4])
         self.v.run()
@@ -123,6 +123,7 @@ class MainWindow(QtGui.QWidget):
             # This is Indicator cube
             self.Model.item(1, 0).appendRow(list)
             self.CubesInd.append(Cube)
+        self.ResizeColumn()
     
     def ContextMenu(self, point):
         Index = self.Tree.indexAt(point)

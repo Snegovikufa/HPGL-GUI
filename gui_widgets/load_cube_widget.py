@@ -2,7 +2,7 @@ from PyQt4 import QtCore, QtGui
 from geo_bsd import load_cont_property
 from geo_bsd import load_ind_property
 from geo_bsd import SugarboxGrid
-import re
+import os
 
 class LoadCube(QtGui.QDialog):
     def __init__(self, parent=None):
@@ -138,8 +138,7 @@ class LoadCube(QtGui.QDialog):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Select file')
         if filename:
             # First, we must get cube's filename
-            CubeName = re.search('(.*\/)([\w.]*)', filename) 
-            CubeName = CubeName.group(CubeName.lastindex)
+            CubeName = os.path.basename(str(filename))
             self.Log += "Selected cube: " + CubeName +'\n'
                 
             GridObject = SugarboxGrid( int(self.GridSizeX.text()), 

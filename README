@@ -1,12 +1,5 @@
-This is GUI for High Perfomance Geostatic Library
+This is GUI for HPGL(High Performance Geostatistics Library ).
 
-Now program operate only Simple Kriging algorithm, but soon it will be able to 
-use all of HPGL's algorithms.
-
-HPGL stands for High Performance Geostatistics Library.
-
-HPGL was written in C++ / Python to realize some geostatistical algorithms 
-(see full list below). The algorithms are called in Python, by executing the 
-corresponding commands.
+HPGL was written in C++ / Python to realize some geostatistical algorithms. The algorithms are called in Python, by executing the corresponding commands.
 Project site: http://hpgl.sourceforge.net/
 

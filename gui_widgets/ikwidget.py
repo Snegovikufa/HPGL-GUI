@@ -5,16 +5,16 @@ class ikwidget(skwidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         
-        self.Layout = QtGui.QGridLayout()
-        self.setLayout(self.Layout)
+        self.mainLayout = QtGui.QGridLayout()
+        self.setLayout(self.mainLayout)
         
-        self.InitBaseWidgets()
-        self.OwnWidgetsInit()
-        self.AddSpacer()
+        self.initBaseWidgets()
+        self.ownWidgetsInit()
+        self.addSpacer()
         
-        self.Retranslate()
+        self.retranslate()
         
-    def OwnWidgetsInit(self):
-        self.MeanValueLabel.hide()
-        self.MeanValue.hide()
+    def ownWidgetsInit(self):
+        self.meanValueLabel.hide()
+        self.meanValue.hide()
         

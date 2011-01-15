@@ -12,7 +12,7 @@ class SKThread(QtCore.QThread):
         self.EllipsoidRanges = EllipsoidRanges
         self.IntPoints = IntPoints
         self.Variogram = Variogram
-        self.MeanValue = MeanValue
+        self.meanValue = MeanValue
         
     def run(self):
         '''Runs thread'''
@@ -22,7 +22,7 @@ class SKThread(QtCore.QThread):
         self.Result = simple_kriging( self.Prop, self.GridObject, 
                                       self.EllipsoidRanges, 
                                       self.IntPoints, self.Variogram, 
-                                      self.MeanValue )
+                                      self.meanValue )
         self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
         
     def OutputLog(self, string, _):

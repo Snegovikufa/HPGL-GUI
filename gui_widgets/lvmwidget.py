@@ -1,73 +1,71 @@
-from PyQt4 import QtGui, QtCore
 from skwidget import *
 
 class lvmwidget(skwidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         
-        self.Layout = QtGui.QGridLayout()
-        self.setLayout(self.Layout)
+        self.mainLayout = QtGui.QGridLayout()
+        self.setLayout(self.mainLayout)
         
-        self.InitBaseWidgets()
-        self.InitOwnWidgets()
-        self.AddSpacer()
+        self.initBaseWidgets()
+        self.initOwnWidgets()
+        self.addSpacer()
         
-        self.Retranslate()
-        self.RetranslateOwn()
+        self.retranslate()
+        self.retranslateOwn()
         
-    def InitOwnWidgets(self):
-        self.MeanValueLabel.hide()
-        self.MeanValue.hide()
+    def initOwnWidgets(self):
+        self.meanValueLabel.hide()
+        self.meanValue.hide()
               
-        self.MeanLabel = QtGui.QLabel(self.InterpolationGB)
-        self.MeanCombobox = QtGui.QComboBox(self.InterpolationGB)
-        self.MeanCombobox.setDisabled(1)
+        self.meanLabel = QtGui.QLabel(self.interpolationGB)
+        self.meanCombobox = QtGui.QComboBox(self.interpolationGB)
+        self.meanCombobox.setDisabled(1)
         #
-        self.MeanCombobox.setSizePolicy(QtGui.QSizePolicy.Expanding, 
+        self.meanCombobox.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                         QtGui.QSizePolicy.Fixed)
-        self.InterpolationPoints.setSizePolicy(QtGui.QSizePolicy.Expanding, 
+        self.interpolationPoints.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                                QtGui.QSizePolicy.Fixed)
-        self.InterpolationSpacerL.changeSize(40, 20, 
-                                             QtGui.QSizePolicy.Maximum, 
+        self.interpolationSpacerL.changeSize(40, 20,
+                                             QtGui.QSizePolicy.Maximum,
                                              QtGui.QSizePolicy.Maximum)
-        self.InterpolationSpacerR.changeSize(40, 20, 
-                                             QtGui.QSizePolicy.Maximum, 
+        self.interpolationSpacerR.changeSize(40, 20,
+                                             QtGui.QSizePolicy.Maximum,
                                              QtGui.QSizePolicy.Minimum)
         #
-        self.MeanWidgets = [self.MeanLabel, self.MeanCombobox]
-        self.MeanWidgetsPlaces = [[1, 1, 1, 1], [1, 2, 1, 1]]
-        self.PlaceWidgetsAtPlaces(self.InterpolationLayout, 
-                                  self.MeanWidgets, 
-                                  self.MeanWidgetsPlaces)
+        self.meanWidgets = [self.meanLabel, self.meanCombobox]
+        self.meanWidgetsPlaces = [[1, 1, 1, 1], [1, 2, 1, 1]]
+        self.placeWidgetsAtPlaces(self.interpolationLayout,
+                                  self.meanWidgets,
+                                  self.meanWidgetsPlaces)
 
-    def GetMean(self, Cubes):
-        if self.MeanCombobox.count() != 0:
-            CurrIndex = self.MeanCombobox.currentIndex()
-            Mean = Cubes[CurrIndex][0][0]
-            return Mean
+    def getMean(self, cubes):
+        if self.meanCombobox.count() != 0:
+            currIndex = self.meanCombobox.currentIndex()
+            return cubes[currIndex][0][0]
 
     def isValuesValid(self):
         Err = ''
-        if self.SearchRanges0.text() == "":
+        if self.searchRanges0.text() == "":
             Err += '"Search ranges 0" is empty\n'
-        if self.SearchRanges90.text() == "":
+        if self.searchRanges90.text() == "":
             Err += '"Search ranges 90" is empty\n'
-        if self.SearchRangesV.text() == "":
+        if self.searchRangesV.text() == "":
             Err += '"Search ranges vertical" is empty\n'
-        if self.InterpolationPoints.text() == "":
+        if self.interpolationPoints.text() == "":
             Err += '"Interpolation points" is empty\n'
-        # Also check for cont properties in MeanCombobox
-        if self.MeanCombobox.count() == 0:
+        # Also check for cont properties in meanCombobox
+        if self.meanCombobox.count() == 0:
             Err += 'No cont property loaded yet'
         if Err == '':
             return 1, None
         else:
             return 0, Err
     
-    def RetranslateOwn(self):
-        self.MeanLabel.setText(self.__tr("Mean (cube)"))
+    def retranslateOwn(self):
+        self.meanLabel.setText(self.__tr("Mean (cube)"))
         
     def __tr(self, string, dis=None):
         '''Small function to translate'''
-        return QtGui.qApp.translate("MainWindow", string, dis, 
+        return QtGui.qApp.translate("MainWindow", string, dis,
                                      QtGui.QApplication.UnicodeUTF8)

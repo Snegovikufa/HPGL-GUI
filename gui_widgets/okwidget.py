@@ -1,19 +1,18 @@
-from PyQt4 import QtGui, QtCore
 from skwidget import *
 
 class okwidget(skwidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         
-        self.Layout = QtGui.QGridLayout()
-        self.setLayout(self.Layout)
+        self.mainLayout = QtGui.QGridLayout()
+        self.setLayout(self.mainLayout)
         
-        self.InitBaseWidgets()
-        self.InitOwnWidgets()
-        self.AddSpacer()
+        self.initBaseWidgets()
+        self.initOwnWidgets()
+        self.addSpacer()
         
-        self.Retranslate()
+        self.retranslate()
         
-    def InitOwnWidgets(self):
-        self.MeanValueLabel.hide()
-        self.MeanValue.hide()
+    def initOwnWidgets(self):
+        self.meanValueLabel.hide()
+        self.meanValue.hide()

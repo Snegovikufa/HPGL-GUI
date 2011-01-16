@@ -60,7 +60,7 @@ class ContAlgWidget(QtGui.QDialog):
         self.threadsNumLabel = QtGui.QLabel(self.AlgorithmTypeGB)
         self.threadsNum = QtGui.QSpinBox(self.AlgorithmTypeGB)
         self.threadsNum.setRange(1, 4)
-        spacer = QtGui.QSpacerItem(20, 40, 
+        spacer = QtGui.QSpacerItem(20, 40,
                                    QtGui.QSizePolicy.Expanding,
                                    QtGui.QSizePolicy.Minimum)
         
@@ -381,7 +381,7 @@ class ContAlgWidget(QtGui.QDialog):
                                self.Cubes[self.CurrIndex][1],
                                self.Cubes[self.CurrIndex][2],
                                self.Cubes[self.CurrIndex][3],
-                               self.Cubes[self.CurrIndex][4] + '_' + str(self.iterator),
+                               self.Cubes[self.CurrIndex][4]+self.algName+'_'+str(self.iterator),
                                self.Cubes[self.CurrIndex][5]]
             self.emit(QtCore.SIGNAL("finished(PyQt_PyObject)"), True)
             self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.ResultCube)
@@ -400,6 +400,7 @@ class ContAlgWidget(QtGui.QDialog):
                     self.hide()
                     
                     self.Log += "Starting Simple Kriging Algorithm\n"
+                    self.algName = '_SK'
                                         
                     Variogram = self.GetVariogram()
                     EllipsoidRanges = self.SKWidget.getSearchRanges()
@@ -435,6 +436,7 @@ class ContAlgWidget(QtGui.QDialog):
                     self.hide()
                     
                     self.Log += "Starting Ordinary Kriging Algorithm\n"
+                    self.algName = '_OK'
                     
                     Variogram = self.GetVariogram()                        
                     EllipsoidRanges = self.OKWidget.getSearchRanges()
@@ -469,6 +471,7 @@ class ContAlgWidget(QtGui.QDialog):
                     self.hide()
                     
                     self.Log += "Starting Local Varying Mean Algorithm\n"
+                    self.algName = '_LVM'
                     
                     Variogram = self.GetVariogram()
                     EllipsoidRanges = self.LVMWidget.getSearchRanges()
@@ -505,6 +508,7 @@ class ContAlgWidget(QtGui.QDialog):
                     self.hide()
                     
                     self.Log += "Starting Sequantial Gaussian Algorithm\n"
+                    self.algName = '_SGS'
                                         
                     Variogram = self.GetVariogram()
                     EllipsoidRanges = self.SGSWidget.getSearchRanges()

@@ -16,7 +16,7 @@ class Visualisator(QtCore.QThread):
         self.min = min(self.clearValues)
 
     def cutScalars(self, min, max):
-        for i in self.Grid.point_data.scalars:
+        for i in self.grid.point_data.scalars:
             if i > max:
                 i = max
             if i < min:
@@ -43,7 +43,7 @@ class Visualisator(QtCore.QThread):
         self.grid = self.createGrid()
         self.cutScalars(self.min, 1.5*self.median)
 
-        Fig = mlab.figure(bgcolor=(0, 0, 0), fgcolor=(0, 0, 0),
+        fig = mlab.figure(bgcolor=(0, 0, 0), fgcolor=(0, 0, 0),
                           figure=self.grid.class_name[3:])
         
         surf = mlab.pipeline.surface(self.grid, opacity=1)

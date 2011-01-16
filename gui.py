@@ -28,10 +28,10 @@ class MainWindow(QtGui.QWidget):
 
     def initSignals(self):
         # Signals and slots
-        self.connect(self.loadCubeButton, QtCore.SIGNAL("clicked()"), self.loadCube)
         self.connect(self.tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint&)'), self.contextMenu)
         self.connect(self.tree, QtCore.SIGNAL('collapsed(const QModelIndex &)'), self.resizeColumn)
         self.connect(self.tree, QtCore.SIGNAL('expanded(const QModelIndex &)'), self.resizeColumn)
+        self.connect(self.loadAction, QtCore.SIGNAL("triggered()"), self.loadCube)
         self.connect(self.deleteAction, QtCore.SIGNAL("triggered()"), self.deleteCube)
         self.connect(self.algorithmAction, QtCore.SIGNAL("triggered()"), self.applyAlgorithm)
         self.connect(self.statisticsAction, QtCore.SIGNAL("triggered()"), self.showStatistics)
@@ -50,7 +50,6 @@ class MainWindow(QtGui.QWidget):
 
     def initWidgets(self):
         # Buttons
-        self.loadCubeButton = QtGui.QToolButton()
         self.logButton = QtGui.QToolButton()
         self.stopAlgoButton = QtGui.QToolButton()
         self.stopAlgoButton.setDisabled(1)
@@ -82,6 +81,7 @@ class MainWindow(QtGui.QWidget):
         
         #     Tree branch actions
         self.newCubeAction = QtGui.QAction(self.__tr("New cube"), self)
+        self.loadAction = QtGui.QAction(self.__tr("Load cube"), self)
         
         # Menu
         self.itemMenu = QtGui.QMenu(self)
@@ -92,17 +92,14 @@ class MainWindow(QtGui.QWidget):
         self.itemMenu.addAction(self.deleteAction)
         
         self.branchMenu = QtGui.QMenu(self)
+        self.branchMenu.addAction(self.loadAction)
         self.branchMenu.addAction(self.newCubeAction)
         
         # Placing on form
         splitter = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
         
         leftWidget = QtGui.QWidget()
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(self.loadCubeButton)
-        hbox.addWidget(QtGui.QWidget())
         vbox = QtGui.QVBoxLayout(leftWidget)
-        vbox.addLayout(hbox)
         vbox.addWidget(self.tree)
         
         rightWidget = QtGui.QWidget()
@@ -163,11 +160,11 @@ class MainWindow(QtGui.QWidget):
         index = self.tree.currentIndex()
         row = index.row()
         if index.parent().row() == 0:
-            self.v = Visualisator(self.contCubes.definedValues(row),
+            self.v = Visualisator(self.contCubes.allValues(row),
                                   self.contCubes.undefValue(row),
                                   self.contCubes.name(row))
         else:
-            self.v = Visualisator(self.indCubes.definedValues(row),
+            self.v = Visualisator(self.indCubes.allValues(row),
                                   self.indCubes.undefValue(row),
                                   self.indCubes.name(row))
         self.v.run()
@@ -179,7 +176,13 @@ class MainWindow(QtGui.QWidget):
                                  places[i][2], places[i][3])
             
     def loadCube(self):
+        index = self.getIndex()
         self.loadCubesWidget.show()
+        
+        if index.row() == 0:
+            self.loadCubesWidget.IndValuesCheckbox.setChecked(False)
+        else:
+            self.loadCubesWidget.IndValuesCheckbox.setChecked(True)
         
     def resizeColumn(self):
         self.tree.resizeColumnToContents(0)
@@ -318,7 +321,6 @@ class MainWindow(QtGui.QWidget):
                                      QtGui.QApplication.UnicodeUTF8)
     
     def retranslateUI(self, MainWindow):
-        self.loadCubeButton.setText(self.__tr("Load cube"))
         self.setWindowTitle(self.__tr('HPGL GUI'))
         self.logButton.setText(self.__tr("Log"))
         self.stopAlgoButton.setText(self.__tr('X'))

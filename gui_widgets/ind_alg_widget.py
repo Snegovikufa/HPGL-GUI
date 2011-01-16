@@ -190,7 +190,7 @@ class IndAlgWidget(QtGui.QDialog):
                                self.Cubes[self.CurrIndex][1],
                                self.Cubes[self.CurrIndex][2],
                                self.Cubes[self.CurrIndex][3],
-                               self.Cubes[self.CurrIndex][4] + '_' + str(self.iterator),
+                               self.Cubes[self.CurrIndex][4]+self.algName+'_'+str(self.iterator),
                                self.Cubes[self.CurrIndex][5]]
             self.emit(QtCore.SIGNAL("finished(PyQt_PyObject)"), True)
             self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.ResultCube)
@@ -214,6 +214,7 @@ class IndAlgWidget(QtGui.QDialog):
                 self.hide()
                 
                 self.Log += "Starting Indicator Kriging Algorithm\n"
+                self.algName = '_IK'
                     
                 Variograms = range(MaxIndicators)
                 MargProbs = range(MaxIndicators)
@@ -265,6 +266,7 @@ class IndAlgWidget(QtGui.QDialog):
                 self.hide()
                 
                 self.Log += "Starting Sequantial Indicator Algorithm\n"
+                self.algName = '_SIS'
                     
                 Variograms = range(MaxIndicators)
                 MargProbs = range(MaxIndicators)

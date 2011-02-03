@@ -3,10 +3,10 @@ from PyQt4 import QtGui
 class skwidget(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        
+
         self.mainLayout = QtGui.QGridLayout()
         self.setLayout(self.mainLayout)
-        
+
         self.initBaseWidgets()
         self.retranslate()
         self.addSpacer()
@@ -17,10 +17,10 @@ class skwidget(QtGui.QWidget):
         self.intValidator.setBottom(0)
         doubleValidator = QtGui.QDoubleValidator(self)
         doubleValidator.setBottom(0)
-        
+
         self.searchRangesGB = QtGui.QGroupBox(self)
         self.searchRangesLayout = QtGui.QGridLayout(self.searchRangesGB)
-        
+
         self.searchRanges0Label = QtGui.QLabel(self.searchRangesGB)
         self.searchRanges0 = QtGui.QLineEdit(self.searchRangesGB)
         self.searchRanges0.setValidator(self.intValidator)
@@ -36,7 +36,7 @@ class skwidget(QtGui.QWidget):
         self.searchRangesSpacerR = QtGui.QSpacerItem(40, 20,
                                                      QtGui.QSizePolicy.Expanding,
                                                      QtGui.QSizePolicy.Minimum)
-        
+
         self.searchRangesWidgets = [self.searchRanges0Label, self.searchRanges0,
                                     self.searchRanges90Label, self.searchRanges90,
                                     self.searchRangesVLabel, self.searchRangesV,
@@ -45,10 +45,10 @@ class skwidget(QtGui.QWidget):
                                             [1, 1, 1, 1], [1, 2, 1, 1],
                                             [2, 1, 1, 1], [2, 2, 1, 1],
                                             [1, 0, 1, 1], [1, 3, 1, 1]]
-        
+
         self.interpolationGB = QtGui.QGroupBox(self)
         self.interpolationLayout = QtGui.QGridLayout(self.interpolationGB)
-        
+
         self.interpolationPointsLabel = QtGui.QLabel(self.interpolationGB)
         self.interpolationPoints = QtGui.QLineEdit(self.interpolationGB)
         self.interpolationPoints.setValidator(self.intValidator)
@@ -61,7 +61,7 @@ class skwidget(QtGui.QWidget):
         self.interpolationSpacerR = QtGui.QSpacerItem(40, 20,
                                                  QtGui.QSizePolicy.Expanding,
                                                  QtGui.QSizePolicy.Minimum)
-        
+
         self.interpolationWidgets = [self.interpolationPointsLabel,
                                      self.interpolationPoints,
                                      self.meanValueLabel,
@@ -71,11 +71,11 @@ class skwidget(QtGui.QWidget):
         self.interpolationWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
                                            [1, 1, 1, 1], [1, 2, 1, 1],
                                            [0, 0, 1, 1], [0, 3, 1, 1]]
-        
-                                       
+
+
         self.widgetItems = [self.searchRangesGB, self.interpolationGB]
         self.widgetItemsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1]]
-        
+
         self.placeWidgetsAtPlaces(self.interpolationLayout,
                                   self.interpolationWidgets,
                                   self.interpolationWidgetsPlaces)
@@ -85,13 +85,13 @@ class skwidget(QtGui.QWidget):
         self.placeWidgetsAtPlaces(self.mainLayout,
                                   self.widgetItems,
                                   self.widgetItemsPlaces)
-        
+
     def addSpacer(self):
         self.Spacer = QtGui.QSpacerItem(20, 40,
                                         QtGui.QSizePolicy.Minimum,
                                         QtGui.QSizePolicy.Expanding)
         self.mainLayout.addItem(self.Spacer, 2, 0, 1, 1)
-        
+
     def placeWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
         for i in xrange(len(widgets)):
@@ -101,7 +101,7 @@ class skwidget(QtGui.QWidget):
             else:
                 layout.addWidget(widgets[i], places[i][0], places[i][1],
                                  places[i][2], places[i][3])
-                
+
     def isValuesValid(self):
         self.Err = ''
         if self.searchRanges0.text() == "":
@@ -118,7 +118,7 @@ class skwidget(QtGui.QWidget):
             return 1, None
         else:
             return 0, self.Err
-    
+
     def retranslate(self):
         self.searchRangesGB.setTitle(self.__tr("Search ellipsoid ranges"))
         self.searchRanges0Label.setText(self.__tr("0"))
@@ -132,7 +132,7 @@ class skwidget(QtGui.QWidget):
         self.interpolationPoints.setText(self.__tr("20"))
         self.meanValueLabel.setText(self.__tr("Mean value"))
         self.meanValue.setText(self.__tr("0"))
-        
+
         self.searchRangesGB.setTitle(self.__tr("Search ellipsoid ranges"))
         self.searchRanges0Label.setText(self.__tr("0"))
         self.searchRanges0.setText(self.__tr("20"))
@@ -143,23 +143,23 @@ class skwidget(QtGui.QWidget):
         self.interpolationGB.setTitle(self.__tr("Interpolation"))
         self.interpolationPointsLabel.setText(self.__tr("Maximum interpolation points"))
         self.interpolationPoints.setText(self.__tr("20"))
-        
+
     def addTooltips(self):
         self.searchRanges0.setToolTip(self.__tr("Must be >= Vario ranges"))
         self.searchRanges90.setToolTip(self.__tr("Must be >= Vario ranges"))
         self.searchRangesV.setToolTip(self.__tr("Must be >= Vario ranges"))
-                  
+
     def getIntPoints(self):
         return int(self.interpolationPoints.text())
-        
+
     def getSearchRanges(self):
         return (int(self.searchRanges0.text()),
                  int(self.searchRanges90.text()),
                  int(self.searchRangesV.text()))
-        
+
     def getMean(self):
         return float(self.meanValue.text())
-        
+
     def __tr(self, string, dis=None):
         '''Small function to translate'''
         return QtGui.qApp.translate("MainWindow", string, dis,

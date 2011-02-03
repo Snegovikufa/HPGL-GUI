@@ -4,7 +4,7 @@ from geo_bsd import simple_kriging
 from PyQt4 import QtCore
 
 class SKThread(QtCore.QThread):
-    def __init__(self, Prop, GridObject, EllipsoidRanges, IntPoints, 
+    def __init__(self, Prop, GridObject, EllipsoidRanges, IntPoints,
                   Variogram, MeanValue):
         QtCore.QThread.__init__(self)
         self.Prop = Prop
@@ -13,24 +13,24 @@ class SKThread(QtCore.QThread):
         self.IntPoints = IntPoints
         self.Variogram = Variogram
         self.meanValue = MeanValue
-        
+
     def run(self):
         '''Runs thread'''
         set_output_handler(self.OutputLog, None)
         set_progress_handler(self.ProgressShow, None)
 
-        self.Result = simple_kriging( self.Prop, self.GridObject, 
-                                      self.EllipsoidRanges, 
-                                      self.IntPoints, self.Variogram, 
+        self.Result = simple_kriging( self.Prop, self.GridObject,
+                                      self.EllipsoidRanges,
+                                      self.IntPoints, self.Variogram,
                                       self.meanValue )
         self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
-        
+
     def OutputLog(self, string, _):
         '''Emits HPGL logs to main thread'''
         self.StrForLog = string
         self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(self.StrForLog))
         return 0
-        
+
     def ProgressShow(self, stage, Percent, _):
         '''Emits HPGL progress to main thread'''
         self.Percent = Percent
@@ -44,4 +44,4 @@ class SKThread(QtCore.QThread):
             self.OutStr = str(self.OutStr)
             self.emit(QtCore.SIGNAL("progress(QString)"), QtCore.QString(self.OutStr))
         return 0
-    
+

@@ -3,24 +3,23 @@ from skwidget import *
 class lvmwidget(skwidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        
+
         self.mainLayout = QtGui.QGridLayout()
         self.setLayout(self.mainLayout)
-        
+
         self.initBaseWidgets()
         self.initOwnWidgets()
         self.addSpacer()
-        
+
         self.retranslate()
         self.retranslateOwn()
-        
+
     def initOwnWidgets(self):
         self.meanValueLabel.hide()
         self.meanValue.hide()
-              
+
         self.meanLabel = QtGui.QLabel(self.interpolationGB)
         self.meanCombobox = QtGui.QComboBox(self.interpolationGB)
-        self.meanCombobox.setDisabled(1)
         #
         self.meanCombobox.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                         QtGui.QSizePolicy.Fixed)
@@ -40,9 +39,8 @@ class lvmwidget(skwidget):
                                   self.meanWidgetsPlaces)
 
     def getMean(self, cubes):
-        if self.meanCombobox.count() != 0:
-            currIndex = self.meanCombobox.currentIndex()
-            return cubes[currIndex][0][0]
+        currIndex = self.meanCombobox.currentIndex()
+        return cubes.allValues(currIndex)
 
     def isValuesValid(self):
         Err = ''
@@ -55,17 +53,19 @@ class lvmwidget(skwidget):
         if self.interpolationPoints.text() == "":
             Err += '"Interpolation points" is empty\n'
         # Also check for cont properties in meanCombobox
-        if self.meanCombobox.count() == 0:
-            Err += 'No cont property loaded yet'
+        if self.meanCombobox.count() < 2:
+            Err += 'Not enough properties loaded'
         if Err == '':
             return 1, None
         else:
             return 0, Err
-    
+
     def retranslateOwn(self):
         self.meanLabel.setText(self.__tr("Mean (cube)"))
-        
+
     def __tr(self, string, dis=None):
         '''Small function to translate'''
         return QtGui.qApp.translate("MainWindow", string, dis,
                                      QtGui.QApplication.UnicodeUTF8)
+
+class LVMError(Exception): pass

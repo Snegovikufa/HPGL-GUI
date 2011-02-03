@@ -93,19 +93,17 @@ class sgswidget(skwidget):
         else:
             return "ok"
     
-    def GetMean(self, Cubes):
-        if self.meanCheckbox.isChecked() == 1:
-            CurrIndex = self.meanCombobox.currentIndex()
-            Mean = Cubes[CurrIndex][0][0]
+    def getMean(self, cubes):
+        if self.meanCheckbox.isChecked() and self.meanCombobox.count() > 1:
+            currIndex = self.meanCombobox.currentIndex()
+            return cubes.allValues(currIndex)
         else:
-            Mean = float(self.meanValue.text())
-        return Mean
+            return float(self.meanValue.text())
     
-    def GetMask(self, Cubes):
+    def GetMask(self, cubes):
         if self.maskCheckbox.isChecked() == 1:
-            CurrIndex = self.MaskCombobox.currentIndex()
-            Mask = Cubes[CurrIndex][0]
-            return Mask
+            currIndex = self.MaskCombobox.currentIndex()
+            return cubes.property(currIndex)
         else:
             return None
     

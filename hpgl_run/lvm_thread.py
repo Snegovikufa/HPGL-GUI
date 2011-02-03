@@ -4,7 +4,7 @@ from geo_bsd.geo import lvm_kriging
 from PyQt4 import QtCore, QtGui
 
 class LVMThread(QtCore.QThread):
-    def __init__(self, Prop, GridObject, Mean, EllipsoidRanges, 
+    def __init__(self, Prop, GridObject, Mean, EllipsoidRanges,
                   IntPoints, Variogram):
         QtCore.QThread.__init__(self)
         self.Prop = Prop
@@ -13,7 +13,7 @@ class LVMThread(QtCore.QThread):
         self.EllipsoidRanges = EllipsoidRanges
         self.IntPoints = IntPoints
         self.Variogram = Variogram
-        
+
     def run(self):
         '''Runs thread'''
         set_output_handler(self.OutputLog, None)
@@ -21,17 +21,17 @@ class LVMThread(QtCore.QThread):
 
         self.Result = lvm_kriging( self.Prop, self.GridObject,
                                       self.Mean,
-                                      self.EllipsoidRanges, 
-                                      self.IntPoints, 
+                                      self.EllipsoidRanges,
+                                      self.IntPoints,
                                       self.Variogram )
         self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
-        
+
     def OutputLog(self, string, _):
         '''Emits HPGL logs to main thread'''
         self.StrForLog = string
         self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(self.StrForLog))
         return 0
-        
+
     def ProgressShow(self, stage, Percent, _):
         '''Emits HPGL progress to main thread'''
         self.Percent = Percent
@@ -43,7 +43,7 @@ class LVMThread(QtCore.QThread):
         else:
             self.OutStr = int(self.Percent)
             self.OutStr = str(self.OutStr)
-            self.emit(QtCore.SIGNAL("progress(QString)"), 
+            self.emit(QtCore.SIGNAL("progress(QString)"),
                       QtCore.QString(self.OutStr))
         return 0
-    
+

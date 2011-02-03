@@ -4,21 +4,21 @@ from geo_bsd import CovarianceModel
 class varwidget(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        
+
         self.mainLayout = QtGui.QGridLayout(self)
         self.setLayout(self.mainLayout)
-        
+
         self.intValidator = QtGui.QIntValidator(self)
         self.intValidator.setBottom(0)
         self.DoubleValidator = QtGui.QDoubleValidator(self)
-        
+
         self.InitOwnWidgets()
         self.Retranslate()
-        
+
     def InitOwnWidgets(self):
         self.VariogramTypeGB = QtGui.QGroupBox(self)
         self.VariogramTypeLayout = QtGui.QGridLayout(self.VariogramTypeGB)
-               
+
         self.VariogramType_label = QtGui.QLabel(self.VariogramTypeGB)
         self.VariogramType = QtGui.QComboBox(self.VariogramTypeGB)
         self.VariogramType.addItem("")
@@ -27,21 +27,21 @@ class varwidget(QtGui.QWidget):
         self.VariogramType.setValidator(self.intValidator)
         VariogramTypeSpacerL = QtGui.QSpacerItem(40, 20,
                                                  QtGui.QSizePolicy.Expanding,
-                                                 QtGui.QSizePolicy.Minimum) 
+                                                 QtGui.QSizePolicy.Minimum)
         VariogramTypeSpacerR = QtGui.QSpacerItem(40, 20,
                                                  QtGui.QSizePolicy.Expanding,
                                                  QtGui.QSizePolicy.Minimum)
-              
+
         self.VariogramTypeWidgets = [self.VariogramType_label,
                                      self.VariogramType,
                                      VariogramTypeSpacerL,
                                      VariogramTypeSpacerR]
         self.VariogramTypeWidgetsPlaces = [[0, 1, 1, 1], [0, 2, 1, 1],
                                            [0, 0, 1, 1], [0, 3, 1, 1]]
-        
+
         self.EllipsoidRangesGB = QtGui.QGroupBox(self)
         self.EllipsoidRangesLayout = QtGui.QGridLayout(self.EllipsoidRangesGB)
-        
+
         self.EllipsoidRanges0Label = QtGui.QLabel(self.EllipsoidRangesGB)
         self.EllipsoidRanges0 = QtGui.QLineEdit(self.EllipsoidRangesGB)
         self.EllipsoidRanges0.setValidator(self.intValidator)
@@ -57,7 +57,7 @@ class varwidget(QtGui.QWidget):
         EllipsoidRangesSpacerR = QtGui.QSpacerItem(40, 20,
                                                    QtGui.QSizePolicy.Expanding,
                                                    QtGui.QSizePolicy.Minimum)
-        
+
         self.EllipsoidRangesWidgets = [self.EllipsoidRanges0Label,
                                        self.EllipsoidRanges0,
                                        self.EllipsoidRanges90Label,
@@ -74,10 +74,10 @@ class varwidget(QtGui.QWidget):
                                              [2, 2, 1, 1],
                                              [1, 0, 1, 1],
                                              [1, 3, 1, 1]]
-               
+
         self.EllipsoidAnglesGB = QtGui.QGroupBox(self)
         self.EllipsoidAnglesLayout = QtGui.QGridLayout(self.EllipsoidAnglesGB)
-        
+
         self.EllipsoidAnglesXLabel = QtGui.QLabel(self.EllipsoidAnglesGB)
         self.EllipsoidAnglesX = QtGui.QLineEdit(self.EllipsoidAnglesGB)
         self.EllipsoidAnglesX.setValidator(self.intValidator)
@@ -87,14 +87,14 @@ class varwidget(QtGui.QWidget):
         self.EllipsoidAnglesZLabel = QtGui.QLabel(self.EllipsoidAnglesGB)
         self.EllipsoidAnglesZ = QtGui.QLineEdit(self.EllipsoidAnglesGB)
         self.EllipsoidAnglesZ.setValidator(self.intValidator)
-        
+
         EllipsoidAnglesSpacerL = QtGui.QSpacerItem(40, 20,
                                                    QtGui.QSizePolicy.Expanding,
                                                    QtGui.QSizePolicy.Minimum)
         EllipsoidAnglesSpacerR = QtGui.QSpacerItem(40, 20,
                                                    QtGui.QSizePolicy.Expanding,
-                                                   QtGui.QSizePolicy.Minimum)      
-        
+                                                   QtGui.QSizePolicy.Minimum)
+
         self.EllipsoidAnglesWidgets = [self.EllipsoidAnglesXLabel,
                                        self.EllipsoidAnglesX,
                                        self.EllipsoidAnglesYLabel,
@@ -111,10 +111,10 @@ class varwidget(QtGui.QWidget):
                                              [2, 2, 1, 1],
                                              [1, 0, 1, 1],
                                              [1, 3, 1, 1]]
-                
+
         self.NuggetEffectGB = QtGui.QGroupBox(self)
         self.NuggetEffectLayout = QtGui.QGridLayout(self.NuggetEffectGB)
-        
+
         self.SillValueLabel = QtGui.QLabel(self.NuggetEffectGB)
         self.SillValue = QtGui.QLineEdit(self.NuggetEffectGB)
         self.SillValue.setValidator(self.DoubleValidator)
@@ -132,7 +132,7 @@ class varwidget(QtGui.QWidget):
         NuggetEffectSpacerR = QtGui.QSpacerItem(40, 20,
                                                 QtGui.QSizePolicy.Expanding,
                                                 QtGui.QSizePolicy.Minimum)
-        
+
         self.NuggetEffectWidgets = [self.SillValueLabel, self.SillValue,
                                     self.NuggetValueLabel, self.NuggetValue,
                                     self.MargProbsLabel, self.MargProbs,
@@ -141,18 +141,18 @@ class varwidget(QtGui.QWidget):
                                           [1, 1, 1, 1], [1, 2, 1, 1],
                                           [2, 1, 1, 1], [2, 2, 1, 1],
                                           [0, 0, 1, 1], [0, 3, 1, 1]]
-        
-        
+
+
         self.Spacer = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum,
                                        QtGui.QSizePolicy.Expanding)
-        
+
         self.VarWidgets = [self.VariogramTypeGB, self.EllipsoidRangesGB,
                             self.EllipsoidAnglesGB, self.NuggetEffectGB,
                             self.Spacer]
         self.VarWidgetsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1],
                                   [1, 0, 1, 1], [1, 1, 1, 1],
                                   [2, 1, 1, 1]]
-        
+
         self.PlaceWidgetsAtPlaces(self.VariogramTypeLayout,
                                   self.VariogramTypeWidgets,
                                   self.VariogramTypeWidgetsPlaces)
@@ -168,7 +168,7 @@ class varwidget(QtGui.QWidget):
         self.PlaceWidgetsAtPlaces(self.mainLayout,
                                   self.VarWidgets,
                                   self.VarWidgetsPlaces)
-        
+
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
         for i in xrange(len(widgets)):
@@ -178,14 +178,14 @@ class varwidget(QtGui.QWidget):
             else:
                 layout.addWidget(widgets[i], places[i][0], places[i][1],
                                  places[i][2], places[i][3])
-                
+
     def Retranslate(self):
         self.VariogramTypeGB.setTitle(self.__tr("Variogram type"))
         self.VariogramType_label.setText(self.__tr("Type"))
         self.VariogramTypes = ['Spherical', 'Exponential', 'Gaussian']
         for i in xrange(len(self.VariogramTypes)):
             self.VariogramType.setItemText(i, (self.__tr(self.VariogramTypes[i])))
-            
+
         self.EllipsoidRangesGB.setTitle(self.__tr("Ellipsoid ranges"))
         self.EllipsoidRanges0Label.setText(self.__tr("0"))
         self.EllipsoidRanges0.setText(self.__tr("20"))
@@ -193,7 +193,7 @@ class varwidget(QtGui.QWidget):
         self.EllipsoidRanges90.setText(self.__tr("20"))
         self.EllipsoidRangesVLabel.setText(self.__tr("Vertical"))
         self.EllipsoidRangesV.setText(self.__tr("20"))
-        
+
         self.EllipsoidAnglesGB.setTitle(self.__tr("Ellipsoid angles"))
         self.EllipsoidAnglesXLabel.setText(self.__tr("x"))
         self.EllipsoidAnglesX.setText(self.__tr("0"))
@@ -201,14 +201,14 @@ class varwidget(QtGui.QWidget):
         self.EllipsoidAnglesZLabel.setText(self.__tr("z"))
         self.EllipsoidAnglesZ.setText(self.__tr("0"))
         self.EllipsoidAnglesYLabel.setText(self.__tr("y"))
-        
+
         self.NuggetEffectGB.setTitle(self.__tr("Sill value and nugget-effect"))
         self.SillValueLabel.setText(self.__tr("Sill value"))
         self.SillValue.setText(self.__tr("1"))
         self.NuggetValueLabel.setText(self.__tr("\"Nugget\" effect value"))
         self.NuggetValue.setText(self.__tr("0"))
         self.MargProbsLabel.setText(self.__tr("Marginal probability:"))
-        
+
     def isVariogramValid(self):
         self.Err = ''
         if self.EllipsoidRanges0.text() == "":
@@ -231,7 +231,7 @@ class varwidget(QtGui.QWidget):
             return 1, None
         else:
             return 0, self.Err
-    
+
     def GetVariogram(self):
         # Variogram
         self.VariogramRanges = (int(self.EllipsoidRanges0.text()),
@@ -246,15 +246,17 @@ class varwidget(QtGui.QWidget):
                                           float(self.SillValue.text()),
                                           float(self.NuggetValue.text()))
         return self.Variogram
-    
+
     def GetMargProbs(self):
         return float(self.MargProbs.value())
-    
+
     def ShowError(self, string):
         self.ErrorWindow = QtGui.QMessageBox()
         self.ErrorWindow.warning(None, "Error", string)
-        
+
     def __tr(self, string, dis=None):
         '''Small function to translate'''
         return QtGui.qApp.translate("MainWindow", string, dis,
                                      QtGui.QApplication.UnicodeUTF8)
+
+class VARError(Exception) : pass

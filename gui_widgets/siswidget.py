@@ -73,8 +73,8 @@ class siswidget(skwidget):
     
     def GetMask(self, Cubes):
         if self.maskCheckbox.isChecked() == 1:
-            self.CurrIndex = self.MaskCombobox.currentIndex()
-            self.Mask = Cubes[self.CurrIndex][0]
+            self.currIndex = self.MaskCombobox.currentIndex()
+            self.Mask = Cubes[self.currIndex][0]
             return self.Mask
         else:
             return None

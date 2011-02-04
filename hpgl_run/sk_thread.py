@@ -15,7 +15,6 @@ class SKThread(QtCore.QThread):
         self.meanValue = MeanValue
 
     def run(self):
-        '''Runs thread'''
         set_output_handler(self.OutputLog, None)
         set_progress_handler(self.ProgressShow, None)
 
@@ -24,6 +23,7 @@ class SKThread(QtCore.QThread):
                                       self.IntPoints, self.Variogram,
                                       self.meanValue )
         self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
+        self.exit()
 
     def OutputLog(self, string, _):
         '''Emits HPGL logs to main thread'''
@@ -45,3 +45,5 @@ class SKThread(QtCore.QThread):
             self.emit(QtCore.SIGNAL("progress(QString)"), QtCore.QString(self.OutStr))
         return 0
 
+    def stop(self):
+        print 'Gotcha'

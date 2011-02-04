@@ -154,13 +154,13 @@ class IndAlgWidget(QtGui.QDialog):
     def push(self, Cubes, Curr_index):
         from copy import copy
         self.currIndex = Curr_index
-        self.Cubes = Cubes
-        self.parentItem = copy(self.Cubes.item(self.currIndex))
+        self.cubes = Cubes
+        self.parentItem = copy(self.cubes.item(self.currIndex))
 
         self.MargProbs = self.GetMargProbs()
-        self.IndCount = self.Cubes.indicatorsCount(self.currIndex)
+        self.IndCount = self.cubes.indicatorsCount(self.currIndex)
 
-        names = self.Cubes.allNames()
+        names = self.cubes.allNames()
         for j in self.indCombo:
             j.clear()
             j.addItems(names)
@@ -179,9 +179,9 @@ class IndAlgWidget(QtGui.QDialog):
 
     def GetMargProbs(self):
         '''Puts marginal probs to indicator cubes\' widgets'''
-        return CalcMarginalProbsIndicator(self.Cubes.allValues(self.currIndex),
-                                          self.Cubes.mask(self.currIndex),
-                                          self.Cubes.indicators(self.currIndex))
+        return CalcMarginalProbsIndicator(self.cubes.allValues(self.currIndex),
+                                          self.cubes.mask(self.currIndex),
+                                          self.cubes.indicators(self.currIndex))
 
     def CatchResult(self, Result):
         '''Catchs result of algorithm'''
@@ -203,7 +203,7 @@ class IndAlgWidget(QtGui.QDialog):
 
         if self.AlgorithmType.currentIndex() == 0:
             k = 0
-            MaxIndicators = self.Cubes.indicatorsCount(self.currIndex)
+            MaxIndicators = self.cubes.indicatorsCount(self.currIndex)
             for i in xrange(MaxIndicators):
                 j, errors = self.Tab4Tabs[i].isVariogramValid()
                 if j == 0:
@@ -232,8 +232,8 @@ class IndAlgWidget(QtGui.QDialog):
                                    "radiuses" : EllipsoidRanges
                                  }
 
-                self.NewThread = IKT.IKThread(self.Cubes.property(self.currIndex),
-                                              self.Cubes.gridObject(self.currIndex),
+                self.NewThread = IKT.IKThread(self.cubes.property(self.currIndex),
+                                              self.cubes.gridObject(self.currIndex),
                                               VarData,
                                               MargProbs)
                 info = ['Indicator Kriging', self]
@@ -255,7 +255,7 @@ class IndAlgWidget(QtGui.QDialog):
 
         elif self.AlgorithmType.currentIndex() == 1:
             k = 0
-            MaxIndicators = self.Cubes.indicatorsCount(self.currIndex)
+            MaxIndicators = self.cubes.indicatorsCount(self.currIndex)
             for i in xrange(MaxIndicators):
                 j, errors = self.Tab4Tabs[i].isVariogramValid()
                 if j == 0:
@@ -277,7 +277,7 @@ class IndAlgWidget(QtGui.QDialog):
                 IntPoints = self.SISWidget.getIntPoints()
                 Seed = self.SISWidget.GetSeed()
                 UseCorr = self.SISWidget.GetUseCorr()
-                Mask = self.SISWidget.GetMask(self.Cubes) # is right?
+                Mask = self.SISWidget.GetMask(self.cubes) # is right?
 
                 for i in xrange(MaxIndicators):
                     Variograms[i] = self.Tab4Tabs[i].GetVariogram()
@@ -287,8 +287,8 @@ class IndAlgWidget(QtGui.QDialog):
                                    "radiuses" : EllipsoidRanges
                                  }
 
-                self.NewThread = SIST.SISThread(self.Cubes.property(self.currIndex),
-                                              self.Cubes.gridObject(self.currIndex),
+                self.NewThread = SIST.SISThread(self.cubes.property(self.currIndex),
+                                              self.cubes.gridObject(self.currIndex),
                                               VarData, MargProbs,
                                               Seed, UseCorr,
                                               Mask)

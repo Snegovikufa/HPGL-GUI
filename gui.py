@@ -60,8 +60,6 @@ class MainWindow(QtGui.QWidget):
     def initWidgets(self):
         # Buttons
         self.logButton = QtGui.QToolButton()
-        self.stopAlgoButton = QtGui.QToolButton()
-        self.stopAlgoButton.setDisabled(1)
 
         # Tree
         self.tree = QtGui.QTreeView()
@@ -127,7 +125,6 @@ class MainWindow(QtGui.QWidget):
         hbox.addWidget(self.algorithmText)
         hbox.addWidget(self.progressBar)
         hbox.addWidget(self.logButton)
-        hbox.addWidget(self.stopAlgoButton)
 
         self.mainLayout.addWidget(splitter)
         self.mainLayout.addLayout(hbox)
@@ -152,26 +149,20 @@ class MainWindow(QtGui.QWidget):
         self.algorithmInfo = info
 
         self.algorithmText.setEnabled(1)
-        self.stopAlgoButton.setEnabled(1)
         self.busyIcon.startAnimation()
 
         algType = info[0]
         self.algorithmText.setText(algType)
-        self.connect(self.stopAlgoButton, QtCore.SIGNAL('clicked()'),
-                     self.killThread)
 
     def killThread(self):
-        self.algorithmInfo[1].quit()
+        self.algorithmInfo[1].stop()
 
     def clearStatusBar(self):
         self.algorithmText.clear()
         self.algorithmText.setDisabled(1)
-        self.stopAlgoButton.setDisabled(1)
         self.progressBar.setDisabled(1)
         self.busyIcon.stopAnimation()
 
-        self.disconnect(self.stopAlgoButton, QtCore.SIGNAL('clicked()'),
-                        self.killThread)
 
     def renderCube(self):
         from gui_widgets.visualisator import MayaviQWidget
@@ -329,7 +320,7 @@ class MainWindow(QtGui.QWidget):
         self.progressBar.setValue(0)
 
         if self.isIndexCont(index):
-            self.contAlgWidget.push(self.contCubes, index.row())
+            self.contAlgWidget.push(self.contCubes, index.row(), self.indCubes)
         else:
             self.indAlgWidget.push(self.indCubes, index.row())
 
@@ -354,7 +345,6 @@ class MainWindow(QtGui.QWidget):
     def retranslateUI(self, MainWindow):
         self.setWindowTitle(self.__tr('HPGL GUI'))
         self.logButton.setText(self.__tr("Log"))
-        self.stopAlgoButton.setText(self.__tr('X'))
 
 if __name__ == "__main__":
     import sys

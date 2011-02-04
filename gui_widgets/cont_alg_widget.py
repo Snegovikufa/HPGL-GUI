@@ -366,18 +366,24 @@ class ContAlgWidget(QtGui.QDialog):
 
     def UpdateMean(self):
         '''Puts calculated mean value to cont cubes\' widgets'''
-        Mean = self.Cubes.meanOf(self.currIndex)
+        Mean = self.cubes.meanOf(self.currIndex)
         self.SKWidget.meanValue.setText(str('%.2f' % Mean))
         self.SGSWidget.meanValue.setText(str('%.2f' % Mean))
 
-    def push(self, cubes, Curr_index):
+    def push(self, cubes, Curr_index, indCubes):
         from copy import copy
         self.currIndex = Curr_index
-        self.Cubes = cubes
-        self.parentItem = copy(self.Cubes.item(self.currIndex))
+        self.cubes = cubes
+        self.indCubes = indCubes
+        self.parentItem = copy(self.cubes.item(self.currIndex))
 
-        names = self.Cubes.allNames()
+        names = self.cubes.allNames()
         for j in self.contCombo:
+            j.clear()
+            j.addItems(names)
+            
+        names = self.indCubes.allNames()
+        for j in self.indCombo:
             j.clear()
             j.addItems(names)
 
@@ -416,9 +422,9 @@ class ContAlgWidget(QtGui.QDialog):
                     Variogram = self.GetVariogram()
                     EllipsoidRanges = self.SKWidget.getSearchRanges()
                     IntPoints = self.SKWidget.getIntPoints()
-                    Mean = self.Cubes.meanOf(self.currIndex)
-                    self.NewThread = SKT.SKThread(self.Cubes.property(self.currIndex),
-                                                  self.Cubes.gridObject(self.currIndex),
+                    Mean = self.cubes.meanOf(self.currIndex)
+                    self.NewThread = SKT.SKThread(self.cubes.property(self.currIndex),
+                                                  self.cubes.gridObject(self.currIndex),
                                                   EllipsoidRanges, IntPoints,
                                                   Variogram, Mean
                                                  )
@@ -460,8 +466,8 @@ class ContAlgWidget(QtGui.QDialog):
                     Variogram = self.GetVariogram()
                     EllipsoidRanges = self.OKWidget.getSearchRanges()
                     IntPoints = self.OKWidget.getIntPoints()
-                    self.NewThread = OKT.OKThread(self.Cubes.property(self.currIndex),
-                                               self.Cubes.gridObject(self.currIndex),
+                    self.NewThread = OKT.OKThread(self.cubes.property(self.currIndex),
+                                               self.cubes.gridObject(self.currIndex),
                                                EllipsoidRanges, IntPoints,
                                                Variogram)
                     self.emitLog(
@@ -502,9 +508,9 @@ class ContAlgWidget(QtGui.QDialog):
                     Variogram = self.GetVariogram()
                     EllipsoidRanges = self.LVMWidget.getSearchRanges()
                     IntPoints = self.LVMWidget.getIntPoints()
-                    Mean = self.LVMWidget.getMean()
-                    self.NewThread = LVMT.LVMThread(self.Cubes.property(self.currIndex),
-                                               self.Cubes.gridObject(self.currIndex),
+                    Mean = self.LVMWidget.getMean(self.cubes)
+                    self.NewThread = LVMT.LVMThread(self.cubes.property(self.currIndex),
+                                               self.cubes.gridObject(self.currIndex),
                                                Mean, EllipsoidRanges,
                                                IntPoints, Variogram)
                     self.emitLog(
@@ -550,10 +556,10 @@ class ContAlgWidget(QtGui.QDialog):
                     Seed = self.SGSWidget.GetSeed()
                     UseHd = self.SGSWidget.GetUseHd()
                     KrType = self.SGSWidget.GetKrType()
-                    Mean = self.SGSWidget.getMean(self.Cubes)
-                    Mask = self.SGSWidget.GetMask(self.Cubes)
-                    self.NewThread = SGST.SGSThread(self.Cubes.property(self.currIndex),
-                                                self.Cubes.gridObject(self.currIndex),
+                    Mean = self.SGSWidget.getMean(self.cubes)
+                    Mask = self.SGSWidget.GetMask(self.cubes)
+                    self.NewThread = SGST.SGSThread(self.cubes.property(self.currIndex),
+                                                self.cubes.gridObject(self.currIndex),
                                                 EllipsoidRanges, IntPoints,
                                                 Variogram, Seed, KrType, Mean,
                                                 UseHd, Mask)

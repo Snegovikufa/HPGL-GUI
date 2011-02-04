@@ -145,11 +145,11 @@ class LoadCube(QtGui.QDialog):
 
             undefValue = float(self.undefValue.text())
 
-            self.emitLog('#LOADING CUBE')
-            self.emitLog('filepath = %s' % (filepath,))
-            self.emitLog('gridSize = %s' % (gridSize,))
-            self.emitLog('gridObject = SugarboxGrid(*gridSize)')
-            self.emitLog('undefinedValue = %f' % (undefValue))
+#            self.emitLog('#LOADING CUBE')
+#            self.emitLog('filepath = %s' % (filepath,))
+#            self.emitLog('gridSize = %s' % (gridSize,))
+#            self.emitLog('gridObject = SugarboxGrid(*gridSize)')
+#            self.emitLog('undefinedValue = %f' % (undefValue))
 
             self.item = CubeItem()
 
@@ -159,24 +159,23 @@ class LoadCube(QtGui.QDialog):
                 self.item.append(None, undefValue, indValues,
                             gridObject, cubeName, gridSize)
 
-                self.emitLog('indicatorValues = %s' % (indValues,))
-                self.emitLog('load_ind_property(filepath, ' +
-                             'undefinedValue, indicatorValues, gridSize)')
+#                self.emitLog('indicatorValues = %s' % (indValues,))
+#                self.emitLog('load_ind_property(filepath, ' +
+#                             'undefinedValue, indicatorValues, gridSize)')
             else:
                 indValues = None
                 self.item.append(None, undefValue, indValues,
                                  gridObject, cubeName, gridSize)
 
-                self.emitLog('indicatorValues = None')
-                self.emitLog('load_cont_property(filepath, ' +
-                             'undefinedValue, indicatorValues, gridSize)')
+#                self.emitLog('indicatorValues = None')
+#                self.emitLog('load_cont_property(filepath, ' +
+#                             'undefinedValue, indicatorValues, gridSize)')
 
             self.newThread = LoadCubeThread(filepath, undefValue, gridSize, indValues)
             self.connect(self.newThread,
                          QtCore.SIGNAL('Property(PyQt_PyObject)'),
                          self.catchProp)
             self.newThread.start()
-
 
             self.hide()
 

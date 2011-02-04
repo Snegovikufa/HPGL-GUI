@@ -15,10 +15,8 @@ class LoadCubeThread(QtCore.QThread):
         if self.indValues:
             prop = load_ind_property(str(self.filepath), self.undefValue,
                                      self.indValues, self.gridSize)
-            if prop:
-                self.emit(QtCore.SIGNAL('Property(PyQt_PyObject)'), prop)
         else:
             prop = load_cont_property(str(self.filepath),
                                       self.undefValue, self.gridSize)
-            if prop:
-                self.emit(QtCore.SIGNAL('Property(PyQt_PyObject)'), prop)
+        if prop:
+            self.emit(QtCore.SIGNAL('Property(PyQt_PyObject)'), prop)

@@ -1,11 +1,7 @@
 from PyQt4 import QtCore, QtGui
-from geo_bsd import load_cont_property
-from geo_bsd import load_ind_property
 from geo_bsd import SugarboxGrid
 from gui_widgets.cube_list import CubeItem
-from gui_widgets.errorwindow import error_window
 from hpgl_run.load_cube_thread import LoadCubeThread
-import os
 
 class LoadCube(QtGui.QDialog):
     def __init__(self, parent=None):

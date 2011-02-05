@@ -1,6 +1,5 @@
 from PyQt4 import QtCore, QtGui
 from geo_bsd import CovarianceModel, set_thread_num
-from geo_bsd.routines import CalcMean
 import gui_widgets.lvmwidget as GWLvm
 import gui_widgets.okwidget as GWOk
 import gui_widgets.sgswidget as GWSgs
@@ -13,7 +12,7 @@ import hpgl_run.sk_thread as SKT
 
 class ContAlgWidget(QtGui.QDialog):
     def __init__(self, iterator=0, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtGui.QDialog.__init__(self, parent)
         self.resize(650, 450)
 
         self.iterator = iterator

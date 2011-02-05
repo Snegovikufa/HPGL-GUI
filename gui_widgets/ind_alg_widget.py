@@ -8,8 +8,8 @@ import hpgl_run.ik_thread as IKT
 import hpgl_run.sis_thread as SIST
 
 class IndAlgWidget(QtGui.QDialog):
-    def __init__(self, iterator=0):
-        QtGui.QWidget.__init__(self)
+    def __init__(self, iterator=0, parent=None):
+        QtGui.QWidget.__init__(self, parent)
         self.iterator = iterator
 
         # Const

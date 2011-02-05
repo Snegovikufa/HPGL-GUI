@@ -19,20 +19,25 @@ class Visualisator(HasTraits):
                      height=250, width=300, show_label=False),
                 resizable=True
                 )
+    grid = None
 
     def push(self, grid):
         self.grid = grid
+        self.scene.mlab.clf()
+        self.updatePlot()
 
     @on_trait_change('scene.activated')
-    def updatePlot(self, grid):
-        self.scene.mlab.clf()
-
-        surf = self.scene.mlab.pipeline.surface(self.grid, opacity=1)
-        surf.actor.property.interpolation = 'flat'
-
+    def updatePlot(self):
+        if self.grid:
+            surf = self.scene.mlab.pipeline.surface(self.grid, opacity=1)
+            surf.actor.property.interpolation = 'flat'
+        else:
+            self.scene.mlab.test_points3d()
+        
         self.scene.mlab.orientation_axes()
         self.scene.background = (0, 0, 0)
         self.scene.mlab.colorbar(orientation='vertical')
+        
 #        fig = mlab.figure(bgcolor=(0, 0, 0), fgcolor=(0, 0, 0),
 #                          figure=self.grid.class_name[3:])
 #        edges = mlab.pipeline.extract_edges(surf)
@@ -42,21 +47,14 @@ class Visualisator(HasTraits):
 #        mlab.colorbar(title = 'Scalars')
 
 class MayaviQWidget(QtGui.QWidget):
-    def __init__(self, valuesArray, undefValue, name, parent=None):
+    def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        self.valuesArray = valuesArray
-        self.undefValue = undefValue
 
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
 
-        self.grid = self.createGrid()
-        self.values()
-        self.cutScalars(self.min, 1.5*self.median)
-
         self.visualization = Visualisator()
-        self.visualization.push(self.grid)
 
         self.ui = self.visualization.edit_traits(parent=self,
                                                  kind='subpanel').control
@@ -64,7 +62,16 @@ class MayaviQWidget(QtGui.QWidget):
         self.ui.setParent(self)
 
         self.show()
-
+        
+    def pushArgs(self,valuesArray, undefValue):
+        self.valuesArray = valuesArray
+        self.undefValue = undefValue
+        
+        self.grid = self.createGrid()
+        self.values()
+        self.cutScalars(self.min, 1.5*self.median)
+        self.visualization.push(self.grid)
+        
     def createGrid(self):
         xRange = len(self.valuesArray)
         yRange = len(self.valuesArray[0])
@@ -93,3 +100,14 @@ class MayaviQWidget(QtGui.QWidget):
                 i = max
             if i < min:
                 i = min
+
+if __name__ == '__main__':
+    app = QtGui.QApplication.instance()
+    mainWidget = QtGui.QWidget()
+    layout = QtGui.QVBoxLayout()
+    mainWidget.setLayout(layout)
+    
+    w = MayaviQWidget()
+    layout.addWidget(w)
+    mainWidget.show()
+    app.exec_()

@@ -1,7 +1,7 @@
 from geo_bsd import set_output_handler
 from geo_bsd import set_progress_handler
 from geo_bsd.geo import lvm_kriging
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore
 
 class LVMThread(QtCore.QThread):
     def __init__(self, Prop, GridObject, Mean, EllipsoidRanges,

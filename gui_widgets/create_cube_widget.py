@@ -1,11 +1,10 @@
 from PyQt4 import QtCore, QtGui
 import numpy
 from gui_widgets.cube_list import CubeItem
-from gui_widgets.errorwindow import error_window
 from geo_bsd import SugarboxGrid, ContProperty, IndProperty
 
 class CreateCube(QtGui.QDialog):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.resize(500, 160)
 
@@ -119,21 +118,16 @@ class CreateCube(QtGui.QDialog):
         name = self.cubeName.text()
 
         self.item = CubeItem()
-        data = numpy.zeros(gridSize, dtype='uint8', order='F')
-
-        if undefValue == 0:
-            mask = numpy.zeros(gridSize, dtype='uint8', order='F')
-            data[0][0][0] = 1 # This need for non-empty array of defined values
-        else:
-            mask = numpy.ones(gridSize, dtype='uint8', order='F')
+        data = numpy.zeros(gridSize, dtype='uint8', order='F') + undefValue
+        mask = numpy.zeros(gridSize, dtype='uint8', order='F')
 
         if self.IndValuesCheckbox.isChecked():
             indCount = int(self.IndValues.text())
             indValues = range(indCount)
             prop = IndProperty(data, mask, indCount)
         else:
-           indValues = None
-           prop = ContProperty(data, mask)
+            indValues = None
+            prop = ContProperty(data, mask)
 
         self.item.append(prop, undefValue, indValues,
                          gridObject, name, gridSize)
@@ -160,7 +154,7 @@ class CreateCube(QtGui.QDialog):
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
         for i in xrange(len(widgets)):
-            if type(widgets[i]) == type(QtGui.QSpacerItem(0,0)):
+            if type(widgets[i]) == type(QtGui.QSpacerItem(0, 0)):
                 layout.addItem(widgets[i], places[i][0], places[i][1],
                                places[i][2], places[i][3])
             else:

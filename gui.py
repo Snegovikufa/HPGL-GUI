@@ -11,12 +11,17 @@ import gui_widgets.undef_widget as UW
 import gui_widgets.create_cube_widget as CCW
 import numpy
 
+try:
+    from gui_widgets.visualisator import MayaviQWidget
+except:
+    MayaviQWidget = QtGui.QWidget()
+
 class MainWindow(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
         self.mainLayout = QtGui.QVBoxLayout(self)
-        self.resize(800, 400)
+        self.resize(800, 500)
 
         self.iterator = 0 # iterator for cubes' names
         self.log = ''
@@ -69,8 +74,8 @@ class MainWindow(QtGui.QWidget):
         self.resizeColumn()
 
         # 3D View
-        self.view = QtGui.QGraphicsView()
-        self.testView = QtGui.QWidget()
+        self.view = MayaviQWidget()
+        
 
         # Progress info
         self.progressBar = QtGui.QProgressBar()
@@ -78,9 +83,9 @@ class MainWindow(QtGui.QWidget):
         self.algorithmText = QtGui.QLineEdit()
         self.busyWidget = QtGui.QWidget()
         self.busyIcon = Progress.QProgressIndicator(self.busyWidget)
-
+        
         # Actions:
-        #     Tree item actions
+        # ----Tree item actions
         self.deleteAction = QtGui.QAction(self.__tr("Delete"), self)
         self.statisticsAction = QtGui.QAction(self.__tr("Statistics"), self)
         self.algorithmAction = QtGui.QAction(self.__tr("Apply algorithm"), self)
@@ -88,9 +93,23 @@ class MainWindow(QtGui.QWidget):
         self.renderAction = QtGui.QAction(self.__tr("Render"), self)
         self.changeUVAction = QtGui.QAction(self.__tr("Change undefined value"), self)
 
-        #     Tree branch actions
+        # ----Tree branch actions
         self.newCubeAction = QtGui.QAction(self.__tr("New cube"), self)
         self.loadAction = QtGui.QAction(self.__tr("Load cube"), self)
+        
+        # Icons:
+        self.deleteAction.setIcon(QtGui.QIcon('icons/del.png'))
+        self.statisticsAction.setIcon(QtGui.QIcon('icons/statistics.png'))
+        self.renderAction.setIcon(QtGui.QIcon('icons/render.png'))
+        self.saveAction.setIcon(QtGui.QIcon('icons/save.png'))
+        self.newCubeAction.setIcon(QtGui.QIcon('icons/new.png'))
+        self.loadAction.setIcon(QtGui.QIcon('icons/open.png'))
+        self.algorithmAction.setIcon(QtGui.QIcon('icons/algorithm.png'))
+        self.changeUVAction.setIcon(QtGui.QIcon('icons/change.png'))
+        
+        # Toolbar
+        self.toolbar = QtGui.QToolBar()
+        self.toolbar.addActions([self.newCubeAction, self.loadAction])
 
         # Menu
         self.itemMenu = QtGui.QMenu(self)
@@ -113,26 +132,28 @@ class MainWindow(QtGui.QWidget):
         vbox.addWidget(self.tree)
 
         rightWidget = QtGui.QWidget()
-        vbox = QtGui.QVBoxLayout(rightWidget)
-#        vbox.addWidget(self.view)
-        vbox.addWidget(self.testView)
+        vbox = QtGui.QVBoxLayout()
+        vbox.addWidget(self.view)
+        rightWidget.setLayout(vbox)
 
         splitter.addWidget(leftWidget)
         splitter.addWidget(rightWidget)
-
+        #splitter.setSizes([50,40])
+        
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.busyIcon)
         hbox.addWidget(self.algorithmText)
         hbox.addWidget(self.progressBar)
         hbox.addWidget(self.logButton)
 
+        self.mainLayout.addWidget(self.toolbar)
         self.mainLayout.addWidget(splitter)
         self.mainLayout.addLayout(hbox)
 
         # Other widgets
         self.loadCubesWidget = LCW.LoadCube(self)
-        self.contAlgWidget = CAW.ContAlgWidget(self.iterator)
-        self.indAlgWidget = IAW.IndAlgWidget(self.iterator)
+        self.contAlgWidget = CAW.ContAlgWidget(self.iterator, self)
+        self.indAlgWidget = IAW.IndAlgWidget(self.iterator, self)
         self.createCubeWidget = CCW.CreateCube(self)
 
     def animateBusy(self, started=False):
@@ -165,19 +186,21 @@ class MainWindow(QtGui.QWidget):
 
 
     def renderCube(self):
-        from gui_widgets.visualisator import MayaviQWidget
         index = self.tree.currentIndex()
         row = index.row()
+        
+        if type(self.view) is type(QtGui.QWidget()):
+            message = QtGui.QMessageBox()
+            message.warning(self, 'Warning',
+                            'You doesn\t have installed Mayavi')
+            return
+        
         if index.parent().row() == 0:
-            self.v = MayaviQWidget(self.contCubes.allValues(row),
-                                  self.contCubes.undefValue(row),
-                                  self.contCubes.name(row),
-                                  self.testView)
+            self.view.pushArgs(self.contCubes.allValues(row),
+                               self.contCubes.undefValue(row))
         else:
-            self.v = MayaviQWidget(self.indCubes.allValues(row),
-                                  self.indCubes.undefValue(row),
-                                  self.indCubes.name(row),
-                                  self.testView)
+            self.view.pushArgs(self.indCubes.allValues(row),
+                               self.indCubes.undefValue(row))
 
     def placeWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
@@ -222,7 +245,7 @@ class MainWindow(QtGui.QWidget):
         self.resizeColumn()
 
     def catchLog(self, text):
-        self.log += text+'\n'
+        self.log += text + '\n'
 
     def showLog(self):
         print self.log
@@ -309,14 +332,15 @@ class MainWindow(QtGui.QWidget):
         model.setItem(0, 0, contBranch)
         model.setItem(1, 0, indBranch)
 
-        model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Cube"))
-        model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Size"))
-        model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Indicators"))
+        model.setHorizontalHeaderItem(0, QtGui.QStandardItem(self.__tr("Cube")))
+        model.setHorizontalHeaderItem(1, QtGui.QStandardItem(self.__tr("Size")))
+        model.setHorizontalHeaderItem(2, QtGui.QStandardItem(self.__tr("Indicators")))
+        
         return model
 
     def applyAlgorithm(self):
         index = self.getIndex()
-
+        
         self.progressBar.setValue(0)
 
         if self.isIndexCont(index):
@@ -331,11 +355,26 @@ class MainWindow(QtGui.QWidget):
         row = self.getRow()
 
         if self.isIndexCont(index):
+            
+            if not self.contCubes.hasDefined(row):
+                message = QtGui.QMessageBox()
+                message.warning(self, 'Warning',
+                                'This cube doesn\'t have defined values, please select another')
+                return
+            
+            
             self.statWindow = SW.Statistics(self.contCubes, row)
+            self.statWindow.show()
+            
         else:
+            if not self.indCubes.hasDefined(row):
+                message = QtGui.QMessageBox()
+                message.warning(self, 'Warning',
+                                'This cube doesn\'t have defined values, please select another')
+                return
+                
             self.statWindow = SW.Statistics(self.indCubes, row)
-
-        self.statWindow.show()
+            self.statWindow.show()
 
     def __tr(self, string, dis=None):
         '''Small function to translate'''
@@ -348,7 +387,7 @@ class MainWindow(QtGui.QWidget):
 
 if __name__ == "__main__":
     import sys
-    app = QtGui.QApplication(sys.argv).instance()
+    app = QtGui.QApplication.instance()
     gui = MainWindow()
     gui.show()
     sys.exit(app.exec_())

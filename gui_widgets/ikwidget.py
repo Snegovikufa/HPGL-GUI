@@ -1,4 +1,3 @@
-from PyQt4 import QtGui, QtCore
 from skwidget import *
 
 class ikwidget(skwidget):

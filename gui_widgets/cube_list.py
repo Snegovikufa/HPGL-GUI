@@ -157,6 +157,12 @@ class CubeItem():
 
         # nonzero return indexes of defined values, but we need values
         return allValues[numpy.nonzero(allValues != undefined)]
+    
+    def hasDefined(self, index):
+        if len(self.definedValues(index)) != 0:
+            return True
+        
+        return False
 
     def maxOf(self, index=0):
         '''Maximum defined value of cube at index'''

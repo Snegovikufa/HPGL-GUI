@@ -14,7 +14,7 @@ class CreateCube(QtGui.QDialog):
         self.retranslateUI(self)
 
     def initWidgets(self):
-        self.mainLayout = QtGui.QGridLayout(self)
+        self.mainLayout = QtGui.QVBoxLayout(self)
         intValidator = QtGui.QIntValidator(self)
         intValidator.setBottom(1)
         doubleValidator = QtGui.QDoubleValidator(self)
@@ -52,10 +52,17 @@ class CreateCube(QtGui.QDialog):
         self.IndValues.setMinimum(2)
         self.IndValues.setMaximum(256)
         self.IndValuesCheckbox = QtGui.QCheckBox(self.IndValuesGB)
-        self.IndValuesCheckbox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        #self.IndValuesCheckbox.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.UndefValueLabel = QtGui.QLabel(self.IndValuesGB)
         self.undefValue = QtGui.QLineEdit(self.IndValuesGB)
         self.undefValue.setValidator(doubleValidator)
+        
+        self.constantCB = QtGui.QCheckBox(self.IndValuesGB)
+        #self.constantCB.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.constant = QtGui.QLineEdit(self.IndValuesGB)
+        self.constant.setValidator(doubleValidator)
+        self.constant.setDisabled(True)
+        
         self.cubeName = QtGui.QLineEdit(self.IndValuesGB)
         self.cubeNameLabel = QtGui.QLabel(self.IndValuesGB)
 
@@ -66,12 +73,14 @@ class CreateCube(QtGui.QDialog):
                                              QtGui.QSizePolicy.Expanding,
                                              QtGui.QSizePolicy.Minimum)
         self.IndValuesWidgets = [self.IndValues, self.IndValuesCheckbox,
+                                 self.constantCB, self.constant,
                                  self.UndefValueLabel, self.undefValue,
                                  self.cubeNameLabel, self.cubeName,
                                  IndValuesSpacerL, IndValuesSpacerR]
         self.IndValuesWidgetsPlaces = [[1, 2, 1, 1], [1, 1, 1, 1],
                                        [2, 1, 1, 1], [2, 2, 1, 1],
                                        [3, 1, 1, 1], [3, 2, 1, 1],
+                                       [4, 1, 1, 1], [4, 2, 1, 1],
                                        [1, 3, 1, 1], [1, 0, 1, 1]]
 
         self.createCubeGB = QtGui.QGroupBox(self)
@@ -90,26 +99,54 @@ class CreateCube(QtGui.QDialog):
         self.createCubeWidgetsPlaces = [[0, 1, 1, 1], [0, 0, 1, 1],
                                       [0, 2, 1, 1]]
 
-        self.Widgets = [self.GridSizeGB, self.IndValuesGB,
-                        self.createCubeGB]
-        self.WidgetsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1],
-                              [2, 0, 1, 2]]
-
         self.PlaceWidgetsAtPlaces(self.GridLayout, self.GridSizeWidgets, self.GridSizeWidgetsPlaces)
         self.PlaceWidgetsAtPlaces(self.IndValuesLayout, self.IndValuesWidgets, self.IndValuesWidgetsPlaces)
         self.PlaceWidgetsAtPlaces(self.createCubeLayout, self.createCubeWidgets, self.createCubeWidgetsPlaces)
-        self.PlaceWidgetsAtPlaces(self.mainLayout, self.Widgets, self.WidgetsPlaces)
+        
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.GridSizeGB)
+        hbox.addWidget(self.IndValuesGB)
+        
+        self.mainLayout.addLayout(hbox)
+        self.mainLayout.addWidget(self.createCubeGB)
 
     def initSignals(self):
         # Signals/slots
         self.connect(self.createCubeButton, QtCore.SIGNAL("clicked()"), self.cubeCreate)
         self.connect(self.IndValuesCheckbox, QtCore.SIGNAL("toggled(bool)"), self.IndValues.setEnabled)
-        self.connect(self.GridSizeX, QtCore.SIGNAL("textChanged(QString)"), self.CubeCreateAccess)
-        self.connect(self.GridSizeY, QtCore.SIGNAL("textChanged(QString)"), self.CubeCreateAccess)
-        self.connect(self.GridSizeZ, QtCore.SIGNAL("textChanged(QString)"), self.CubeCreateAccess)
-        self.connect(self.cubeName, QtCore.SIGNAL("textChanged(QString)"), self.CubeCreateAccess)
+        self.connect(self.GridSizeX, QtCore.SIGNAL("textChanged(QString)"), self.cubeCreateAccess)
+        self.connect(self.GridSizeY, QtCore.SIGNAL("textChanged(QString)"), self.cubeCreateAccess)
+        self.connect(self.GridSizeZ, QtCore.SIGNAL("textChanged(QString)"), self.cubeCreateAccess)
+        self.connect(self.cubeName, QtCore.SIGNAL("textChanged(QString)"), self.cubeCreateAccess)
+        self.connect(self.constantCB, QtCore.SIGNAL("toggled(bool)"), self.constant.setEnabled)
+        self.connect(self.IndValuesCheckbox, QtCore.SIGNAL("toggled(bool)"), self.updateChecks)
+        
+    def updateChecks(self, checked):
+        if checked:
+            self.constantCB.setChecked(False)
+    
+    def checkValues(self):
+        err = ''
+        
+        if self.constant.text() == '' or self.constant.text() == '-':
+            err += self.__tr('Constant field is empty or invalid')
+        if self.undefValue.text() == '' or self.undefValue.text() == '-':
+            err += self.__tr('Undefined value field is empty or invalid')
+        
+        if err != '':
+            self.showErr(err)
+            return False
+        
+        return True
 
+    def showErr(self, err):
+        message = QtGui.QMessageBox()
+        message.warning(self, 'EMPTY FIELDS', err)
+    
     def cubeCreate(self):
+        if not self.checkValues():
+            return
+        
         gridSize = (int(self.GridSizeX.text()),
                     int(self.GridSizeY.text()),
                     int(self.GridSizeZ.text()))
@@ -118,8 +155,13 @@ class CreateCube(QtGui.QDialog):
         name = self.cubeName.text()
 
         self.item = CubeItem()
-        data = numpy.zeros(gridSize, dtype='uint8', order='F') + undefValue
-        mask = numpy.zeros(gridSize, dtype='uint8', order='F')
+        
+        if self.constantCB.isChecked():
+            data = numpy.zeros(gridSize, dtype='uint8', order='F') + float(self.constant.text())
+            mask = numpy.ones(gridSize, dtype='uint8', order='F')
+        else:
+            data = numpy.zeros(gridSize, dtype='uint8', order='F') + undefValue
+            mask = numpy.zeros(gridSize, dtype='uint8', order='F')
 
         if self.IndValuesCheckbox.isChecked():
             indCount = int(self.IndValues.text())
@@ -134,7 +176,7 @@ class CreateCube(QtGui.QDialog):
         self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.item)
         self.hide()
 
-    def CubeCreateAccess(self):
+    def cubeCreateAccess(self):
         if self.GridSizeX.text() == '' or \
             self.GridSizeY.text() == '' or \
             self.GridSizeZ.text() == '' or \
@@ -178,6 +220,8 @@ class CreateCube(QtGui.QDialog):
         self.IndValuesCheckbox.setText(self.__tr("Indicator values"))
         self.UndefValueLabel.setText(self.__tr("Undefined value"))
         self.undefValue.setText(self.__tr("-99"))
+        self.constantCB.setText(self.__tr("Fill with constant"))
+        self.constant.setText('0')
         self.cubeNameLabel.setText(self.__tr("Name"))
 
         self.createCubeButton.setText(self.__tr("Create cube"))

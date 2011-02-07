@@ -9,6 +9,7 @@ import gui_widgets.progressindicator as Progress
 import gui_widgets.statistics_window as SW
 import gui_widgets.undef_widget as UW
 import gui_widgets.create_cube_widget as CCW
+import gui_widgets.errorwindow as EW
 import numpy
 
 try:
@@ -51,12 +52,16 @@ class MainWindow(QtGui.QWidget):
         self.connect(self.loadCubesWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
         self.connect(self.loadCubesWidget, QtCore.SIGNAL("Loading(PyQt_PyObject)"), self.animateBusy)
         self.connect(self.loadCubesWidget, QtCore.SIGNAL("LogMessage(QString&)"), self.catchLog)
+        
         self.connect(self.createCubeWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
+        
         self.connect(self.contAlgWidget, QtCore.SIGNAL("progress(PyQt_PyObject)"), self.updateProgress)
         self.connect(self.contAlgWidget, QtCore.SIGNAL("algorithm(PyQt_PyObject)"), self.updateStatusBar)
         self.connect(self.contAlgWidget, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.clearStatusBar)
         self.connect(self.contAlgWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
         self.connect(self.contAlgWidget, QtCore.SIGNAL("LogMessage(QString&)"), self.catchLog)
+        self.connect(self.contAlgWidget, QtCore.SIGNAL("msg(QString)"), self.catchLog)
+        
         self.connect(self.indAlgWidget, QtCore.SIGNAL("progress(PyQt_PyObject)"), self.updateProgress)
         self.connect(self.indAlgWidget, QtCore.SIGNAL("algorithm(PyQt_PyObject)"), self.updateStatusBar)
         self.connect(self.indAlgWidget, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.clearStatusBar)
@@ -177,6 +182,18 @@ class MainWindow(QtGui.QWidget):
 
     def killThread(self):
         self.algorithmInfo[1].stop()
+        
+    def closeEvent(self, event):
+        reply = QtGui.QMessageBox.question(self, self.__tr('Quit?'),
+                                           self.__tr("Are you sure to quit?"), 
+                                           QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, 
+                                           QtGui.QMessageBox.No)
+
+        if reply == QtGui.QMessageBox.Yes:
+            self.view.needQuit()
+            event.accept()
+        else:
+            event.ignore()
 
     def clearStatusBar(self):
         self.algorithmText.clear()
@@ -195,12 +212,31 @@ class MainWindow(QtGui.QWidget):
                             'You doesn\t have installed Mayavi')
             return
         
-        if index.parent().row() == 0:
+        if self.isIndexCont(index) and self.hasDefined('cont', row):
             self.view.pushArgs(self.contCubes.allValues(row),
                                self.contCubes.undefValue(row))
-        else:
+                               
+        if self.isIndexInd(index) and self.hasDefined('ind', row):
             self.view.pushArgs(self.indCubes.allValues(row),
                                self.indCubes.undefValue(row))
+    
+    def hasDefined(self, cubeType, row):
+        if cubeType is 'cont':
+            if not self.contCubes.hasDefined(row):
+                message = QtGui.QMessageBox()
+                message.warning(self, 'Warning',
+                                'This cube doesn\'t have defined values, please select another')
+                return False
+            
+            return True
+        else:
+            if not self.indCubes.hasDefined(row):
+                message = QtGui.QMessageBox()
+                message.warning(self, 'Warning',
+                                'This cube doesn\'t have defined values, please select another')
+                return False
+                
+            return True
 
     def placeWidgetsAtPlaces(self, layout, widgets, places):
         '''Places list of widgets to their places'''
@@ -245,10 +281,12 @@ class MainWindow(QtGui.QWidget):
         self.resizeColumn()
 
     def catchLog(self, text):
-        self.log += text + '\n'
+        self.log += text
 
     def showLog(self):
-        print self.log
+        self.errWindow = EW.error_window(self)
+        self.errWindow.showMessage('HPGL GUI LOG', self.log)
+        #print self.log
 
     def changeUV(self):
         index = self.getIndex()
@@ -309,18 +347,24 @@ class MainWindow(QtGui.QWidget):
 
         fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ...')
         if fname and self.isIndexCont(index):
-            write_property(self.contCubes.property(row),
-                           str(fname),
-                           self.contCubes.name(row),
-                           numpy.float32(self.contCubes.undefValue(row)),
-                           self.contCubes.indicators(row))
+            try:
+                write_property(self.contCubes.property(row), str(fname),
+                               self.contCubes.name(row), numpy.float32(self.contCubes.undefValue(row)),
+                               self.contCubes.indicators(row))
+                self.algorithmText.setText(self.__tr('Cube was saved'))
+
+            except:
+                self.algorithmText.setText(self.__tr('Error saving cube'))
 
         elif fname and self.isIndexInd(index):
-            write_property(self.indCubes.property(row),
-                           str(fname),
-                           self.indCubes.name(row),
-                           numpy.float32(self.indCubes.undefValue(row)),
-                           list(self.indCubes.indicators(row)))
+            try:
+                write_property(self.indCubes.property(row), str(fname),
+                               self.indCubes.name(row), numpy.float32(self.indCubes.undefValue(row)),
+                               list(self.indCubes.indicators(row)))
+                self.algorithmText.setText(self.__tr('Cube was saved'))
+
+            except:
+                self.algorithmText.setText(self.__tr('Error saving cube'))
 
     def createModel(self, parent=None):
         model = QtGui.QStandardItemModel(2, 2, parent)
@@ -354,25 +398,11 @@ class MainWindow(QtGui.QWidget):
         index = self.getIndex()
         row = self.getRow()
 
-        if self.isIndexCont(index):
-            
-            if not self.contCubes.hasDefined(row):
-                message = QtGui.QMessageBox()
-                message.warning(self, 'Warning',
-                                'This cube doesn\'t have defined values, please select another')
-                return
-            
-            
+        if self.isIndexCont(index) and self.hasDefined('cont', row):
             self.statWindow = SW.Statistics(self.contCubes, row)
             self.statWindow.show()
             
-        else:
-            if not self.indCubes.hasDefined(row):
-                message = QtGui.QMessageBox()
-                message.warning(self, 'Warning',
-                                'This cube doesn\'t have defined values, please select another')
-                return
-                
+        if self.isIndexInd(index) and self.hasDefined('ind', row):
             self.statWindow = SW.Statistics(self.indCubes, row)
             self.statWindow.show()
 

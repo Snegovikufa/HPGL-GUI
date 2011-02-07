@@ -131,7 +131,7 @@ class IndAlgWidget(QtGui.QDialog):
 
     def UpdateUI(self, string):
         '''Outputs HPGL\'s output to log'''
-        self.log += "%s" % unicode(string)
+        self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(string))
 
     def UpdateProgress(self, value):
         '''Emits percentage of current algorithm progress'''

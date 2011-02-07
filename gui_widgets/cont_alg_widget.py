@@ -267,7 +267,7 @@ class ContAlgWidget(QtGui.QDialog):
 
     def UpdateUI(self, string):
         '''Outputs HPGL\'s output to log'''
-        self.log += "%s" % unicode(string)
+        self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(string))
 
     def UpdateProgress(self, value):
         '''Emits percentage of current algorithm progress'''
@@ -350,16 +350,16 @@ class ContAlgWidget(QtGui.QDialog):
         sillValue = float(self.SillValue.text())
         nuggetValue = float(self.NuggetValue.text())
 
-        self.emitLog(
-            '# CREATING VARIOGRAM\n'+
-            'varRanges = %s\n' % (VarRanges,) +
-            'varAngles = %s\n' % (VarAngles,) +
-            'varType = %i\n' % (VarType) +
-            'sillValue = %f\n' % (sillValue) +
-            'nuggetValue = %f\n' % (nuggetValue) +
-            'variogram = CovarianceModel(varType, varRanges, '+
-                                        'varAngles, sillValue, nuggetValue)'
-        )
+#self.emitLog(
+#            '# CREATING VARIOGRAM\n'+
+#            'varRanges = %s\n' % (VarRanges,) +
+#            'varAngles = %s\n' % (VarAngles,) +
+#            'varType = %i\n' % (VarType) +
+#            'sillValue = %f\n' % (sillValue) +
+#           'nuggetValue = %f\n' % (nuggetValue) +
+#           'variogram = CovarianceModel(varType, varRanges, '+
+#                                       'varAngles, sillValue, nuggetValue)'
+#       )
 
         return CovarianceModel(VarType, VarRanges, VarAngles, sillValue, nuggetValue)
 
@@ -427,14 +427,14 @@ class ContAlgWidget(QtGui.QDialog):
                                                   EllipsoidRanges, IntPoints,
                                                   Variogram, Mean
                                                  )
-                    self.emitLog(
-                        '# RUNNING SIMPLE KRIGING\n' +
-                        'ellipsRanges = %s\n' % (EllipsoidRanges,) +
-                        'intPoints = %i\n' % (IntPoints,) +
-                        'mean = %f\n' % (Mean,) +
-                        'result = simple_kriging(prop, gridObject, '+
-                        'ellipsRanges, intPoints, variogram, mean)'
-                    )
+#                    self.emitLog(
+#                       '# RUNNING SIMPLE KRIGING\n' +
+#                       'ellipsRanges = %s\n' % (EllipsoidRanges,) +
+#                       'intPoints = %i\n' % (IntPoints,) +
+#                       'mean = %f\n' % (Mean,) +
+#                       'result = simple_kriging(prop, gridObject, '+
+#                       'ellipsRanges, intPoints, variogram, mean)'
+#                   )
 
                     info = ['Simple Kriging', self.NewThread]
                     self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
@@ -469,13 +469,13 @@ class ContAlgWidget(QtGui.QDialog):
                                                self.cubes.gridObject(self.currIndex),
                                                EllipsoidRanges, IntPoints,
                                                Variogram)
-                    self.emitLog(
-                        '# RUNNING ORDINARY KRIGING\n' +
-                        'ellipsRanges = %s\n' % (EllipsoidRanges,) +
-                        'intPoints = %i\n' % (IntPoints,) +
-                        'result = ordinary_kriging(prop, gridObject, '+
-                        'ellipsRanges, intPoints, variogram)'
-                    )
+#                   self.emitLog(
+#                       '# RUNNING ORDINARY KRIGING\n' +
+#                       'ellipsRanges = %s\n' % (EllipsoidRanges,) +
+#                        'intPoints = %i\n' % (IntPoints,) +
+#                       'result = ordinary_kriging(prop, gridObject, '+
+#                       'ellipsRanges, intPoints, variogram)'
+#                   )
 
                     info = ['Ordinary Kriging', self]
                     self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
@@ -512,14 +512,14 @@ class ContAlgWidget(QtGui.QDialog):
                                                self.cubes.gridObject(self.currIndex),
                                                Mean, EllipsoidRanges,
                                                IntPoints, Variogram)
-                    self.emitLog(
-                        '# RUNNING LVM KRIGING\n' +
-                        'ellipsRanges = %s\n' % (EllipsoidRanges,) +
-                        'intPoints = %i\n' % (IntPoints,) +
-                        'mean = %s\n' % (Mean,) +
-                        'result = lvm_kriging(prop, gridObject, '+
-                        'mean, ellipsRanges, intPoints, variogram)'
-                    )
+#self.emitLog(
+#                       '# RUNNING LVM KRIGING\n' +
+#                       'ellipsRanges = %s\n' % (EllipsoidRanges,) +
+#                       'intPoints = %i\n' % (IntPoints,) +
+#                       'mean = %s\n' % (Mean,) +
+#                       'result = lvm_kriging(prop, gridObject, '+
+#                       'mean, ellipsRanges, intPoints, variogram)'
+#                   )
 
                     info = ['LVM Kriging', self]
                     self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)

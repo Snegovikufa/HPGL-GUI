@@ -100,6 +100,10 @@ class MayaviQWidget(QtGui.QWidget):
                 i = max
             if i < min:
                 i = min
+                
+    def needQuit(self):
+        del(self.ui)
+        del(self.visualization)
 
 if __name__ == '__main__':
     app = QtGui.QApplication.instance()

@@ -3,6 +3,7 @@ from PyQt4 import QtGui, QtCore
 class error_window(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
+        self.resize(600, 300)
         
         self.TextEdit = QtGui.QTextEdit()
         self.ButtonBox = QtGui.QDialogButtonBox()
@@ -18,11 +19,10 @@ class error_window(QtGui.QDialog):
         self.connect(self.ButtonBox, QtCore.SIGNAL('accepted()'),
                      self.SaveLog)
         
-    def showmessage(self, title, message):
+    def showMessage(self, title, message):
         self.TextEdit.clear()
         self.setWindowTitle(title)
-        self.message = message
-        self.TextEdit.insertPlainText(self.message)
+        self.TextEdit.insertPlainText(message)
         self.show()
         
     def CloseWindow(self):
@@ -32,4 +32,4 @@ class error_window(QtGui.QDialog):
         self.fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as')
         if self.fname:
             f = open(self.fname, 'w')
-            f.write(self.message)
+            f.write(self.TextEdit.toPlainText())

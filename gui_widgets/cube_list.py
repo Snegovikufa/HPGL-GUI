@@ -3,8 +3,10 @@ import numpy
 from geo_bsd import ContProperty, IndProperty
 
 class CubeItem():
-    def __init__(self):
+    def __init__(self, parent = None):
         self.__items = []
+        self.__parent = parent
+        self.__childItems = []
 
     #===========================================================================
     # Functions to work with list of cubes
@@ -186,3 +188,27 @@ class CubeItem():
         defValues = self.definedValues(index)
         return numpy.var(defValues)
     #------------------------------------------------------------------------------
+    
+    def parent(self):
+        return self.__parent
+
+class RootItem():
+    def __init__(self):
+        self.__childItems = []
+        
+    def childCount(self, index):
+        return len(self.__childItems)
+    
+    def childNumber(self):
+        if self.parentItem != None:
+            return self.parentItem.childItems.index(self)
+        return 0
+    
+    def columnCount(self):
+        return 4
+    
+    def parent(self):
+        return None
+    
+    def appendChildItem(self, cubeItem):
+        self.__childItems.append(cubeItem)

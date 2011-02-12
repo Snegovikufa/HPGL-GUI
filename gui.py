@@ -9,7 +9,8 @@ import gui_widgets.progressindicator as Progress
 import gui_widgets.statistics_window as SW
 import gui_widgets.undef_widget as UW
 import gui_widgets.create_cube_widget as CCW
-import gui_widgets.errorwindow as EW
+import gui_widgets.logwindow as LW
+from gui_widgets.treemodel import TreeModel
 import numpy
 
 try:
@@ -22,17 +23,18 @@ class MainWindow(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
 
         self.mainLayout = QtGui.QVBoxLayout(self)
-        self.resize(800, 500)
-
+        self.mainLayout.setSpacing(0)
+        self.resize(950, 500)
+        
+        self.contCubes = CubeItem()
+        self.indCubes = CubeItem()
+        
         self.iterator = 0 # iterator for cubes' names
         self.log = ''
 
         self.initWidgets()
         self.initSignals()
         self.retranslateUI(self)
-
-        self.contCubes = CubeItem()
-        self.indCubes = CubeItem()
 
     def initSignals(self):
         # Signals and slots
@@ -75,6 +77,16 @@ class MainWindow(QtGui.QWidget):
         self.tree = QtGui.QTreeView()
         self.model = self.createModel(self)
         self.tree.setModel(self.model)
+        
+        self.insertRow(['Indicator cubes', '', '', ''])
+        self.insertRow(['Continuous cubes', '', '', ''])
+        
+        self.contBranchIndex = self.model.index(0, 0)
+        self.indBranchIndex = self.model.index(1, 0)
+        
+        self.model.setData(self.contBranchIndex, QtGui.QIcon('icons/render.png'), QtCore.Qt.DecorationRole)
+        self.model.setData(self.indBranchIndex, QtGui.QIcon('icons/render.png'), QtCore.Qt.DecorationRole)
+        
         self.tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.resizeColumn()
 
@@ -134,6 +146,7 @@ class MainWindow(QtGui.QWidget):
 
         leftWidget = QtGui.QWidget()
         vbox = QtGui.QVBoxLayout(leftWidget)
+        vbox.addWidget(self.toolbar)
         vbox.addWidget(self.tree)
 
         rightWidget = QtGui.QWidget()
@@ -143,6 +156,7 @@ class MainWindow(QtGui.QWidget):
 
         splitter.addWidget(leftWidget)
         splitter.addWidget(rightWidget)
+        splitter.setContentsMargins(0, 0, 0, 0)
         #splitter.setSizes([50,40])
         
         hbox = QtGui.QHBoxLayout()
@@ -151,7 +165,6 @@ class MainWindow(QtGui.QWidget):
         hbox.addWidget(self.progressBar)
         hbox.addWidget(self.logButton)
 
-        self.mainLayout.addWidget(self.toolbar)
         self.mainLayout.addWidget(splitter)
         self.mainLayout.addLayout(hbox)
 
@@ -259,23 +272,26 @@ class MainWindow(QtGui.QWidget):
         self.tree.resizeColumnToContents(2)
 
     def catchCube(self, cube):
-        child = QtGui.QStandardItem(str(cube.name(0)))
-        childSize = QtGui.QStandardItem(str(cube.size(0)))
-        child.setEditable(0)
-        childSize.setEditable(0)
+        child = str(cube.name())
+        childSize = str(cube.size())
+        undef = str(cube.undefValue())
+        #child.setEditable(0)
+        #childSize.setEditable(0)
 
         if cube.isIndicator():
-            childIndicators = QtGui.QStandardItem(str(cube.indicatorsCount(0)))
+            childIndicators = str(cube.indicatorsCount(0))
         else:
-            childIndicators = QtGui.QStandardItem(str('-'))
-        childIndicators.setEditable(0)
-        list = [child, childSize, childIndicators]
+            childIndicators = str('-')
+        #childIndicators.setEditable(0)
+        list = [child, childSize, childIndicators, undef]
 
         if not cube.isIndicator():
-            self.model.item(0, 0).appendRow(list)
+            #self.model.item(0, 0).appendRow(list)
+            self.insertChild(list, self.contCubes.count(), self.contBranchIndex)
             self.contCubes.appendItem(cube)
         else:
-            self.model.item(1, 0).appendRow(list)
+            #self.model.item(1, 0).appendRow(list)
+            self.insertChild(list, self.indCubes.count(), self.indBranchIndex)
             self.indCubes.appendItem(cube)
 
         self.resizeColumn()
@@ -284,8 +300,8 @@ class MainWindow(QtGui.QWidget):
         self.log += text
 
     def showLog(self):
-        self.errWindow = EW.error_window(self)
-        self.errWindow.showMessage('HPGL GUI LOG', self.log)
+        self.logWindow = LW.LogWindow(self)
+        self.logWindow.showMessage('HPGL GUI LOG', self.log)
         #print self.log
 
     def changeUV(self):
@@ -367,18 +383,21 @@ class MainWindow(QtGui.QWidget):
                 self.algorithmText.setText(self.__tr('Error saving cube'))
 
     def createModel(self, parent=None):
-        model = QtGui.QStandardItemModel(2, 2, parent)
+        #model = QtGui.QStandardItemModel(2, 4, parent)
+        header = ['Cube', 'Size', 'Indicators', 'Undef. value']
+        model = TreeModel(header, self.contCubes, self.indCubes, parent)
+        
+        #contBranch = QtGui.QStandardItem("Continuous cubes")
+#        contBranch.setEditable(0)
+        #indBranch = QtGui.QStandardItem("Indicator cubes")
+#        indBranch.setEditable(0)
+        #model.setItem(0, 0, contBranch)
+        #model.setItem(1, 0, indBranch)
 
-        contBranch = QtGui.QStandardItem("Continuous cubes")
-        contBranch.setEditable(0)
-        indBranch = QtGui.QStandardItem("Indicator cubes")
-        indBranch.setEditable(0)
-        model.setItem(0, 0, contBranch)
-        model.setItem(1, 0, indBranch)
-
-        model.setHorizontalHeaderItem(0, QtGui.QStandardItem(self.__tr("Cube")))
-        model.setHorizontalHeaderItem(1, QtGui.QStandardItem(self.__tr("Size")))
-        model.setHorizontalHeaderItem(2, QtGui.QStandardItem(self.__tr("Indicators")))
+        #model.setHorizontalHeaderItem(0, QtGui.QStandardItem(self.__tr("Cube")))
+        #model.setHorizontalHeaderItem(1, QtGui.QStandardItem(self.__tr("Size")))
+        #model.setHorizontalHeaderItem(2, QtGui.QStandardItem(self.__tr("Indicators")))
+        #model.setHorizontalHeaderItem(3, QtGui.QStandardItem(self.__tr("Undef. value")))
         
         return model
 
@@ -393,7 +412,31 @@ class MainWindow(QtGui.QWidget):
             self.indAlgWidget.push(self.indCubes, index.row())
 
         self.iterator += 1
-
+        
+    def insertChild(self, data, position, index = None):
+        if index == None:
+            index = self.tree.selectionModel().currentIndex()
+        model = self.tree.model()
+        
+        if not model.insertRow(position, index):
+            return
+        
+        for column in range(model.columnCount(index)):
+            child = model.index(position, column, index)
+            model.setData(child, data[column], QtCore.Qt.EditRole)
+    
+    def insertRow(self, data, index = None):
+        if index == None:
+            index = self.tree.selectionModel().currentIndex()
+        model = self.tree.model()
+        
+        if not model.insertRow(index.row()+1, index.parent()):
+            return
+        
+        for column in range(model.columnCount(index.parent())):
+            child = model.index(index.row()+1, column, index.parent())
+            model.setData(child, data[column], QtCore.Qt.EditRole)
+            
     def showStatistics(self):
         index = self.getIndex()
         row = self.getRow()

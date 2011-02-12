@@ -28,12 +28,18 @@ class LoadCube(QtGui.QDialog):
 
     def initWidgets(self):
         self.mainLayout = QtGui.QGridLayout(self)
+        self.mainLayout.setSpacing(0)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+        
         intValidator = QtGui.QIntValidator(self)
         intValidator.setBottom(1)
         doubleValidator = QtGui.QDoubleValidator(self)
 
         self.GridSizeGB = QtGui.QGroupBox(self)
         self.GridLayout = QtGui.QGridLayout(self.GridSizeGB)
+#        self.GridLayout.setContentsMargins(0, 0, 0, 0)
+#        self.GridLayout.setSpacing(0)
+        
         self.GridSizeXLabel = QtGui.QLabel(self.GridSizeGB)
         self.GridSizeX = QtGui.QLineEdit(self.GridSizeGB)
         self.GridSizeX.setValidator(intValidator)
@@ -60,6 +66,9 @@ class LoadCube(QtGui.QDialog):
 
         self.IndValuesGB = QtGui.QGroupBox(self)
         self.IndValuesLayout = QtGui.QGridLayout(self.IndValuesGB)
+#        self.IndValuesLayout.setSpacing(0)
+#        self.IndValuesLayout.setContentsMargins(0, 0, 0, 0)
+        
         self.IndValues = QtGui.QSpinBox(self.IndValuesGB)
         self.IndValues.setEnabled(False)
         self.IndValues.setMinimum(2)
@@ -84,6 +93,9 @@ class LoadCube(QtGui.QDialog):
 
         self.LoadCubeGB = QtGui.QGroupBox(self)
         self.LoadCubeLayout = QtGui.QGridLayout(self.LoadCubeGB)
+#        self.LoadCubeLayout.setSpacing(0)
+#        self.LoadCubeLayout.setContentsMargins(0, 0, 0, 0)
+        
         self.loadCubeButton = QtGui.QPushButton(self.LoadCubeGB)
         self.loadCubeButton.setDisabled(1)
         self.loadCubeButton.setToolTip(self.__tr("Enter grid sizes first"))

@@ -15,7 +15,7 @@ from enthought.mayavi.core.ui.api import MayaviScene, MlabSceneModel, \
 
 class Visualisator(HasTraits):
     scene = Instance(MlabSceneModel, ())
-    view = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene),
+    tree = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene),
                      height=250, width=300, show_label=False),
                 resizable=True
                 )

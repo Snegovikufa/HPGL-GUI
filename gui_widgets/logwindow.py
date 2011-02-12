@@ -1,6 +1,6 @@
 from PyQt4 import QtGui, QtCore
 
-class error_window(QtGui.QDialog):
+class LogWindow(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.resize(600, 300)

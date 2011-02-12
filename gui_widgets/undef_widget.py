@@ -4,7 +4,7 @@ class UndefChangeWidget(QtGui.QDialog):
     def __init__(self, cubes, index, parent = None):
         QtGui.QWidget.__init__(self, parent)
 
-        self.cubes = cubes
+        self.contCubes = cubes
         self.index = index
 
         self.initWidgets()
@@ -19,7 +19,7 @@ class UndefChangeWidget(QtGui.QDialog):
         self.value = QtGui.QLineEdit()
         self.value.setValidator(doubleValidator)
 
-        oldValue = self.cubes.undefValue(self.index)
+        oldValue = self.contCubes.undefValue(self.index)
         self.value.setText(str(oldValue))
 
         self.changeButton = QtGui.QPushButton()
@@ -33,7 +33,7 @@ class UndefChangeWidget(QtGui.QDialog):
     def applyChange(self):
         self.hide()
         newValue = float(self.value.text())
-        self.cubes.changeUndefValue(newValue, self.index)
+        self.contCubes.changeUndefValue(newValue, self.index)
 
     def retranslateUI(self):
         self.changeButton.setText(self.__tr("Change"))

@@ -138,7 +138,7 @@ class IndAlgWidget(QtGui.QDialog):
         self.emit(QtCore.SIGNAL('progress(PyQt_PyObject)'), value)
 
     def AlgorithmTypeChanged(self, value):
-        '''Locks and unlocks widgets for cont and ind cubes'''
+        '''Locks and unlocks widgets for cont and ind contCubes'''
         self.AlgorithmWidget.setCurrentIndex(value)
 
     def PlaceWidgetsAtPlaces(self, layout, widgets, places):
@@ -154,13 +154,13 @@ class IndAlgWidget(QtGui.QDialog):
     def push(self, Cubes, Curr_index):
         from copy import copy
         self.currIndex = Curr_index
-        self.cubes = Cubes
-        self.parentItem = copy(self.cubes.item(self.currIndex))
+        self.contCubes = Cubes
+        self.parentItem = copy(self.contCubes.item(self.currIndex))
 
         self.MargProbs = self.GetMargProbs()
-        self.IndCount = self.cubes.indicatorsCount(self.currIndex)
+        self.IndCount = self.contCubes.indicatorsCount(self.currIndex)
 
-        names = self.cubes.allNames()
+        names = self.contCubes.allNames()
         for j in self.indCombo:
             j.clear()
             j.addItems(names)
@@ -178,10 +178,10 @@ class IndAlgWidget(QtGui.QDialog):
         self.show()
 
     def GetMargProbs(self):
-        '''Puts marginal probs to indicator cubes\' widgets'''
-        return CalcMarginalProbsIndicator(self.cubes.allValues(self.currIndex),
-                                          self.cubes.mask(self.currIndex),
-                                          self.cubes.indicators(self.currIndex))
+        '''Puts marginal probs to indicator contCubes\' widgets'''
+        return CalcMarginalProbsIndicator(self.contCubes.allValues(self.currIndex),
+                                          self.contCubes.mask(self.currIndex),
+                                          self.contCubes.indicators(self.currIndex))
 
     def CatchResult(self, Result):
         '''Catchs result of algorithm'''
@@ -203,7 +203,7 @@ class IndAlgWidget(QtGui.QDialog):
 
         if self.AlgorithmType.currentIndex() == 0:
             k = 0
-            MaxIndicators = self.cubes.indicatorsCount(self.currIndex)
+            MaxIndicators = self.contCubes.indicatorsCount(self.currIndex)
             for i in xrange(MaxIndicators):
                 j, errors = self.Tab4Tabs[i].isVariogramValid()
                 if j == 0:
@@ -232,8 +232,8 @@ class IndAlgWidget(QtGui.QDialog):
                                    "radiuses" : EllipsoidRanges
                                  }
 
-                self.NewThread = IKT.IKThread(self.cubes.property(self.currIndex),
-                                              self.cubes.gridObject(self.currIndex),
+                self.NewThread = IKT.IKThread(self.contCubes.property(self.currIndex),
+                                              self.contCubes.gridObject(self.currIndex),
                                               VarData,
                                               MargProbs)
                 info = ['Indicator Kriging', self]
@@ -255,7 +255,7 @@ class IndAlgWidget(QtGui.QDialog):
 
         elif self.AlgorithmType.currentIndex() == 1:
             k = 0
-            MaxIndicators = self.cubes.indicatorsCount(self.currIndex)
+            MaxIndicators = self.contCubes.indicatorsCount(self.currIndex)
             for i in xrange(MaxIndicators):
                 j, errors = self.Tab4Tabs[i].isVariogramValid()
                 if j == 0:
@@ -277,7 +277,7 @@ class IndAlgWidget(QtGui.QDialog):
                 IntPoints = self.SISWidget.getIntPoints()
                 Seed = self.SISWidget.GetSeed()
                 UseCorr = self.SISWidget.GetUseCorr()
-                Mask = self.SISWidget.GetMask(self.cubes) # is right?
+                Mask = self.SISWidget.GetMask(self.contCubes) # is right?
 
                 for i in xrange(MaxIndicators):
                     Variograms[i] = self.Tab4Tabs[i].GetVariogram()
@@ -287,8 +287,8 @@ class IndAlgWidget(QtGui.QDialog):
                                    "radiuses" : EllipsoidRanges
                                  }
 
-                self.NewThread = SIST.SISThread(self.cubes.property(self.currIndex),
-                                              self.cubes.gridObject(self.currIndex),
+                self.NewThread = SIST.SISThread(self.contCubes.property(self.currIndex),
+                                              self.contCubes.gridObject(self.currIndex),
                                               VarData, MargProbs,
                                               Seed, UseCorr,
                                               Mask)

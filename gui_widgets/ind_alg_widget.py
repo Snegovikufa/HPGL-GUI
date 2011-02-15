@@ -26,7 +26,8 @@ class IndAlgWidget(QtGui.QDialog):
         self.log = ''
 
         self.CentralWidget = QtGui.QWidget()
-        self.CentralLayout = QtGui.QGridLayout(self.CentralWidget)
+        self.CentralLayout = QtGui.QGridLayout()
+        self.CentralLayout.setContentsMargins(4, 0, 4, 0)
         self.setLayout(self.CentralLayout)
         self.TabWidget = QtGui.QTabWidget(self.CentralWidget)
 
@@ -84,6 +85,8 @@ class IndAlgWidget(QtGui.QDialog):
         # Tab 4
         self.Tab4 = QtGui.QWidget()
         self.Tab4Layout = QtGui.QGridLayout(self.Tab4)
+        self.Tab4Layout.setContentsMargins(0, 0, 0, 0)
+        self.Tab4Layout.setSpacing(0)
 
         self.Tab4TabWidget = QtGui.QTabWidget(self.Tab4)
         self.Tab4Tabs = range(self.MaxVariograms)

@@ -247,6 +247,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         return parentItem.childCount()
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
+        
+        print index.row(), index.column()
+        
         if role != QtCore.Qt.EditRole:
             return False
 
@@ -266,6 +269,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
             if index.column() == 3:
                 value = int(value)
+                print 'Yeap, i am here, value=', value
                 
                 if index.parent().row() == 0:
                     self.contCubes.changeUndefValue(value, index.row())

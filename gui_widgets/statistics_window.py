@@ -52,11 +52,14 @@ class Statistics(QtGui.QDialog):
     def initWidgets(self):
         # Layouts, groupboxes
         self.mainLayout = QtGui.QHBoxLayout()
+        self.mainLayout.setContentsMargins(6, 0, 6, 0)
+        self.mainLayout.setSpacing(0)
         self.setLayout(self.mainLayout)
 
         # Values GroupBox
         self.valuesGB = QtGui.QGroupBox()
         self.valuesGBLayout = QtGui.QVBoxLayout(self.valuesGB)
+        self.valuesGBLayout.setSpacing(0)
 
         self.valuesTable = QtGui.QTableView()
         self.valuesGBLayout.addWidget(self.valuesTable)
@@ -64,6 +67,7 @@ class Statistics(QtGui.QDialog):
         # Histogram configuring widgets
         self.viewConfigGB = QtGui.QGroupBox()
         self.viewConfigGBLayout = QtGui.QGridLayout(self.viewConfigGB)
+        self.viewConfigGBLayout.setSpacing(0)
 
         self.rowCountLabel = QtGui.QLabel(self.viewConfigGB)
         self.rowCount = QtGui.QSpinBox(self.viewConfigGB)
@@ -72,7 +76,7 @@ class Statistics(QtGui.QDialog):
         self.rowCount.setRange(10, 150)
 
         self.probabilityChange = QtGui.QCheckBox()
-        self.probabilityChange.setLayoutDirection(QtCore.Qt.RightToLeft)
+        #self.probabilityChange.setLayoutDirection(QtCore.Qt.RightToLeft)
 
         doubleValidator = QtGui.QDoubleValidator(self)
         self.xMin = QtGui.QLineEdit(self.viewConfigGB)
@@ -98,6 +102,7 @@ class Statistics(QtGui.QDialog):
 
         # Graphics
         self.graphWidget = QtGui.QWidget()
+        self.graphWidget.setContentsMargins(0, 0, 0, 0)
         self.graphLayout = QtGui.QVBoxLayout(self.graphWidget)
 
         self.closeButtonBox = QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)

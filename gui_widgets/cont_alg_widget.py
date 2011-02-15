@@ -13,7 +13,7 @@ import hpgl_run.sk_thread as SKT
 class ContAlgWidget(QtGui.QDialog):
     def __init__(self, iterator=0, parent=None):
         QtGui.QDialog.__init__(self, parent)
-        self.resize(650, 450)
+        self.resize(650, 350)
 
         self.iterator = iterator
         self.algorithmTypes = [self.__tr('Simple Kriging'),
@@ -44,7 +44,11 @@ class ContAlgWidget(QtGui.QDialog):
         self.DoubleValidator = QtGui.QDoubleValidator(self)
 
         self.CentralWidget = QtGui.QWidget()
-        self.CentralLayout = QtGui.QGridLayout(self.CentralWidget)
+        self.CentralWidget.setContentsMargins(0, 0, 0, 0)
+
+        self.CentralLayout = QtGui.QGridLayout()
+        self.CentralLayout.setSpacing(0)
+        self.CentralLayout.setContentsMargins(4, 0, 4, 0)
         self.setLayout(self.CentralLayout)
 
         self.TabWidget = QtGui.QTabWidget(self.CentralWidget)
@@ -53,6 +57,7 @@ class ContAlgWidget(QtGui.QDialog):
         self.Tab2Layout = QtGui.QGridLayout(self.Tab2)
         self.AlgorithmTypeGB = QtGui.QGroupBox(self.Tab2)
         self.AlgorithmTypeLayout = QtGui.QGridLayout(self.AlgorithmTypeGB)
+        self.AlgorithmTypeLayout.setSpacing(0)
         self.AlgorithmTypeLabel = QtGui.QLabel(self.AlgorithmTypeGB)
         self.AlgorithmType = QtGui.QComboBox(self.AlgorithmTypeGB)
         self.AlgorithmType.addItems(self.algorithmTypes)
@@ -74,6 +79,8 @@ class ContAlgWidget(QtGui.QDialog):
                                            [0, 4, 1, 1], [0, 5, 1, 1]]
 
         self.AlgorithmWidget = QtGui.QStackedWidget()
+        self.AlgorithmWidget.setContentsMargins(0, 0, 0, 0)
+
         self.SKWidget = GWSk.skwidget()
         self.OKWidget = GWOk.okwidget()
         self.LVMWidget = GWLvm.lvmwidget()
@@ -100,6 +107,7 @@ class ContAlgWidget(QtGui.QDialog):
         # TAB 3
         self.Tab3 = QtGui.QWidget()
         self.Tab3Layout = QtGui.QGridLayout(self.Tab3)
+        self.Tab3Layout.setSpacing(0)
         self.Tab3Spacer = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum,
             QtGui.QSizePolicy.Expanding)
 
@@ -231,7 +239,7 @@ class ContAlgWidget(QtGui.QDialog):
 
         self.PlaceWidgetsAtPlaces(self.VariogramTypeLayout,
                                   self.VariogramTypeWidgets,
-                                  self.VariogramTypeWidgetsPlaces)
+                                 self.VariogramTypeWidgetsPlaces)
         self.PlaceWidgetsAtPlaces(self.EllipsoidRangesLayout,
                                   self.EllipsoidRangesWidgets,
                                   self.EllipsoidRangesWidgetsPlaces)
@@ -244,6 +252,7 @@ class ContAlgWidget(QtGui.QDialog):
         self.PlaceWidgetsAtPlaces(self.Tab3Layout,
                                   self.Tab3Widgets,
                                   self.Tab3WidgetsPlaces)
+
         self.TabWidget.addTab(self.Tab3, "")
 
         # Other Mainwindow layouts, bars, etc.

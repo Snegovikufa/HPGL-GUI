@@ -21,14 +21,16 @@ except:
 class MainWindow(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        self.setContentsMargins(0, 0, 0, 0)
 
         self.mainLayout = QtGui.QVBoxLayout(self)
         self.mainLayout.setSpacing(0)
+        self.mainLayout.setContentsMargins(4, 4, 0, 3)
         self.resize(950, 500)
-        
+
         self.contCubes = CubeItem()
         self.indCubes = CubeItem()
-        
+
         self.iterator = 0 # iterator for cubes' names
         self.log = ''
 
@@ -148,22 +150,26 @@ class MainWindow(QtGui.QWidget):
         vbox = QtGui.QVBoxLayout(leftWidget)
         vbox.addWidget(self.toolbar)
         vbox.addWidget(self.tree)
+        vbox.setSpacing(2)
 
         rightWidget = QtGui.QWidget()
         vbox = QtGui.QVBoxLayout()
         vbox.addWidget(self.view)
+        vbox.setSpacing(0)
         rightWidget.setLayout(vbox)
 
         splitter.addWidget(leftWidget)
         splitter.addWidget(rightWidget)
         splitter.setContentsMargins(0, 0, 0, 0)
         #splitter.setSizes([50,40])
-        
+
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.busyIcon)
         hbox.addWidget(self.algorithmText)
         hbox.addWidget(self.progressBar)
         hbox.addWidget(self.logButton)
+        hbox.setSpacing(2)
+        hbox.setContentsMargins(4, 4, 0, 0)
 
         self.mainLayout.addWidget(splitter)
         self.mainLayout.addLayout(hbox)

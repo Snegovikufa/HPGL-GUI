@@ -62,6 +62,8 @@ class CubeItem():
         self.__items[index][6] += text
 
     def changeUndefValue(self, newValue, index=0):
+        print newValue, index
+        
         if self.undefValue(index) == newValue:
             return
 

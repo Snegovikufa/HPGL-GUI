@@ -6,6 +6,7 @@ class varwidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
 
         self.mainLayout = QtGui.QGridLayout(self)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.mainLayout)
 
         self.intValidator = QtGui.QIntValidator(self)
@@ -148,10 +149,10 @@ class varwidget(QtGui.QWidget):
 
         self.VarWidgets = [self.VariogramTypeGB, self.EllipsoidRangesGB,
                             self.EllipsoidAnglesGB, self.NuggetEffectGB,
-                            self.Spacer]
+                          ]
         self.VarWidgetsPlaces = [[0, 0, 1, 1], [0, 1, 1, 1],
                                   [1, 0, 1, 1], [1, 1, 1, 1],
-                                  [2, 1, 1, 1]]
+                                 ]
 
         self.PlaceWidgetsAtPlaces(self.VariogramTypeLayout,
                                   self.VariogramTypeWidgets,

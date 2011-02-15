@@ -6,6 +6,7 @@ class sgswidget(skwidget):
         QtGui.QWidget.__init__(self, parent)
         
         self.mainLayout = QtGui.QGridLayout()
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.mainLayout)
         
         self.initBaseWidgets()

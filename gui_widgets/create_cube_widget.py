@@ -15,9 +15,9 @@ class CreateCube(QtGui.QDialog):
 
     def initWidgets(self):
         self.mainLayout = QtGui.QVBoxLayout(self)
-#        self.mainLayout.setContentsMargins(0, 0, 0, 0)
-#        self.mainLayout.setSpacing(0)
-        
+        #self.mainLayout.setContentsMargins(3, 3, 3, 3)
+        self.mainLayout.setSpacing(0)
+
         intValidator = QtGui.QIntValidator(self)
         intValidator.setBottom(1)
         doubleValidator = QtGui.QDoubleValidator(self)
@@ -111,12 +111,18 @@ class CreateCube(QtGui.QDialog):
         self.PlaceWidgetsAtPlaces(self.GridLayout, self.GridSizeWidgets, self.GridSizeWidgetsPlaces)
         self.PlaceWidgetsAtPlaces(self.IndValuesLayout, self.IndValuesWidgets, self.IndValuesWidgetsPlaces)
         self.PlaceWidgetsAtPlaces(self.createCubeLayout, self.createCubeWidgets, self.createCubeWidgetsPlaces)
-        
+
         hbox = QtGui.QHBoxLayout()
-#        hbox.setSpacing(0)
-        hbox.addWidget(self.GridSizeGB)
+        hbox.setSpacing(0)
+
+        vbox = QtGui.QVBoxLayout()
+        vbox.addWidget(self.GridSizeGB)
+        vbox.addWidget(QtGui.QWidget())
+        vbox.setSpacing(0)
+
+        hbox.addLayout(vbox)
         hbox.addWidget(self.IndValuesGB)
-        
+
         self.mainLayout.addLayout(hbox)
         self.mainLayout.addWidget(self.createCubeGB)
 

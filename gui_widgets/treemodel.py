@@ -151,7 +151,20 @@ class TreeModel(QtCore.QAbstractItemModel):
         if role == QtCore.Qt.DecorationRole:
             if self.getItem(index).parent() == self.rootItem:
                 if index.column() == 0:
-                    return QtGui.QPixmap('icons/render.png')
+                    if index.row() == 0:
+                        pixmap = QtGui.QPixmap()
+                        pixmap.load('icons/cont.png')
+                        
+                        pixmap = pixmap.scaled(22, 22, aspectRatioMode=QtCore.Qt.KeepAspectRatio, 
+                                               transformMode=QtCore.Qt.SmoothTransformation)
+                        return pixmap
+                    if index.row() == 1:
+                        pixmap = QtGui.QPixmap()
+                        pixmap.load('icons/ind.png')
+                        
+                        pixmap = pixmap.scaled(22, 22, aspectRatioMode=QtCore.Qt.KeepAspectRatio, 
+                                               transformMode=QtCore.Qt.SmoothTransformation)
+                        return pixmap
         
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             item = self.getItem(index)

@@ -2,7 +2,7 @@
 import numpy
 from geo_bsd import ContProperty, IndProperty
 
-class CubeItem():
+class CubeItem(object):
     def __init__(self, parent = None):
         self.__items = []
         self.__parent = parent

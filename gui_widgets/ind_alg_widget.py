@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui, QtCore
 from geo_bsd import set_thread_num
 from geo_bsd.routines import CalcMarginalProbsIndicator
 import gui_widgets.ikwidget as GWIk
@@ -7,9 +7,10 @@ import gui_widgets.varwidget as VW
 import hpgl_run.ik_thread as IKT
 import hpgl_run.sis_thread as SIST
 
+
 class IndAlgWidget(QtGui.QDialog):
     def __init__(self, iterator=0, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        super(IndAlgWidget, self).__init__(parent)
         self.iterator = iterator
 
         # Const
@@ -242,15 +243,9 @@ class IndAlgWidget(QtGui.QDialog):
                 info = ['Indicator Kriging', self]
                 self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
 
-                QtCore.QObject.connect(self.NewThread,
-                                        QtCore.SIGNAL("msg(QString)"),
-                                        self.UpdateUI)
-                QtCore.QObject.connect(self.NewThread,
-                                        QtCore.SIGNAL("progress(QString)"),
-                                        self.UpdateProgress)
-                QtCore.QObject.connect(self.NewThread,
-                                        QtCore.SIGNAL("Result(PyQt_PyObject)"),
-                                        self.CatchResult)
+                self.NewThread.logMessage.connect(self.UpdateUI)
+                self.NewThread.progressMessage.connect(self.UpdateProgress)
+                self.NewThread.propSignal.connect(self.CatchResult)
 
                 self.NewThread.start()
                 self.RunButton.setDisabled(1)
@@ -299,15 +294,9 @@ class IndAlgWidget(QtGui.QDialog):
                 info = ['SIS', self]
                 self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
 
-                QtCore.QObject.connect(self.NewThread,
-                                        QtCore.SIGNAL("msg(QString)"),
-                                        self.UpdateUI)
-                QtCore.QObject.connect(self.NewThread,
-                                        QtCore.SIGNAL("progress(QString)"),
-                                        self.UpdateProgress)
-                QtCore.QObject.connect(self.NewThread,
-                                        QtCore.SIGNAL("Result(PyQt_PyObject)"),
-                                        self.CatchResult)
+                self.NewThread.logMessage.connect(self.UpdateUI)
+                self.NewThread.progressMessage.connect(self.UpdateProgress)
+                self.NewThread.propSignal.connect(self.CatchResult)
 
                 self.NewThread.start()
                 self.RunButton.setDisabled(1)
@@ -330,6 +319,6 @@ class IndAlgWidget(QtGui.QDialog):
 
     def __tr(self, string, dis=None):
         '''Small function to translate'''
-        return QtGui.qApp.translate("MainWindow", string, dis,
-                                     QtGui.QApplication.UnicodeUTF8)
-
+        #return QtGui.qApp.translate("MainWindow", string, dis,
+        #                             QtGui.QApplication.UnicodeUTF8)
+        return string

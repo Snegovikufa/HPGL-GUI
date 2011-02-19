@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 from geo_bsd import CovarianceModel, set_thread_num
 import gui_widgets.lvmwidget as GWLvm
 import gui_widgets.okwidget as GWOk
@@ -12,7 +12,7 @@ import hpgl_run.sk_thread as SKT
 
 class ContAlgWidget(QtGui.QDialog):
     def __init__(self, iterator=0, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        super(ContAlgWidget, self).__init__(parent)
         self.resize(650, 350)
 
         self.iterator = iterator
@@ -448,15 +448,18 @@ class ContAlgWidget(QtGui.QDialog):
                     info = ['Simple Kriging', self.NewThread]
                     self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
 
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("msg(QString)"),
-                                           self.UpdateUI)
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("progress(QString)"),
-                                           self.UpdateProgress)
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("Result(PyQt_PyObject)"),
-                                           self.CatchResult)
+                    #QtCore.QObject.connect(self.NewThread,
+                    #                       QtCore.SIGNAL("msg(QString)"),
+                    #                        self.UpdateUI)
+                    #QtCore.QObject.connect(self.NewThread,
+                    #                       QtCore.SIGNAL("progress(QString)"),
+                    #                       self.UpdateProgress)
+                    #QtCore.QObject.connect(self.NewThread,
+                    #                       QtCore.SIGNAL("Result(PyQt_PyObject)"),
+                    #                       self.CatchResult)
+                    self.NewThread.logMessage.connect(self.UpdateUI)
+                    self.NewThread.progressMessage.connect(self.UpdateProgress)
+                    self.NewThread.propSignal.connect(self.CatchResult)
 
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
@@ -489,15 +492,10 @@ class ContAlgWidget(QtGui.QDialog):
                     info = ['Ordinary Kriging', self]
                     self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
 
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("msg(QString)"),
-                                           self.UpdateUI)
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("progress(QString)"),
-                                           self.UpdateProgress)
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("Result(PyQt_PyObject)"),
-                                           self.CatchResult)
+                    self.NewThread.logMessage.connect(self.UpdateUI)
+                    self.NewThread.progressMessage.connect(self.UpdateProgress)
+                    self.NewThread.propSignal.connect(self.CatchResult)
+
 
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
@@ -533,15 +531,9 @@ class ContAlgWidget(QtGui.QDialog):
                     info = ['LVM Kriging', self]
                     self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
 
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("msg(QString)"),
-                                           self.UpdateUI)
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("progress(QString)"),
-                                           self.UpdateProgress)
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("Result(PyQt_PyObject)"),
-                                           self.CatchResult)
+                    self.NewThread.logMessage.connect(self.UpdateUI)
+                    self.NewThread.progressMessage.connect(self.UpdateProgress)
+                    self.NewThread.propSignal.connect(self.CatchResult)
 
                     self.NewThread.start()
 
@@ -575,15 +567,9 @@ class ContAlgWidget(QtGui.QDialog):
                     info = ['SGS', self]
                     self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
 
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("msg(QString)"),
-                                           self.UpdateUI)
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("progress(QString)"),
-                                           self.UpdateProgress)
-                    QtCore.QObject.connect(self.NewThread,
-                                           QtCore.SIGNAL("Result(PyQt_PyObject)"),
-                                           self.CatchResult)
+                    self.NewThread.logMessage.connect(self.UpdateUI)
+                    self.NewThread.progressMessage.connect(self.UpdateProgress)
+                    self.NewThread.propSignal.connect(self.CatchResult)
 
                     self.NewThread.start()
                     self.RunButton.setDisabled(1)
@@ -594,8 +580,9 @@ class ContAlgWidget(QtGui.QDialog):
 
     def __tr(self, string, dis=None):
         '''Small function to translate'''
-        return QtGui.qApp.translate("MainWindow", string, dis,
-                                     QtGui.QApplication.UnicodeUTF8)
+        #return QtGui.qApp.translate("MainWindow", string, dis,
+        #                             QtGui.QApplication.UnicodeUTF8)
+        return string
 
     def retranslateUI(self, MainWindow):
         '''Adds text to widgets'''

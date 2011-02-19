@@ -1,4 +1,4 @@
-#from PyQt4 import QtGui, QtCore
+#from PySide import QtGui, QtCore
 #from cube_list import CubeItem, RootItem
 #
 #class TreeModel(QtGui.QStandardItemModel):
@@ -49,7 +49,7 @@
 
 
 
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 
 class TreeItem(object):
     def __init__(self, data, parent=None):
@@ -261,7 +261,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         
-        print index.row(), index.column()
+        #print index.row(), index.column()
         
         if role != QtCore.Qt.EditRole:
             return False

@@ -1,4 +1,4 @@
-from PyQt4 import QtGui
+from PySide import QtGui, QtCore
 
 class skwidget(QtGui.QWidget):
     def __init__(self, parent=None):

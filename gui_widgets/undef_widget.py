@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui, QtCore
 
 class UndefChangeWidget(QtGui.QDialog):
     def __init__(self, cubes, index, parent = None):

@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui, QtCore
 
 class QProgressIndicator(QtGui.QWidget):
     def __init__(self, parent=None, color = None):

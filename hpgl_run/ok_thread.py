@@ -1,10 +1,13 @@
 from geo_bsd import set_output_handler
 from geo_bsd import set_progress_handler
 from geo_bsd import ordinary_kriging
-from PyQt4 import QtCore
-
+from PySide import QtCore
 
 class OKThread(QtCore.QThread):
+    propSignal = QtCore.Signal(object)
+    logMessage = QtCore.Signal(str)
+    progressMessage = QtCore.Signal(int)
+
     def __init__(self, Prop, GridObject, EllipsoidRanges, IntPoints, Variogram):
         QtCore.QThread.__init__(self)
 
@@ -20,11 +23,11 @@ class OKThread(QtCore.QThread):
         set_progress_handler(self.ProgressShow, None)
         self.Result = ordinary_kriging( self.Prop, self.GridObject, self.EllipsoidRanges,
                                       self.IntPoints, self.Variogram )
-        self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
+        #self.emit(QtCore.SIGNAL("Result(PyQt_PyObject)"), self.Result)
+        self.propSignal.emit(self.Result)
 
     def OutputLog(self, string, _):
         '''Emits HPGL logs to main thread'''
-        self.StrForLog = string
         self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(self.StrForLog))
         return 0
 

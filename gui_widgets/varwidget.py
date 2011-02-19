@@ -1,4 +1,4 @@
-from PyQt4 import QtGui
+from PySide import QtGui
 from geo_bsd import CovarianceModel
 
 class varwidget(QtGui.QWidget):

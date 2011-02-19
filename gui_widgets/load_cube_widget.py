@@ -1,11 +1,15 @@
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 from geo_bsd import SugarboxGrid
 from gui_widgets.cube_list import CubeItem
 from hpgl_run.load_cube_thread import LoadCubeThread
 
 class LoadCube(QtGui.QDialog):
+    cubeSignal = QtCore.Signal(object)
+    loadingSignal = QtCore.Signal(bool)
+    logMessage = QtCore.Signal(str)
+
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        super(LoadCube, self).__init__(parent)
         self.resize(500, 160)
 
         self.initWidgets()
@@ -141,12 +145,13 @@ class LoadCube(QtGui.QDialog):
             self.loadCubeButton.setToolTip('')
 
     def CubeLoad(self):
-        filepath = QtGui.QFileDialog.getOpenFileName(self, 'Select file')
+        filepath = QtGui.QFileDialog.getOpenFileName(self, 'Select file')[0]
 
         if filepath:
             cubeName = self.getCubeName(filepath)
 
-            self.emit(QtCore.SIGNAL("Loading(PyQt_PyObject)"), True)
+            #self.emit(QtCore.SIGNAL("Loading(PyQt_PyObject)"), True)
+            self.loadingSignal.emit(True)
 
             gridSize = (int(self.GridSizeX.text()),
                         int(self.GridSizeY.text()),
@@ -182,17 +187,19 @@ class LoadCube(QtGui.QDialog):
 #                             'undefinedValue, indicatorValues, gridSize)')
 
             self.newThread = LoadCubeThread(filepath, undefValue, gridSize, indValues)
-            self.connect(self.newThread,
-                         QtCore.SIGNAL('Property(PyQt_PyObject)'),
-                         self.catchProp)
+            self.newThread.cubeSignal.connect(self.catchProp)
+
             self.newThread.start()
 
             self.hide()
 
     def catchProp(self, prop):
         self.item.setProperty(prop)
-        self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.item)
-        self.emit(QtCore.SIGNAL("Loading(PyQt_PyObject)"), False)
+
+#        self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.item)
+        self.cubeSignal.emit(self.item)
+#        self.emit(QtCore.SIGNAL("Loading(PyQt_PyObject)"), False)
+        self.loadingSignal.emit(False)
 
     def getCubeName(self, filepath):
         '''Return cubes' name that described inside of Eclipse property file'''
@@ -251,9 +258,11 @@ class LoadCube(QtGui.QDialog):
         self.loadCubeButton.setText(self.__tr("Load cube"))
 
     def emitLog(self, text):
-        self.emit(QtCore.SIGNAL('LogMessage(QString &)'), text)
+        #self.emit(QtCore.SIGNAL('LogMessage(QString &)'), text)
+        self.logMessage.emit(text)
 
     def __tr(self, string, dis=None):
         '''Small function to translate'''
-        return QtGui.qApp.translate("MainWindow", string, dis,
-                                     QtGui.QApplication.UnicodeUTF8)
+        #return QtGui.qApp.translate("MainWindow", string, dis,
+        #                             QtGui.QApplication.UnicodeUTF8)
+        return str(string)

@@ -1,9 +1,11 @@
 import os
+os.environ['QT_API'] = 'pyside'
 os.environ['ETS_TOOLKIT'] = 'qt4'
 
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 from enthought.mayavi import mlab
 from enthought.tvtk.api import tvtk
+from enthought.tvtk.pyface.api import Scene
 from numpy import arange, nonzero, float32, min, max, median, copy
 from numpy.core.numeric import ravel
 
@@ -15,7 +17,8 @@ from enthought.mayavi.core.ui.api import MayaviScene, MlabSceneModel, \
 
 class Visualisator(HasTraits):
     scene = Instance(MlabSceneModel, ())
-    tree = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene),
+    #tree = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene),
+    tree = View(Item('scene', editor=SceneEditor(scene_class=Scene),
                      height=250, width=300, show_label=False),
                 resizable=True
                 )

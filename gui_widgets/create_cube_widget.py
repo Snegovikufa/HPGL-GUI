@@ -1,11 +1,13 @@
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 import numpy
 from gui_widgets.cube_list import CubeItem
 from geo_bsd import SugarboxGrid, ContProperty, IndProperty
 
 class CreateCube(QtGui.QDialog):
+    cubeSignal = QtCore.Signal(object)
+
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        super(CreateCube, self).__init__(parent)
         self.resize(500, 160)
 
         self.initWidgets()
@@ -189,7 +191,8 @@ class CreateCube(QtGui.QDialog):
 
         self.item.append(prop, undefValue, indValues,
                          gridObject, name, gridSize)
-        self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.item)
+        #self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.item)
+        self.cubeSignal.emit(self.item)
         self.hide()
 
     def cubeCreateAccess(self):

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui, QtCore
+
+from PySide import QtGui, QtCore
 from geo_bsd.geo import write_property
 from gui_widgets.cube_list import CubeItem
 import gui_widgets.cont_alg_widget as CAW
@@ -40,24 +41,40 @@ class MainWindow(QtGui.QWidget):
 
     def initSignals(self):
         # Signals and slots
-        self.connect(self.tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint&)'), self.contextMenu)
-        self.connect(self.tree, QtCore.SIGNAL('collapsed(const QModelIndex &)'), self.resizeColumn)
-        self.connect(self.tree, QtCore.SIGNAL('expanded(const QModelIndex &)'), self.resizeColumn)
-        self.connect(self.logButton, QtCore.SIGNAL('clicked()'), self.showLog)
-        self.connect(self.loadAction, QtCore.SIGNAL("triggered()"), self.loadCube)
-        self.connect(self.deleteAction, QtCore.SIGNAL("triggered()"), self.deleteCube)
-        self.connect(self.algorithmAction, QtCore.SIGNAL("triggered()"), self.applyAlgorithm)
-        self.connect(self.statisticsAction, QtCore.SIGNAL("triggered()"), self.showStatistics)
-        self.connect(self.saveAction, QtCore.SIGNAL("triggered()"), self.saveCube)
-        self.connect(self.renderAction, QtCore.SIGNAL("triggered()"), self.renderCube)
-        self.connect(self.newCubeAction, QtCore.SIGNAL("triggered()"), self.addNewCube)
-        self.connect(self.changeUVAction, QtCore.SIGNAL("triggered()"), self.changeUV)
+#        self.connect(self.tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint&)'), self.contextMenu)
+        self.tree.customContextMenuRequested.connect(self.contextMenu)
+#        self.connect(self.tree, QtCore.SIGNAL('collapsed(const QModelIndex &)'), self.resizeColumn)
+        self.tree.collapsed.connect(self.resizeColumn)
+#        self.connect(self.tree, QtCore.SIGNAL('expanded(const QModelIndex &)'), self.resizeColumn)
+        self.tree.expanded.connect(self.resizeColumn)
+#        self.connect(self.logButton, QtCore.SIGNAL('clicked()'), self.showLog)
+        self.logButton.clicked.connect(self.showLog)
+#        self.connect(self.loadAction, QtCore.SIGNAL("triggered()"), self.loadCube)
+        self.loadAction.triggered.connect(self.loadCube)
+#        self.connect(self.deleteAction, QtCore.SIGNAL("triggered()"), self.deleteCube)
+        self.deleteAction.triggered.connect(self.deleteCube)
+#        self.connect(self.algorithmAction, QtCore.SIGNAL("triggered()"), self.applyAlgorithm)
+        self.algorithmAction.triggered.connect(self.applyAlgorithm)
+#        self.connect(self.statisticsAction, QtCore.SIGNAL("triggered()"), self.showStatistics)
+        self.statisticsAction.triggered.connect(self.showStatistics)
+#        self.connect(self.saveAction, QtCore.SIGNAL("triggered()"), self.saveCube)
+        self.saveAction.triggered.connect(self.saveCube)
+#        self.connect(self.renderAction, QtCore.SIGNAL("triggered()"), self.renderCube)
+        self.renderAction.triggered.connect(self.renderCube)
+#        self.connect(self.newCubeAction, QtCore.SIGNAL("triggered()"), self.addNewCube)
+        self.newCubeAction.triggered.connect(self.addNewCube)
+#        self.connect(self.changeUVAction, QtCore.SIGNAL("triggered()"), self.changeUV)
+        self.changeUVAction.triggered.connect(self.changeUV)
 
-        self.connect(self.loadCubesWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
-        self.connect(self.loadCubesWidget, QtCore.SIGNAL("Loading(PyQt_PyObject)"), self.animateBusy)
-        self.connect(self.loadCubesWidget, QtCore.SIGNAL("LogMessage(QString&)"), self.catchLog)
+        #self.connect(self.loadCubesWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
+        self.loadCubesWidget.cubeSignal.connect(self.catchCube)
+        #self.connect(self.loadCubesWidget, QtCore.SIGNAL("Loading(PyQt_PyObject)"), self.animateBusy)
+        self.loadCubesWidget.loadingSignal.connect(self.animateBusy)
+        #self.connect(self.loadCubesWidget, QtCore.SIGNAL("LogMessage(QString&)"), self.catchLog)
+        self.loadCubesWidget.logMessage.connect(self.catchLog)
         
-        self.connect(self.createCubeWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
+        #self.connect(self.createCubeWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
+        self.createCubeWidget.cubeSignal.connect(self.catchCube)
         
         self.connect(self.contAlgWidget, QtCore.SIGNAL("progress(PyQt_PyObject)"), self.updateProgress)
         self.connect(self.contAlgWidget, QtCore.SIGNAL("algorithm(PyQt_PyObject)"), self.updateStatusBar)
@@ -420,8 +437,9 @@ class MainWindow(QtGui.QWidget):
         self.iterator += 1
         
     def insertChild(self, data, position, index = None):
-        if index == None:
-            index = self.tree.selectionModel().currentIndex()
+        #if index == None:
+        #    index = self.tree.selectionModel().currentIndex()
+
         model = self.tree.model()
         
         if not model.insertRow(position, index):
@@ -444,6 +462,9 @@ class MainWindow(QtGui.QWidget):
             model.setData(child, data[column], QtCore.Qt.EditRole)
             
     def showStatistics(self):
+        # FIXME
+        return
+
         index = self.getIndex()
         row = self.getRow()
 

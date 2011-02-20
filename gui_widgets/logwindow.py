@@ -29,7 +29,7 @@ class LogWindow(QtGui.QDialog):
         self.hide()
     
     def SaveLog(self):
-        self.fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as')
+        self.fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as')[0]
         if self.fname:
             f = open(self.fname, 'w')
             f.write(self.TextEdit.toPlainText())

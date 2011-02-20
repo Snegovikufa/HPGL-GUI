@@ -29,7 +29,6 @@ class LoadCube(QtGui.QDialog):
         self.connect(self.GridSizeY, QtCore.SIGNAL("textChanged(QString)"), self.CubeLoadAccess)
         self.connect(self.GridSizeZ, QtCore.SIGNAL("textChanged(QString)"), self.CubeLoadAccess)
 
-
     def initWidgets(self):
         self.mainLayout = QtGui.QGridLayout(self)
         self.mainLayout.setSpacing(0)

@@ -28,7 +28,8 @@ class OKThread(QtCore.QThread):
 
     def OutputLog(self, string, _):
         '''Emits HPGL logs to main thread'''
-        self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(self.StrForLog))
+        #self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(self.StrForLog))
+        self.logMessage.emit(string)
         return 0
 
     def ProgressShow(self, stage, Percent, _):
@@ -41,6 +42,7 @@ class OKThread(QtCore.QThread):
             print ""
         else:
             self.OutStr = int(self.Percent)
-            self.OutStr = str(self.OutStr)
-            self.emit(QtCore.SIGNAL("progress(QString)"), QtCore.QString(self.OutStr))
+            #self.OutStr = str(self.OutStr)
+            #self.emit(QtCore.SIGNAL("progress(QString)"), QtCore.QString(self.OutStr))
+            self.progressMessage.emit(self.OutStr)
         return 0

@@ -76,17 +76,27 @@ class MainWindow(QtGui.QWidget):
         #self.connect(self.createCubeWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
         self.createCubeWidget.cubeSignal.connect(self.catchCube)
         
-        self.connect(self.contAlgWidget, QtCore.SIGNAL("progress(PyQt_PyObject)"), self.updateProgress)
-        self.connect(self.contAlgWidget, QtCore.SIGNAL("algorithm(PyQt_PyObject)"), self.updateStatusBar)
-        self.connect(self.contAlgWidget, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.clearStatusBar)
-        self.connect(self.contAlgWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
-        self.connect(self.contAlgWidget, QtCore.SIGNAL("LogMessage(QString&)"), self.catchLog)
-        self.connect(self.contAlgWidget, QtCore.SIGNAL("msg(QString)"), self.catchLog)
-        
-        self.connect(self.indAlgWidget, QtCore.SIGNAL("progress(PyQt_PyObject)"), self.updateProgress)
-        self.connect(self.indAlgWidget, QtCore.SIGNAL("algorithm(PyQt_PyObject)"), self.updateStatusBar)
-        self.connect(self.indAlgWidget, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.clearStatusBar)
-        self.connect(self.indAlgWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
+        #self.connect(self.contAlgWidget, QtCore.SIGNAL("progress(PyQt_PyObject)"), self.updateProgress)
+        #self.connect(self.contAlgWidget, QtCore.SIGNAL("algorithm(PyQt_PyObject)"), self.updateStatusBar)
+        #self.connect(self.contAlgWidget, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.clearStatusBar)
+        #self.connect(self.contAlgWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
+        #self.connect(self.contAlgWidget, QtCore.SIGNAL("LogMessage(QString&)"), self.catchLog)
+        #self.connect(self.contAlgWidget, QtCore.SIGNAL("msg(QString)"), self.catchLog)
+        self.contAlgWidget.progressMessage.connect(self.updateProgress)
+        self.contAlgWidget.algoInfo.connect(self.updateStatusBar)
+        self.contAlgWidget.cubeSignal.connect(self.catchCube)
+        self.contAlgWidget.finishedSignal.connect(self.clearStatusBar)
+        self.contAlgWidget.logMessage.connect(self.catchLog)
+
+        #self.connect(self.indAlgWidget, QtCore.SIGNAL("progress(PyQt_PyObject)"), self.updateProgress)
+        #self.connect(self.indAlgWidget, QtCore.SIGNAL("algorithm(PyQt_PyObject)"), self.updateStatusBar)
+        #self.connect(self.indAlgWidget, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.clearStatusBar)
+        #self.connect(self.indAlgWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
+        self.indAlgWidget.progressMessage.connect(self.updateProgress)
+        self.indAlgWidget.algoInfo.connect(self.updateStatusBar)
+        self.indAlgWidget.finishedSignal.connect(self.clearStatusBar)
+        self.indAlgWidget.cubeSignal.connect(self.catchCube)
+        self.indAlgWidget.logMessage.connect(self.catchLog)
 
     def initWidgets(self):
         # Buttons
@@ -186,7 +196,7 @@ class MainWindow(QtGui.QWidget):
         hbox.addWidget(self.progressBar)
         hbox.addWidget(self.logButton)
         hbox.setSpacing(2)
-        hbox.setContentsMargins(4, 4, 0, 0)
+        hbox.setContentsMargins(4, 0, 4, 0)
 
         self.mainLayout.addWidget(splitter)
         self.mainLayout.addLayout(hbox)
@@ -384,7 +394,7 @@ class MainWindow(QtGui.QWidget):
         index = self.getIndex()
         row = self.getRow()
 
-        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ...')
+        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ...')[0]
         if fname and self.isIndexCont(index):
             try:
                 write_property(self.contCubes.property(row), str(fname),

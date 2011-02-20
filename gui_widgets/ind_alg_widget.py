@@ -9,6 +9,12 @@ import hpgl_run.sis_thread as SIST
 
 
 class IndAlgWidget(QtGui.QDialog):
+    algoInfo = QtCore.Signal(str)
+    cubeSignal = QtCore.Signal(object)
+    logMessage = QtCore.Signal(str)
+    progressMessage = QtCore.Signal(int)
+    finishedSignal = QtCore.Signal(str)
+
     def __init__(self, iterator=0, parent=None):
         super(IndAlgWidget, self).__init__(parent)
         self.iterator = iterator
@@ -135,11 +141,13 @@ class IndAlgWidget(QtGui.QDialog):
 
     def UpdateUI(self, string):
         '''Outputs HPGL\'s output to log'''
-        self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(string))
+        #self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(string))
+        self.logMessage.emit(string)
 
     def UpdateProgress(self, value):
         '''Emits percentage of current algorithm progress'''
-        self.emit(QtCore.SIGNAL('progress(PyQt_PyObject)'), value)
+        #self.emit(QtCore.SIGNAL('progress(PyQt_PyObject)'), value)
+        self.progressMessage.emit(value)
 
     def AlgorithmTypeChanged(self, value):
         '''Locks and unlocks widgets for cont and ind contCubes'''
@@ -197,8 +205,10 @@ class IndAlgWidget(QtGui.QDialog):
             name = self.parentItem.name()+self.algName+'_'+str(self.iterator)
             self.parentItem.setName(name)
 
-            self.emit(QtCore.SIGNAL("finished(PyQt_PyObject)"), True)
-            self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.parentItem)
+            #self.emit(QtCore.SIGNAL("finished(PyQt_PyObject)"), True)
+            #self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.parentItem)
+            self.finishedSignal.emit(True)
+            self.cubeSignal.emit(self.parentItem)
             self.close()
 
     def AlgorithmRun(self):
@@ -240,8 +250,10 @@ class IndAlgWidget(QtGui.QDialog):
                                               self.contCubes.gridObject(self.currIndex),
                                               VarData,
                                               MargProbs)
-                info = ['Indicator Kriging', self]
-                self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+
+#                info = ['Indicator Kriging', self]
+#                self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+                self.algoInfo.emit('Indicator Kriging')
 
                 self.NewThread.logMessage.connect(self.UpdateUI)
                 self.NewThread.progressMessage.connect(self.UpdateProgress)
@@ -291,8 +303,9 @@ class IndAlgWidget(QtGui.QDialog):
                                               Seed, UseCorr,
                                               Mask)
 
-                info = ['SIS', self]
-                self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+#                info = ['SIS', self]
+#                self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+                self.algoInfo.emit('SIS')
 
                 self.NewThread.logMessage.connect(self.UpdateUI)
                 self.NewThread.progressMessage.connect(self.UpdateProgress)

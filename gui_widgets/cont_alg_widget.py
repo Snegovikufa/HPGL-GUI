@@ -11,6 +11,12 @@ import hpgl_run.sgs_thread as SGST
 import hpgl_run.sk_thread as SKT
 
 class ContAlgWidget(QtGui.QDialog):
+    cubeSignal = QtCore.Signal(object)
+    logMessage = QtCore.Signal(str)
+    progressMessage = QtCore.Signal(int)
+    algoInfo = QtCore.Signal(str)
+    finishedSignal = QtCore.Signal(bool)
+
     def __init__(self, iterator=0, parent=None):
         super(ContAlgWidget, self).__init__(parent)
         self.resize(650, 350)
@@ -35,8 +41,10 @@ class ContAlgWidget(QtGui.QDialog):
         self.connect(self.AlgorithmType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
                      self.AlgorithmTypeChanged)
-        self.connect(self.RunButton, QtCore.SIGNAL("clicked()"),
-                     self.AlgorithmRun)
+        #self.connect(self.RunButton, QtCore.SIGNAL("clicked()"),
+        #             self.AlgorithmRun)
+        #self.AlgorithmType.currentIndexChanged.connect(self.AlgorithmTypeChanged)
+        self.RunButton.clicked.connect(self.AlgorithmRun)
 
 
     def initWidgets(self):
@@ -276,14 +284,17 @@ class ContAlgWidget(QtGui.QDialog):
 
     def UpdateUI(self, string):
         '''Outputs HPGL\'s output to log'''
-        self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(string))
+        #self.emit(QtCore.SIGNAL("msg(QString)"), QtCore.QString(string))
+        self.logMessage.emit(string)
 
     def UpdateProgress(self, value):
         '''Emits percentage of current algorithm progress'''
-        self.emit(QtCore.SIGNAL('progress(PyQt_PyObject)'), value)
+        #self.emit(QtCore.SIGNAL('progress(PyQt_PyObject)'), value)
+        self.progressMessage.emit(value)
 
     def AlgorithmTypeChanged(self, value):
         '''Locks and unlocks widgets for cont and ind contCubes'''
+        value = int(value)
         self.AlgorithmWidget.setCurrentIndex(value)
         if value == 3:
             self.SGSWidget.SeedGB.show()
@@ -408,8 +419,11 @@ class ContAlgWidget(QtGui.QDialog):
             name = self.parentItem.name()+self.algName+'_'+str(self.iterator)
             self.parentItem.setName(name)
 
-            self.emit(QtCore.SIGNAL("finished(PyQt_PyObject)"), True)
-            self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.parentItem)
+            #self.emit(QtCore.SIGNAL("finished(PyQt_PyObject)"), True)
+            self.finishedSignal.emit(True)
+            #self.emit(QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.parentItem)
+            self.cubeSignal.emit(self.parentItem)
+
             self.close()
 
     def AlgorithmRun(self):
@@ -445,8 +459,9 @@ class ContAlgWidget(QtGui.QDialog):
 #                       'ellipsRanges, intPoints, variogram, mean)'
 #                   )
 
-                    info = ['Simple Kriging', self.NewThread]
-                    self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+                    #info = ['Simple Kriging', self.NewThread]
+                    #self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+                    self.algoInfo.emit('Simple Kriging')
 
                     #QtCore.QObject.connect(self.NewThread,
                     #                       QtCore.SIGNAL("msg(QString)"),
@@ -489,8 +504,9 @@ class ContAlgWidget(QtGui.QDialog):
 #                       'ellipsRanges, intPoints, variogram)'
 #                   )
 
-                    info = ['Ordinary Kriging', self]
-                    self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+                    #info = ['Ordinary Kriging', self]
+                    #self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+                    self.algoInfo.emit('Ordinary Kriging')
 
                     self.NewThread.logMessage.connect(self.UpdateUI)
                     self.NewThread.progressMessage.connect(self.UpdateProgress)
@@ -528,8 +544,9 @@ class ContAlgWidget(QtGui.QDialog):
 #                       'mean, ellipsRanges, intPoints, variogram)'
 #                   )
 
-                    info = ['LVM Kriging', self]
-                    self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+                    #info = ['LVM Kriging', self]
+                    #self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+                    self.algoInfo.emit('LVM Kriging')
 
                     self.NewThread.logMessage.connect(self.UpdateUI)
                     self.NewThread.progressMessage.connect(self.UpdateProgress)
@@ -564,8 +581,9 @@ class ContAlgWidget(QtGui.QDialog):
                                                 Variogram, Seed, KrType, Mean,
                                                 UseHd, Mask)
 
-                    info = ['SGS', self]
-                    self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+                    #info = ['SGS', self]
+                    #self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
+                    self.algoInfo.emit('SGS')
 
                     self.NewThread.logMessage.connect(self.UpdateUI)
                     self.NewThread.progressMessage.connect(self.UpdateProgress)
@@ -576,7 +594,8 @@ class ContAlgWidget(QtGui.QDialog):
                     self.RunButton.setToolTip(self.__tr("Wait while algorithm is processing"))
 
     def emitLog(self, text):
-        self.emit(QtCore.SIGNAL('LogMessage(QString&)'), text)
+        #self.emit(QtCore.SIGNAL('LogMessage(QString&)'), text)
+        self.logMessage.emit(text)
 
     def __tr(self, string, dis=None):
         '''Small function to translate'''

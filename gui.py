@@ -155,13 +155,20 @@ class MainWindow(QtGui.QWidget):
     def deleteCube(self):   
         index = self.getIndex()
         
-        if self.model.removeRow(index.row(), index.parent()):
-
-            if self.isIndexCont(index):
-                print 'CONTCUBES:', self.contCubes
-                self.contCubes.deleteItem(index.row())
-            else:
-                self.indCubes.deleteItem(index.row())
+        
+        if self.isIndexCont(index):
+            self.contCubes.deleteItem(index.row())
+        else:
+            self.indCubes.deleteItem(index.row())
+            
+        self.model.removeRow( index.row(), index.parent() )
+#        if self.model.removeRow(index.row(), index.parent()):
+#
+#            if self.isIndexCont(index):
+#                print 'CONTCUBES:', self.contCubes
+#                self.contCubes.deleteItem(index.row())
+#            else:
+#                self.indCubes.deleteItem(index.row())
 
     def getIndex(self):
         return self.tree.currentIndex()

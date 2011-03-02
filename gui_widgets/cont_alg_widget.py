@@ -461,7 +461,8 @@ class ContAlgWidget(QtGui.QDialog):
 
                     #info = ['Simple Kriging', self.NewThread]
                     #self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
-                    self.algoInfo.emit('Simple Kriging')
+                    info = 'Simple Kriging'
+                    self.algoInfo.emit(info)
 
                     #QtCore.QObject.connect(self.NewThread,
                     #                       QtCore.SIGNAL("msg(QString)"),
@@ -506,7 +507,8 @@ class ContAlgWidget(QtGui.QDialog):
 
                     #info = ['Ordinary Kriging', self]
                     #self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
-                    self.algoInfo.emit('Ordinary Kriging')
+                    info = 'Ordinary Kriging'
+                    self.algoInfo.emit(info)
 
                     self.NewThread.logMessage.connect(self.UpdateUI)
                     self.NewThread.progressMessage.connect(self.UpdateProgress)
@@ -546,7 +548,8 @@ class ContAlgWidget(QtGui.QDialog):
 
                     #info = ['LVM Kriging', self]
                     #self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
-                    self.algoInfo.emit('LVM Kriging')
+                    info = 'LVM Kriging'
+                    self.algoInfo.emit(info)
 
                     self.NewThread.logMessage.connect(self.UpdateUI)
                     self.NewThread.progressMessage.connect(self.UpdateProgress)
@@ -583,7 +586,8 @@ class ContAlgWidget(QtGui.QDialog):
 
                     #info = ['SGS', self]
                     #self.emit(QtCore.SIGNAL('algorithm(PyQt_PyObject)'), info)
-                    self.algoInfo.emit('SGS')
+                    info = 'SGS'
+                    self.algoInfo.emit(info)
 
                     self.NewThread.logMessage.connect(self.UpdateUI)
                     self.NewThread.progressMessage.connect(self.UpdateProgress)

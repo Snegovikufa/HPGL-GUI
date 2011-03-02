@@ -21,11 +21,15 @@ class CubeItem(object):
                            name,
                            gridSize,
                            log])
+        print self.__items
 
     def appendItem(self, cubeItem):
         self.__items += cubeItem.__items
+        print self.__items
 
     def deleteItem(self, index=0):
+        print 'ITEMS:', self.__items
+        print 'DELETING:', index
         del(self.__items[index])
 
     def count(self):

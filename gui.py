@@ -3,6 +3,13 @@
 from PySide import QtGui, QtCore
 from geo_bsd.geo import write_property
 from gui_widgets.cube_list import CubeItem
+
+try:
+    from gui_widgets.visualisator import MayaviQWidget
+except:
+    MayaviQWidget = QtGui.QWidget()
+
+
 import gui_widgets.cont_alg_widget as CAW
 import gui_widgets.ind_alg_widget as IAW
 import gui_widgets.load_cube_widget as LCW
@@ -14,10 +21,6 @@ import gui_widgets.logwindow as LW
 from gui_widgets.treemodel import TreeModel
 import numpy
 
-try:
-    from gui_widgets.visualisator import MayaviQWidget
-except:
-    MayaviQWidget = QtGui.QWidget()
 
 class MainWindow(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -38,6 +41,151 @@ class MainWindow(QtGui.QWidget):
         self.initWidgets()
         self.initSignals()
         self.retranslateUI(self)
+    
+    def addNewCube(self):
+        self.createCubeWidget.show()
+
+        row = self.getRow()
+        if row == 0:
+            self.createCubeWidget.IndValuesCheckbox.setChecked(False)
+        else:
+            self.createCubeWidget.IndValuesCheckbox.setChecked(True)
+            
+    def animateBusy(self, started=False):
+        if started:
+            self.busyIcon.startAnimation()
+        else:
+            self.busyIcon.stopAnimation()
+
+    def applyAlgorithm(self):
+        index = self.getIndex()
+        
+        self.progressBar.setValue(0)
+
+        if self.isIndexCont(index):
+            self.contAlgWidget.push(self.contCubes, index.row(), self.indCubes)
+        else:
+            self.indAlgWidget.push(self.indCubes, index.row())
+
+        self.iterator += 1
+        
+    def catchCube(self, cube):
+        child = str(cube.name())
+        childSize = str(cube.size())
+        undef = str(cube.undefValue())
+        #child.setEditable(0)
+        #childSize.setEditable(0)
+
+        if cube.isIndicator():
+            childIndicators = str(cube.indicatorsCount(0))
+        else:
+            childIndicators = str('-')
+        #childIndicators.setEditable(0)
+        list = [child, childSize, childIndicators, undef]
+
+        if not cube.isIndicator():
+            #self.model.item(0, 0).appendRow(list)
+            self.insertChild(list, self.contCubes.count(), self.contBranchIndex)
+            self.contCubes.appendItem(cube)
+        else:
+            #self.model.item(1, 0).appendRow(list)
+            self.insertChild(list, self.indCubes.count(), self.indBranchIndex)
+            self.indCubes.appendItem(cube)
+
+        self.resizeColumn()
+
+    def catchLog(self, text):
+        self.log += text
+
+    def changeUV(self):
+        index = self.getIndex()
+        row = self.getRow()
+        if self.isIndexCont(index):
+            self.changeUndefWidget = UW.UndefChangeWidget(self.contCubes, row)
+        else:
+            self.changeUndefWidget = UW.UndefChangeWidget(self.contCubes, row)
+        self.changeUndefWidget.show()
+        
+    def clearStatusBar(self):
+        self.algorithmText.clear()
+        self.algorithmText.setDisabled(1)
+        self.progressBar.setDisabled(1)
+        self.busyIcon.stopAnimation()
+
+
+    def closeEvent(self, event):
+        reply = QtGui.QMessageBox.question(self, self.__tr('Quit?'),
+                                           self.__tr("Are you sure to quit?"), 
+                                           QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, 
+                                           QtGui.QMessageBox.No)
+
+        if reply == QtGui.QMessageBox.Yes:
+            self.view.needQuit()
+            event.accept()
+        else:
+            event.ignore()
+            
+    def contextMenu(self, point):
+        index = self.tree.indexAt(point)
+        if self.isIndexCont(index) or self.isIndexInd(index):
+            self.itemMenu.exec_(self.tree.mapToGlobal(point))
+        else:
+            self.branchMenu.exec_(self.tree.mapToGlobal(point))
+            
+    def createModel(self, parent=None):
+        #model = QtGui.QStandardItemModel(2, 4, parent)
+        header = ['Cube', 'Size', 'Indicators', 'Undef. value']
+        model = TreeModel(header, self.contCubes, self.indCubes, parent)
+        
+        #contBranch = QtGui.QStandardItem("Continuous cubes")
+#        contBranch.setEditable(0)
+        #indBranch = QtGui.QStandardItem("Indicator cubes")
+#        indBranch.setEditable(0)
+        #model.setItem(0, 0, contBranch)
+        #model.setItem(1, 0, indBranch)
+
+        #model.setHorizontalHeaderItem(0, QtGui.QStandardItem(self.__tr("Cube")))
+        #model.setHorizontalHeaderItem(1, QtGui.QStandardItem(self.__tr("Size")))
+        #model.setHorizontalHeaderItem(2, QtGui.QStandardItem(self.__tr("Indicators")))
+        #model.setHorizontalHeaderItem(3, QtGui.QStandardItem(self.__tr("Undef. value")))
+        
+        return model
+    
+
+    def deleteCube(self):   
+        index = self.getIndex()
+        
+        if self.model.removeRow(index.row(), index.parent()):
+
+            if self.isIndexCont(index):
+                print 'CONTCUBES:', self.contCubes
+                self.contCubes.deleteItem(index.row())
+            else:
+                self.indCubes.deleteItem(index.row())
+
+    def getIndex(self):
+        return self.tree.currentIndex()
+
+    def getRow(self):
+        return self.tree.currentIndex().row()
+
+    def hasDefined(self, cubeType, row):
+        if cubeType is 'cont':
+            if not self.contCubes.hasDefined(row):
+                message = QtGui.QMessageBox()
+                message.warning(self, 'Warning',
+                                'This cube doesn\'t have defined values, please select another')
+                return False
+            
+            return True
+        else:
+            if not self.indCubes.hasDefined(row):
+                message = QtGui.QMessageBox()
+                message.warning(self, 'Warning',
+                                'This cube doesn\'t have defined values, please select another')
+                return False
+                
+            return True
 
     def initSignals(self):
         # Signals and slots
@@ -206,48 +354,60 @@ class MainWindow(QtGui.QWidget):
         self.contAlgWidget = CAW.ContAlgWidget(self.iterator, self)
         self.indAlgWidget = IAW.IndAlgWidget(self.iterator, self)
         self.createCubeWidget = CCW.CreateCube(self)
+    
+    
+    def insertChild(self, data, position, index = None):
+        #if index == None:
+        #    index = self.tree.selectionModel().currentIndex()
 
-    def animateBusy(self, started=False):
-        if started:
-            self.busyIcon.startAnimation()
-        else:
-            self.busyIcon.stopAnimation()
-
-    def updateProgress(self, percent):
-        self.progressBar.setEnabled(1)
-        self.progressBar.setValue(int(percent))
-
-    def updateStatusBar(self, info):
-        self.algorithmInfo = info
-
-        self.algorithmText.setEnabled(1)
-        self.busyIcon.startAnimation()
-
-        algType = info[0]
-        self.algorithmText.setText(algType)
-
-    def killThread(self):
-        self.algorithmInfo[1].stop()
+        model = self.tree.model()
         
-    def closeEvent(self, event):
-        reply = QtGui.QMessageBox.question(self, self.__tr('Quit?'),
-                                           self.__tr("Are you sure to quit?"), 
-                                           QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, 
-                                           QtGui.QMessageBox.No)
+        if not model.insertRow(position, index):
+            return
+        
+        for column in range(model.columnCount(index)):
+            child = model.index(position, column, index)
+            model.setData(child, data[column], QtCore.Qt.EditRole)
+    
+    def insertRow(self, data, index = None):
+        if index == None:
+            index = self.tree.selectionModel().currentIndex()
+        model = self.tree.model()
+        
+        if not model.insertRow(index.row()+1, index.parent()):
+            return
+        
+        for column in range(model.columnCount(index.parent())):
+            child = model.index(index.row()+1, column, index.parent())
+            model.setData(child, data[column], QtCore.Qt.EditRole)
 
-        if reply == QtGui.QMessageBox.Yes:
-            self.view.needQuit()
-            event.accept()
+    def isIndexCont(self, index):
+        if index.parent().row() != 0:
+            return False
+
+        return True
+
+    def isIndexInd(self, index):
+        if index.parent().row() != 1:
+            return False
+
+        return True
+    
+    def loadCube(self):
+        index = self.getIndex()
+        self.loadCubesWidget.show()
+
+        if index.row() == 0:
+            self.loadCubesWidget.IndValuesCheckbox.setChecked(False)
         else:
-            event.ignore()
-
-    def clearStatusBar(self):
-        self.algorithmText.clear()
-        self.algorithmText.setDisabled(1)
-        self.progressBar.setDisabled(1)
-        self.busyIcon.stopAnimation()
-
-
+            self.loadCubesWidget.IndValuesCheckbox.setChecked(True)
+            
+    def placeWidgetsAtPlaces(self, layout, widgets, places):
+        '''Places list of widgets to their places'''
+        for i in xrange(len(widgets)):
+            layout.addWidget(widgets[i], places[i][0], places[i][1],
+                                 places[i][2], places[i][3])
+            
     def renderCube(self):
         index = self.tree.currentIndex()
         row = index.row()
@@ -265,131 +425,16 @@ class MainWindow(QtGui.QWidget):
         if self.isIndexInd(index) and self.hasDefined('ind', row):
             self.view.pushArgs(self.indCubes.allValues(row),
                                self.indCubes.undefValue(row))
-    
-    def hasDefined(self, cubeType, row):
-        if cubeType is 'cont':
-            if not self.contCubes.hasDefined(row):
-                message = QtGui.QMessageBox()
-                message.warning(self, 'Warning',
-                                'This cube doesn\'t have defined values, please select another')
-                return False
-            
-            return True
-        else:
-            if not self.indCubes.hasDefined(row):
-                message = QtGui.QMessageBox()
-                message.warning(self, 'Warning',
-                                'This cube doesn\'t have defined values, please select another')
-                return False
-                
-            return True
-
-    def placeWidgetsAtPlaces(self, layout, widgets, places):
-        '''Places list of widgets to their places'''
-        for i in xrange(len(widgets)):
-            layout.addWidget(widgets[i], places[i][0], places[i][1],
-                                 places[i][2], places[i][3])
-
-    def loadCube(self):
-        index = self.getIndex()
-        self.loadCubesWidget.show()
-
-        if index.row() == 0:
-            self.loadCubesWidget.IndValuesCheckbox.setChecked(False)
-        else:
-            self.loadCubesWidget.IndValuesCheckbox.setChecked(True)
 
     def resizeColumn(self):
         self.tree.resizeColumnToContents(0)
         self.tree.resizeColumnToContents(1)
         self.tree.resizeColumnToContents(2)
-
-    def catchCube(self, cube):
-        child = str(cube.name())
-        childSize = str(cube.size())
-        undef = str(cube.undefValue())
-        #child.setEditable(0)
-        #childSize.setEditable(0)
-
-        if cube.isIndicator():
-            childIndicators = str(cube.indicatorsCount(0))
-        else:
-            childIndicators = str('-')
-        #childIndicators.setEditable(0)
-        list = [child, childSize, childIndicators, undef]
-
-        if not cube.isIndicator():
-            #self.model.item(0, 0).appendRow(list)
-            self.insertChild(list, self.contCubes.count(), self.contBranchIndex)
-            self.contCubes.appendItem(cube)
-        else:
-            #self.model.item(1, 0).appendRow(list)
-            self.insertChild(list, self.indCubes.count(), self.indBranchIndex)
-            self.indCubes.appendItem(cube)
-
-        self.resizeColumn()
-
-    def catchLog(self, text):
-        self.log += text
-
-    def showLog(self):
-        self.logWindow = LW.LogWindow(self)
-        self.logWindow.showMessage('HPGL GUI LOG', self.log)
-        #print self.log
-
-    def changeUV(self):
-        index = self.getIndex()
-        row = self.getRow()
-        if self.isIndexCont(index):
-            self.changeUndefWidget = UW.UndefChangeWidget(self.contCubes, row)
-        else:
-            self.changeUndefWidget = UW.UndefChangeWidget(self.contCubes, row)
-        self.changeUndefWidget.show()
-
-    def addNewCube(self):
-        self.createCubeWidget.show()
-
-        row = self.getRow()
-        if row == 0:
-            self.createCubeWidget.IndValuesCheckbox.setChecked(False)
-        else:
-            self.createCubeWidget.IndValuesCheckbox.setChecked(True)
-
-    def contextMenu(self, point):
-        index = self.tree.indexAt(point)
-        if self.isIndexCont(index) or self.isIndexInd(index):
-            self.itemMenu.exec_(self.tree.mapToGlobal(point))
-        else:
-            self.branchMenu.exec_(self.tree.mapToGlobal(point))
-
-    def isIndexCont(self, index):
-        if index.parent().row() != 0:
-            return False
-
-        return True
-
-    def isIndexInd(self, index):
-        if index.parent().row() != 1:
-            return False
-
-        return True
-
-    def getIndex(self):
-        return self.tree.currentIndex()
-
-    def getRow(self):
-        return self.tree.currentIndex().row()
-
-    def deleteCube(self):
-        index = self.getIndex()
-        row = self.getRow()
-        self.model.removeRow(row, index.parent())
-
-        if self.isIndexCont(index):
-            self.contCubes.deleteItem(row)
-        else:
-            self.indCubes.deleteItem(row)
-
+        
+    def retranslateUI(self, MainWindow):
+        self.setWindowTitle(self.__tr('HPGL GUI'))
+        self.logButton.setText(self.__tr("Log"))
+        
     def saveCube(self):
         index = self.getIndex()
         row = self.getRow()
@@ -415,65 +460,12 @@ class MainWindow(QtGui.QWidget):
             except:
                 self.algorithmText.setText(self.__tr('Error saving cube'))
 
-    def createModel(self, parent=None):
-        #model = QtGui.QStandardItemModel(2, 4, parent)
-        header = ['Cube', 'Size', 'Indicators', 'Undef. value']
-        model = TreeModel(header, self.contCubes, self.indCubes, parent)
-        
-        #contBranch = QtGui.QStandardItem("Continuous cubes")
-#        contBranch.setEditable(0)
-        #indBranch = QtGui.QStandardItem("Indicator cubes")
-#        indBranch.setEditable(0)
-        #model.setItem(0, 0, contBranch)
-        #model.setItem(1, 0, indBranch)
-
-        #model.setHorizontalHeaderItem(0, QtGui.QStandardItem(self.__tr("Cube")))
-        #model.setHorizontalHeaderItem(1, QtGui.QStandardItem(self.__tr("Size")))
-        #model.setHorizontalHeaderItem(2, QtGui.QStandardItem(self.__tr("Indicators")))
-        #model.setHorizontalHeaderItem(3, QtGui.QStandardItem(self.__tr("Undef. value")))
-        
-        return model
-
-    def applyAlgorithm(self):
-        index = self.getIndex()
-        
-        self.progressBar.setValue(0)
-
-        if self.isIndexCont(index):
-            self.contAlgWidget.push(self.contCubes, index.row(), self.indCubes)
-        else:
-            self.indAlgWidget.push(self.indCubes, index.row())
-
-        self.iterator += 1
-        
-    def insertChild(self, data, position, index = None):
-        #if index == None:
-        #    index = self.tree.selectionModel().currentIndex()
-
-        model = self.tree.model()
-        
-        if not model.insertRow(position, index):
-            return
-        
-        for column in range(model.columnCount(index)):
-            child = model.index(position, column, index)
-            model.setData(child, data[column], QtCore.Qt.EditRole)
-    
-    def insertRow(self, data, index = None):
-        if index == None:
-            index = self.tree.selectionModel().currentIndex()
-        model = self.tree.model()
-        
-        if not model.insertRow(index.row()+1, index.parent()):
-            return
-        
-        for column in range(model.columnCount(index.parent())):
-            child = model.index(index.row()+1, column, index.parent())
-            model.setData(child, data[column], QtCore.Qt.EditRole)
+    def showLog(self):
+        self.logWindow = LW.LogWindow(self)
+        self.logWindow.showMessage('HPGL GUI LOG', self.log)
+        #print self.log
             
     def showStatistics(self):
-        # FIXME
-        return
 
         index = self.getIndex()
         row = self.getRow()
@@ -485,15 +477,23 @@ class MainWindow(QtGui.QWidget):
         if self.isIndexInd(index) and self.hasDefined('ind', row):
             self.statWindow = SW.Statistics(self.indCubes, row)
             self.statWindow.show()
+            
+    def updateProgress(self, percent):
+        self.progressBar.setEnabled(1)
+        self.progressBar.setValue(int(percent))
 
+    def updateStatusBar(self, info):    
+        self.algorithmText.setEnabled(1)
+        self.busyIcon.startAnimation()
+
+        algType = info
+        self.algorithmText.setText(algType)
+        
     def __tr(self, string, dis=None):
         '''Small function to translate'''
         return QtGui.qApp.translate("MainWindow", string, dis,
                                      QtGui.QApplication.UnicodeUTF8)
 
-    def retranslateUI(self, MainWindow):
-        self.setWindowTitle(self.__tr('HPGL GUI'))
-        self.logButton.setText(self.__tr("Log"))
 
 if __name__ == "__main__":
     import sys

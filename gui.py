@@ -3,11 +3,14 @@
 from PySide import QtGui, QtCore
 from geo_bsd.geo import write_property
 from gui_widgets.cube_list import CubeItem
+import sys
 
 try:
     from gui_widgets.visualisator import MayaviQWidget
+    viewWidget = MayaviQWidget()
 except:
-    MayaviQWidget = QtGui.QWidget()
+    app = QtGui.QApplication(sys.argv)
+    viewWidget = QtGui.QWidget()
 
 
 import gui_widgets.cont_alg_widget as CAW
@@ -219,7 +222,7 @@ class MainWindow(QtGui.QWidget):
 #        self.connect(self.newCubeAction, QtCore.SIGNAL("triggered()"), self.addNewCube)
         self.newCubeAction.triggered.connect(self.addNewCube)
 #        self.connect(self.changeUVAction, QtCore.SIGNAL("triggered()"), self.changeUV)
-        self.changeUVAction.triggered.connect(self.changeUV)
+#        self.changeUVAction.triggered.connect(self.changeUV)
 
         #self.connect(self.loadCubesWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
         self.loadCubesWidget.cubeSignal.connect(self.catchCube)
@@ -275,7 +278,7 @@ class MainWindow(QtGui.QWidget):
         self.resizeColumn()
 
         # 3D View
-        self.view = MayaviQWidget()
+        self.view = viewWidget
         
 
         # Progress info
@@ -292,7 +295,7 @@ class MainWindow(QtGui.QWidget):
         self.algorithmAction = QtGui.QAction(self.__tr("Apply algorithm"), self)
         self.saveAction = QtGui.QAction(self.__tr("Save"), self)
         self.renderAction = QtGui.QAction(self.__tr("Render"), self)
-        self.changeUVAction = QtGui.QAction(self.__tr("Change undefined value"), self)
+        #self.changeUVAction = QtGui.QAction(self.__tr("Change undefined value"), self)
 
         # ----Tree branch actions
         self.newCubeAction = QtGui.QAction(self.__tr("New cube"), self)
@@ -306,7 +309,7 @@ class MainWindow(QtGui.QWidget):
         self.newCubeAction.setIcon(QtGui.QIcon('icons/new.png'))
         self.loadAction.setIcon(QtGui.QIcon('icons/open.png'))
         self.algorithmAction.setIcon(QtGui.QIcon('icons/algorithm.png'))
-        self.changeUVAction.setIcon(QtGui.QIcon('icons/change.png'))
+        #self.changeUVAction.setIcon(QtGui.QIcon('icons/change.png'))
         
         # Toolbar
         self.toolbar = QtGui.QToolBar()
@@ -318,7 +321,7 @@ class MainWindow(QtGui.QWidget):
         self.itemMenu.addAction(self.statisticsAction)
         self.itemMenu.addAction(self.renderAction)
         self.itemMenu.addAction(self.saveAction)
-        self.itemMenu.addAction(self.changeUVAction)
+        #self.itemMenu.addAction(self.changeUVAction)
         self.itemMenu.addAction(self.deleteAction)
 
         self.branchMenu = QtGui.QMenu(self)
@@ -422,7 +425,7 @@ class MainWindow(QtGui.QWidget):
         if type(self.view) is type(QtGui.QWidget()):
             message = QtGui.QMessageBox()
             message.warning(self, 'Warning',
-                            'You doesn\t have installed Mayavi')
+                            'You doesn\'t have installed Mayavi')
             return
         
         if self.isIndexCont(index) and self.hasDefined('cont', row):
@@ -476,6 +479,12 @@ class MainWindow(QtGui.QWidget):
 
         index = self.getIndex()
         row = self.getRow()
+        
+        if type(self.view) is type(QtGui.QWidget()):
+            message = QtGui.QMessageBox()
+            message.warning(self, 'Warning',
+                            'You doesn\'t have installed Chaco')
+            return
 
         if self.isIndexCont(index) and self.hasDefined('cont', row):
             self.statWindow = SW.Statistics(self.contCubes, row)
@@ -503,7 +512,6 @@ class MainWindow(QtGui.QWidget):
 
 
 if __name__ == "__main__":
-    import sys
     app = QtGui.QApplication.instance()
     gui = MainWindow()
     gui.show()

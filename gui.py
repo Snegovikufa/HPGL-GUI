@@ -4,6 +4,7 @@ from PySide import QtGui, QtCore
 from geo_bsd.geo import write_property
 from gui_widgets.cube_list import CubeItem
 import sys
+import icons_rc
 
 try:
     from gui_widgets.visualisator import MayaviQWidget
@@ -302,15 +303,15 @@ class MainWindow(QtGui.QWidget):
         self.loadAction = QtGui.QAction(self.__tr("Load cube"), self)
         
         # Icons:
-        self.deleteAction.setIcon(QtGui.QIcon('icons/del.png'))
-        self.statisticsAction.setIcon(QtGui.QIcon('icons/statistics.png'))
-        self.renderAction.setIcon(QtGui.QIcon('icons/render.png'))
-        self.saveAction.setIcon(QtGui.QIcon('icons/save.png'))
-        self.newCubeAction.setIcon(QtGui.QIcon('icons/new.png'))
-        self.loadAction.setIcon(QtGui.QIcon('icons/open.png'))
-        self.algorithmAction.setIcon(QtGui.QIcon('icons/algorithm.png'))
+        self.deleteAction.setIcon(QtGui.QIcon(':/icons/del.png'))
+        self.statisticsAction.setIcon(QtGui.QIcon(':/icons/statistics.png'))
+        self.renderAction.setIcon(QtGui.QIcon(':/icons/render.png'))
+        self.saveAction.setIcon(QtGui.QIcon(':/icons/save.png'))
+        self.newCubeAction.setIcon(QtGui.QIcon(':/icons/new.png'))
+        self.loadAction.setIcon(QtGui.QIcon(':/icons/open.png'))
+        self.algorithmAction.setIcon(QtGui.QIcon(':/icons/algorithm.png'))
         #self.changeUVAction.setIcon(QtGui.QIcon('icons/change.png'))
-        
+
         # Toolbar
         self.toolbar = QtGui.QToolBar()
         self.toolbar.addActions([self.newCubeAction, self.loadAction])

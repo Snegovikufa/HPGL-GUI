@@ -45,7 +45,10 @@ class CubeItem(object):
         self.__items[index][3] = gridObject
 
     def setName(self, name, index=0):
-        self.__items[index][4] = str(name)
+        if isinstance(name, str):
+            name = name.decode('utf-8')
+        
+        self.__items[index][4] = name
 
     def setGridSize(self, gridSize, index=0):
         '''Sets grid size of cube at index, gridSize must be list (x, y, z)'''
@@ -117,7 +120,11 @@ class CubeItem(object):
 
     def name(self, index=0):
         '''Return name of cube at index'''
-        return str(self.__items[index][4])
+        name = self.__items[index][4]
+        if isinstance(name, str):
+            return name.decode('utf-8')
+        
+        return name
 
     def allNames(self):
         '''Return list of cubes' names'''

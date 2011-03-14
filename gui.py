@@ -74,7 +74,7 @@ class MainWindow(QtGui.QWidget):
         self.iterator += 1
         
     def catchCube(self, cube):
-        child = str(cube.name())
+        child = cube.name()
         childSize = str(cube.size())
         undef = str(cube.undefValue())
         #child.setEditable(0)
@@ -451,9 +451,10 @@ class MainWindow(QtGui.QWidget):
         row = self.getRow()
 
         fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ...')[0]
+        
         if fname and self.isIndexCont(index):
             try:
-                write_property(self.contCubes.property(row), str(fname),
+                write_property(self.contCubes.property(row), fname,
                                self.contCubes.name(row), numpy.float32(self.contCubes.undefValue(row)),
                                self.contCubes.indicators(row))
                 self.algorithmText.setText(self.__tr('Cube was saved'))
@@ -463,7 +464,7 @@ class MainWindow(QtGui.QWidget):
 
         elif fname and self.isIndexInd(index):
             try:
-                write_property(self.indCubes.property(row), str(fname),
+                write_property(self.indCubes.property(row), fname,
                                self.indCubes.name(row), numpy.float32(self.indCubes.undefValue(row)),
                                list(self.indCubes.indicators(row)))
                 self.algorithmText.setText(self.__tr('Cube was saved'))

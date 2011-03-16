@@ -9,5 +9,10 @@
         <file>icons/open.png</file>
         <file>icons/statistics.png</file>
         <file>icons/save.png</file>
+        <file>icons/cont.png</file>
+        <file>icons/ind.png</file>
+        <file>icons/log.png</file>
+        <file>icons/icon128.png</file>
+        <file>icons/hpgl-gui.png</file>
     </qresource>
 </RCC>

@@ -105,8 +105,16 @@ class MayaviQWidget(QtGui.QWidget):
                 i = min
                 
     def needQuit(self):
+        
+        self.visualization.scene.mlab.clf()
+        dis = self.visualization.scene.disable_render
+        dis = True
+        
         del(self.ui)
         del(self.visualization)
+        
+        import gc
+        gc.collect()
 
 if __name__ == '__main__':
     app = QtGui.QApplication.instance()

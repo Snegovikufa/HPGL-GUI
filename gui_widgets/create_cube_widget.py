@@ -150,6 +150,8 @@ class CreateCube(QtGui.QDialog):
             err += self.__tr('Constant field is empty or invalid')
         if self.undefValue.text() == '' or self.undefValue.text() == '-':
             err += self.__tr('Undefined value field is empty or invalid')
+        if int(self.GridSizeX.text())+int(self.GridSizeY.text())+int(self.GridSizeZ.text()) < 4:
+            err += self.__tr('Summ of grid sizes must be > 3')
         
         if err != '':
             self.showErr(err)

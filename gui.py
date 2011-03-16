@@ -8,10 +8,17 @@ import icons_rc
 
 try:
     from gui_widgets.visualisator import MayaviQWidget
-    viewWidget = MayaviQWidget()
+    MAYAVI_INSTALLED = True
 except:
-    app = QtGui.QApplication(sys.argv)
-    viewWidget = QtGui.QWidget()
+    MAYAVI_INSTALLED = False
+
+try:
+    import enthought.chaco
+    CHACO_INSTALLED = True
+except:
+    CHACO_INSTALLED = False
+
+    _ = QtGui.QApplication(sys.argv)
 
 
 import gui_widgets.cont_alg_widget as CAW
@@ -97,6 +104,7 @@ class MainWindow(QtGui.QWidget):
             self.indCubes.appendItem(cube)
 
         self.resizeColumn()
+        self.progressBar.setValue(0)
 
     def catchLog(self, text):
         self.log += text
@@ -259,7 +267,7 @@ class MainWindow(QtGui.QWidget):
 
     def initWidgets(self):
         # Buttons
-        self.logButton = QtGui.QToolButton()
+        self.logButton = QtGui.QPushButton( QtGui.QIcon(":/icons/log.png"), self.__tr('Log') )
 
         # Tree
         self.tree = QtGui.QTreeView()
@@ -272,14 +280,17 @@ class MainWindow(QtGui.QWidget):
         self.contBranchIndex = self.model.index(0, 0)
         self.indBranchIndex = self.model.index(1, 0)
         
-        self.model.setData(self.contBranchIndex, QtGui.QIcon('icons/render.png'), QtCore.Qt.DecorationRole)
-        self.model.setData(self.indBranchIndex, QtGui.QIcon('icons/render.png'), QtCore.Qt.DecorationRole)
+        self.model.setData(self.contBranchIndex, QtGui.QIcon(':/icons/render.png'), QtCore.Qt.DecorationRole)
+        self.model.setData(self.indBranchIndex, QtGui.QIcon(':/icons/render.png'), QtCore.Qt.DecorationRole)
         
         self.tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.resizeColumn()
 
         # 3D View
-        self.view = viewWidget
+        if MAYAVI_INSTALLED:
+            self.view = MayaviQWidget()
+        else:
+            self.view = QtGui.QWidget()
         
 
         # Progress info
@@ -310,6 +321,8 @@ class MainWindow(QtGui.QWidget):
         self.newCubeAction.setIcon(QtGui.QIcon(':/icons/new.png'))
         self.loadAction.setIcon(QtGui.QIcon(':/icons/open.png'))
         self.algorithmAction.setIcon(QtGui.QIcon(':/icons/algorithm.png'))
+        self.logButton.setIcon(QtGui.QIcon(':/icons/log.png'))
+        self.setWindowIcon(QtGui.QIcon(':/icons/hpgl-gui.png'))
         #self.changeUVAction.setIcon(QtGui.QIcon('icons/change.png'))
 
         # Toolbar
@@ -423,10 +436,10 @@ class MainWindow(QtGui.QWidget):
         index = self.tree.currentIndex()
         row = index.row()
         
-        if type(self.view) is type(QtGui.QWidget()):
+        if not MAYAVI_INSTALLED:
             message = QtGui.QMessageBox()
             message.warning(self, 'Warning',
-                            'You doesn\'t have installed Mayavi')
+                            'You don\'t have Mayavi installed')
             return
         
         if self.isIndexCont(index) and self.hasDefined('cont', row):
@@ -444,7 +457,7 @@ class MainWindow(QtGui.QWidget):
         
     def retranslateUI(self, MainWindow):
         self.setWindowTitle(self.__tr('HPGL GUI'))
-        self.logButton.setText(self.__tr("Log"))
+        #self.logButton.setText(self.__tr("Log"))
         
     def saveCube(self):
         index = self.getIndex()
@@ -482,18 +495,18 @@ class MainWindow(QtGui.QWidget):
         index = self.getIndex()
         row = self.getRow()
         
-        if type(self.view) is type(QtGui.QWidget()):
+        if not CHACO_INSTALLED:
             message = QtGui.QMessageBox()
             message.warning(self, 'Warning',
-                            'You doesn\'t have installed Chaco')
+                            'You don\'t have Chaco installed')
             return
 
         if self.isIndexCont(index) and self.hasDefined('cont', row):
-            self.statWindow = SW.Statistics(self.contCubes, row)
+            self.statWindow = SW.Statistics(self.contCubes, row, self)
             self.statWindow.show()
             
         if self.isIndexInd(index) and self.hasDefined('ind', row):
-            self.statWindow = SW.Statistics(self.indCubes, row)
+            self.statWindow = SW.Statistics(self.indCubes, row, self)
             self.statWindow.show()
             
     def updateProgress(self, percent):

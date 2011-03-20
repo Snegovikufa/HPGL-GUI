@@ -63,8 +63,6 @@ class MayaviQWidget(QtGui.QWidget):
                                                  kind='subpanel').control
         layout.addWidget(self.ui)
         self.ui.setParent(self)
-
-        self.show()
         
     def pushArgs(self,valuesArray, undefValue):
         self.valuesArray = valuesArray

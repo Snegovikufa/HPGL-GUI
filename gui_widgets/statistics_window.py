@@ -4,15 +4,13 @@ from PySide import QtGui, QtCore
 #import matplotlib.patches as patches
 #import matplotlib.path as path
 
-from enthought.enable.api import Component, ComponentEditor, Window
+from enthought.enable.api import Component, ComponentEditor
 from enthought.chaco.api import ArrayDataSource, BarPlot, DataRange1D, \
-                                LinearMapper, OverlayPlotContainer, PlotAxis, add_default_axes, \
-                                add_default_grids, LabelAxis
-from enthought.chaco.tools.api import PanTool, ZoomTool
+                                LinearMapper, OverlayPlotContainer, PlotAxis, \
+                                LabelAxis
 from enthought.traits.ui.api import Item, Group, View
 from enthought.chaco.example_support import COLOR_PALETTE
 from enthought.traits.api import HasTraits, Instance
-from scipy.special import jn
 import numpy
 
 class TableModel(QtCore.QAbstractTableModel):
@@ -56,7 +54,7 @@ class Statistics(QtGui.QDialog):
         self.undefValue = cubes.undefValue(index)
 
         name = cubes.name(index)
-        self.setWindowTitle(self.__tr("HPGL GUI: Statistics for: ")+ name)
+        self.setWindowTitle(self.__tr("HPGL GUI: Statistics for: " + name))
 
         self.initWidgets()
         self.initSignals()
@@ -123,7 +121,7 @@ class Statistics(QtGui.QDialog):
         self.graphWidget.setContentsMargins(0, 0, 0, 0)
         self.graphLayout = QtGui.QVBoxLayout(self.graphWidget)
         
-        self.histWidget = HistQWidget()
+        self.histWidget = HistQWidget(None, 5, True, range(0, 20))
 
         self.closeButtonBox = QtGui.QDialogButtonBox(QtCore.Qt.Horizontal)
         self.closeButton = self.closeButtonBox.addButton(self.__tr("Close"),
@@ -151,13 +149,9 @@ class Statistics(QtGui.QDialog):
 
     def initSignals(self):
         self.connect(self.rowCount, QtCore.SIGNAL('valueChanged(int)'),
-                     self.updateValues)
+                     self.updateHistogram)
         self.connect(self.probabilityChange, QtCore.SIGNAL('stateChanged(int)'),
                      self.updateHistogram)
-#        self.connect(self.xMax, QtCore.SIGNAL('editingFinished()'),
-#                     self.update)
-#        self.connect(self.xMin, QtCore.SIGNAL('editingFinished()'),
-#                     self.update)
         self.xMax.editingFinished.connect(self.updateValues)
         self.xMin.editingFinished.connect(self.updateValues)
         self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
@@ -258,8 +252,9 @@ class Statistics(QtGui.QDialog):
         header.setStretchLastSection(1)
 
     def updateHistogram(self):
-        self.histWidget.push(self.cutClearValues, self.rowCount.value(), self.localMin, self.localMax)
-        self.histWidget.updatePlot()
+#        if self.histWidget.push(self.cutClearValues, self.rowCount.value(), self.localMin, self.localMax):
+#            self.histWidget.updatePlot()
+        self.histWidget.updatePlot(self.rowCount.value(), True, self.cutClearValues)
         
     def validateRanges(self):
         xMin = float(self.xMin.text())
@@ -280,55 +275,85 @@ class Statistics(QtGui.QDialog):
                                      QtGui.QApplication.UnicodeUTF8)
 
 
-class HistQWidget(QtGui.QWidget):
-    def __init__(self, parent=None):
+class HistQWidget(QtGui.QWidget):    
+    def __init__(self, parent, barsNum, normed, valuesArray):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
         
-        self.chacoHist = ChacoHistogram()        
-        # The edit_traits call will generate the widget to embed.
-        self.chacoHist._plot_default()
-        self.ui = self.chacoHist.edit_traits(parent=self, kind='subpanel').control
+        self.chacoHist = ChacoHistogram()
+        self.chacoHist.setHistParams(barsNum, normed, valuesArray)
         
+        # The edit_traits call will generate the widget to embed.
+        self.ui = self.chacoHist.edit_traits(parent=self, 
+                                                 kind='subpanel').control
         layout.addWidget(self.ui)
         self.ui.setParent(self)
         
-    def push(self, values, rowCount, localMin, localMax):
-        self.chacoHist.pushArgs(values, rowCount, localMin, localMax)
+        self.currentMin = None
+        self.currentMax = None
         
-    def updatePlot(self):
+    def updatePlot(self, barsNum, normed, valuesArray):
+        self.chacoHist.setHistParams(barsNum, normed, valuesArray)
         self.chacoHist.updatePlot()
-
+        
+    def updateCuts(self, min, max):
+        if self.currentMax != max or self.currentMin != min: 
+            
+            self.currentMax = max
+            self.currentMin = min
+            
+            self.chacoHist.updateCuts(min, max)
+        
 class ChacoHistogram(HasTraits):
-    histPlot = Instance(Component)
+    plot = Instance(Component)
     view = View(
                 Group(
-                      Item('histPlot', 
+                      Item('plot', 
                            editor=ComponentEditor(size=(500, 500)), 
                            show_label=False),
                     orientation='vertical'),
                 resizable=True,
                 title='Statistics')
     
-    def _plot_default(self):      
-        container = OverlayPlotContainer(bgcolor = 'white')
+    def updateCuts(self, min, max):
+        self.currentMin = min
+        self.currentMax = max
         
-        self.values = [[1, 2, 3, 4, 5]]
-        self.rowCount = 2
+    def setHistParams(self, binsNum, normed, valuesArray):
+        self.normed = normed
+        self.valuesArray = valuesArray
+        self.binsNum = binsNum
         
-        pts = numpy.histogram(self.values, bins = self.rowCount, normed = False)
+        try:
+            min = self.currentMin
+            max = self.currentMax
+            
+            minCutValues = self.valuesArray[ numpy.nonzero(self.valuesArray >= self.currentMin)[0] ]
+            minMaxCutValues = minCutValues[ numpy.nonzero(minCutValues <= self.currentMax)[0] ]
+            
+            self.valuesArray = minMaxCutValues
+            
+        except:
+            pass
+        
+        pts = numpy.histogram(self.valuesArray, bins = binsNum, normed = self.normed)
         centerBinsCoords = [ (pts[1][num] + pts[1][num+1])/2.0 for num in range(len(pts[1])-1) ]
         
         self.value_points = pts[0]
         self.index_points = centerBinsCoords
         
         
-        self.idx = ArrayDataSource( range(1, self.rowCount+1) )
+    def _plot_default(self):
+        
+        container = OverlayPlotContainer(bgcolor = "white")
+        
+        
+        self.idx = ArrayDataSource( range(1, self.binsNum+1) )
         self.vals = ArrayDataSource(self.value_points, sort_order="none")
         
-        index_range = DataRange1D(self.idx, low=0, high=self.rowCount+2 )
+        index_range = DataRange1D(self.idx, low=0, high=self.binsNum+2 )
         index_mapper = LinearMapper(range=index_range)
     
         value_range = DataRange1D(low=0, high=self.value_points.max())
@@ -359,26 +384,14 @@ class ChacoHistogram(HasTraits):
 
         bottom_axis = LabelAxis(plot, orientation='bottom',
                                title='Values',
-                               positions = range(1, self.rowCount+1),
+                               positions = range(1, self.binsNum+1),
                                labels = ["%.2f" % num for num in self.index_points],
                                )
     
         plot.underlays.append(left_axis)
         plot.underlays.append(bottom_axis)
-        
+           
         return container
-    
-    def pushArgs(self, values, rowCount, localMin, localMax):
-        self.values = values
-        self.rowCount = rowCount
-        self.localMin = localMin
-        self.localMax = localMax
-        
-        pts = numpy.histogram(self.values, bins = self.rowCount, normed = False)
-        centerBinsCoords = [ (pts[1][num] + pts[1][num+1])/2.0 for num in range(len(pts[1])-1) ]
-        
-        self.value_points = pts[0]
-        self.index_points = centerBinsCoords
     
     def updatePlot(self):
         left_axis = PlotAxis(self.histPlot, orientation='left',
@@ -389,19 +402,19 @@ class ChacoHistogram(HasTraits):
 
         bottom_axis = LabelAxis(self.histPlot, orientation='bottom',
                                title='Values',
-                               positions = range(1, self.rowCount+1),
+                               positions = range(1, self.binsNum+1),
                                labels = ["%.2f" % num for num in self.index_points])
 
         
         self.histPlot.underlays = [left_axis, bottom_axis]
 #        
-        self.idx = ArrayDataSource( range(1, self.rowCount+1) )
+        self.idx = ArrayDataSource( range(1, self.binsNum+1) )
         self.vals = ArrayDataSource(self.value_points, sort_order="none")
 
-        index_range = DataRange1D(self.idx, low=0, high=self.rowCount+2 )
+        index_range = DataRange1D(self.idx, low=0, high=self.binsNum+2 )
         value_range = DataRange1D(low=0, high=self.value_points.max())
 
-        self.histPlot.index.set_data( range(1, self.rowCount+1) )
+        self.histPlot.index.set_data( range(1, self.binsNum+1) )
         self.histPlot.value.set_data( self.value_points, sort_order="none" )
 
         self.histPlot.index_mapper.range = index_range

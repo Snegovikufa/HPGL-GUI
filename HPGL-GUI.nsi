@@ -6,16 +6,21 @@
 ;Include Modern UI
 
   !include "MUI2.nsh"
+  !define APPNAME "HPGL-GUI"
+  !define APPNAMEANDVERSION "HPGL-GUI 0.9.0"
+  !define MUI_ICON "hpgl-gui.ico"
 
 ;--------------------------------
 ;General
 
   ;Name and file
   Name "HPGL-GUI"
-  OutFile "HPGL-GUI_Installer.exe"
+  OutFile "HPGL-GUI-0.9.0_Installer.exe"
+  ;Icon "${EXEPATH}\hpgl-gui.ico"
 
   ;Default installation folder
   InstallDir "$PROGRAMFILES\HPGL-GUI"
+  InstallDirRegKey HKLM "Software\${APPNAME}" ""
 
 
   ;Request application privileges for Windows Vista
@@ -25,6 +30,7 @@
 ;Interface Settings
 
   !define MUI_ABORTWARNING
+  !define MUI_FINISHPAGE_RUN "$INSTDIR\hpgl-gui.exe"
 
 ;--------------------------------
 ;Pages
@@ -61,12 +67,23 @@ SectionEnd
 Section ""
 
   SetOutPath "$INSTDIR"
+  
+  SetOverwrite on
 
   ;ADD YOUR OWN FILES HERE...
   File /r "HPGL-GUI-builded\*.*"
 
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
+
+SectionEnd
+
+Section -FinishSection
+
+	WriteRegStr HKLM "Software\${APPNAME}" "" "$INSTDIR"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAMEANDVERSION}"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$INSTDIR\uninstall.exe"
+	WriteUninstaller "$INSTDIR\uninstall.exe"
 
 SectionEnd
 
@@ -93,5 +110,8 @@ Section "Uninstall"
   RMDir /r "$SMPROGRAMS\HPGL-GUI"
 
   RMDir /r "$INSTDIR"
+  
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+  DeleteRegKey HKLM "SOFTWARE\${APPNAME}"
 
 SectionEnd

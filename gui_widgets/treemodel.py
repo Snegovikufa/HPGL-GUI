@@ -153,14 +153,14 @@ class TreeModel(QtCore.QAbstractItemModel):
                 if index.column() == 0:
                     if index.row() == 0:
                         pixmap = QtGui.QPixmap()
-                        pixmap.load('icons/cont.png')
+                        pixmap.load(':/icons/cont.png')
                         
                         pixmap = pixmap.scaled(22, 22, aspectRatioMode=QtCore.Qt.KeepAspectRatio, 
                                                transformMode=QtCore.Qt.SmoothTransformation)
                         return pixmap
                     if index.row() == 1:
                         pixmap = QtGui.QPixmap()
-                        pixmap.load('icons/ind.png')
+                        pixmap.load(':/icons/ind.png')
                         
                         pixmap = pixmap.scaled(22, 22, aspectRatioMode=QtCore.Qt.KeepAspectRatio, 
                                                transformMode=QtCore.Qt.SmoothTransformation)

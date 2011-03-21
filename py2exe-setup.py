@@ -70,7 +70,7 @@ GUI2Exe_Target_1 = Target(
     bitmap_resources = bitmap_resources,
     other_resources = other_resources,
     dest_base = "hpgl-gui",    
-    version = "0.9",
+    version = "0.9.0",
     company_name = "MIT Ufa",
     copyright = "MIT Ufa",
     name = "HPGL GUI",
@@ -83,7 +83,7 @@ setup(
     data_files = data_files,
 
     options = {"py2exe": {"compressed": 0, 
-                          "optimize": 0,
+                          "optimize": 1,
                           "includes": includes,
                           "excludes": excludes,
                           "packages": packages,

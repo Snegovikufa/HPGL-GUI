@@ -54,7 +54,7 @@ class Statistics(QtGui.QDialog):
         self.undefValue = cubes.undefValue(index)
 
         name = cubes.name(index)
-        self.setWindowTitle(self.__tr("HPGL GUI: Statistics for: " + name))
+        self.setWindowTitle(self.__tr("HPGL GUI: Statistics for: ") + name)
 
         self.initWidgets()
         self.initSignals()

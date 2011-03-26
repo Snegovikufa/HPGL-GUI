@@ -219,7 +219,7 @@ class LoadCube(QtGui.QDialog):
         
         item = CubeItem()
         
-        data = numpy.load(filepath)
+        data = numpy.asfarray(numpy.load(filepath), dtype='float32')
         gridSize = numpy.shape(data)
         gridObject = SugarboxGrid(*gridSize)
         undefValue = float(self.undefValue.text())

@@ -177,10 +177,10 @@ class CreateCube(QtGui.QDialog):
         self.item = CubeItem()
         
         if self.constantCB.isChecked():
-            data = numpy.zeros(gridSize, dtype='uint8', order='F') + float(self.constant.text())
+            data = numpy.zeros(gridSize, dtype='float32', order='F') + float(self.constant.text())
             mask = numpy.ones(gridSize, dtype='uint8', order='F')
         else:
-            data = numpy.zeros(gridSize, dtype='uint8', order='F') + undefValue
+            data = numpy.zeros(gridSize, dtype='float32', order='F') + undefValue
             mask = numpy.zeros(gridSize, dtype='uint8', order='F')
 
         if self.IndValuesCheckbox.isChecked():

@@ -1,8 +1,9 @@
 from PySide import QtCore, QtGui
-from geo_bsd import SugarboxGrid
+from geo_bsd import SugarboxGrid, ContProperty, IndProperty
 from geo_bsd.routines import LoadGslibFile
 from gui_widgets.cube_list import CubeItem
 from hpgl_run.load_cube_thread import LoadCubeThread
+import numpy
 
 class LoadCube(QtGui.QDialog):
     cubeSignal = QtCore.Signal(object)
@@ -215,27 +216,30 @@ class LoadCube(QtGui.QDialog):
 
     def loadNumpy(self, filepath):
         # FIXME: move up
-        from numpy import load, shape
         
-        self.item = CubeItem()
+        item = CubeItem()
         
-        prop = load(filepath)
-        print type(prop)
-        gridSize = shape(prop)
+        data = numpy.load(filepath)
+        gridSize = numpy.shape(data)
         gridObject = SugarboxGrid(*gridSize)
         undefValue = float(self.undefValue.text())
         name = self.numpy_name+str(self.iterator)
         self.iterator += 1
         
+        mask = numpy.ones(gridSize, dtype='uint8', order='F')
+        mask[numpy.nonzero( data == undefValue)] = 0
+        mask[numpy.nonzero( data != undefValue)] = 1
+        
         if self.IndValuesCheckbox.isChecked():
             indValues = range(int(self.IndValues.text()))
+            prop = IndProperty( data, mask, len(indValues) )
         else:
             indValues = None
+            prop = ContProperty( data, mask)
         
-        self.item.append(prop, undefValue, indValues, gridObject, 
-                         name, gridSize)
-        
-        self.cubeSignal.emit(self.item)
+        item.append(prop, undefValue, indValues, 
+                    gridObject, name, gridSize)
+        self.cubeSignal.emit(item)
     
     def getItem(self, filepath = None):
         

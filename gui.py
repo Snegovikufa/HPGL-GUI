@@ -84,22 +84,17 @@ class MainWindow(QtGui.QWidget):
         child = cube.name()
         childSize = str(cube.size())
         undef = str(cube.undefValue())
-        #child.setEditable(0)
-        #childSize.setEditable(0)
 
         if cube.isIndicator():
             childIndicators = str(cube.indicatorsCount(0))
         else:
             childIndicators = str('-')
-        #childIndicators.setEditable(0)
         list = [child, childSize, childIndicators, undef]
 
         if not cube.isIndicator():
-            #self.model.item(0, 0).appendRow(list)
             self.insertChild(list, self.contCubes.count(), self.contBranchIndex)
             self.contCubes.appendItem(cube)
         else:
-            #self.model.item(1, 0).appendRow(list)
             self.insertChild(list, self.indCubes.count(), self.indBranchIndex)
             self.indCubes.appendItem(cube)
 
@@ -145,21 +140,8 @@ class MainWindow(QtGui.QWidget):
             self.branchMenu.exec_(self.tree.mapToGlobal(point))
             
     def createModel(self, parent=None):
-        #model = QtGui.QStandardItemModel(2, 4, parent)
         header = ['Cube', 'Size', 'Indicators', 'Undef. value']
         model = TreeModel(header, self.contCubes, self.indCubes, parent)
-        
-        #contBranch = QtGui.QStandardItem("Continuous cubes")
-#        contBranch.setEditable(0)
-        #indBranch = QtGui.QStandardItem("Indicator cubes")
-#        indBranch.setEditable(0)
-        #model.setItem(0, 0, contBranch)
-        #model.setItem(1, 0, indBranch)
-
-        #model.setHorizontalHeaderItem(0, QtGui.QStandardItem(self.__tr("Cube")))
-        #model.setHorizontalHeaderItem(1, QtGui.QStandardItem(self.__tr("Size")))
-        #model.setHorizontalHeaderItem(2, QtGui.QStandardItem(self.__tr("Indicators")))
-        #model.setHorizontalHeaderItem(3, QtGui.QStandardItem(self.__tr("Undef. value")))
         
         return model
     
@@ -174,13 +156,6 @@ class MainWindow(QtGui.QWidget):
             self.indCubes.deleteItem(index.row())
             
         self.model.removeRow( index.row(), index.parent() )
-#        if self.model.removeRow(index.row(), index.parent()):
-#
-#            if self.isIndexCont(index):
-#                print 'CONTCUBES:', self.contCubes
-#                self.contCubes.deleteItem(index.row())
-#            else:
-#                self.indCubes.deleteItem(index.row())
 
     def getIndex(self):
         return self.tree.currentIndex()
@@ -208,57 +183,30 @@ class MainWindow(QtGui.QWidget):
 
     def initSignals(self):
         # Signals and slots
-#        self.connect(self.tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint&)'), self.contextMenu)
         self.tree.customContextMenuRequested.connect(self.contextMenu)
-#        self.connect(self.tree, QtCore.SIGNAL('collapsed(const QModelIndex &)'), self.resizeColumn)
         self.tree.collapsed.connect(self.resizeColumn)
-#        self.connect(self.tree, QtCore.SIGNAL('expanded(const QModelIndex &)'), self.resizeColumn)
         self.tree.expanded.connect(self.resizeColumn)
-#        self.connect(self.logButton, QtCore.SIGNAL('clicked()'), self.showLog)
         self.logButton.clicked.connect(self.showLog)
-#        self.connect(self.loadAction, QtCore.SIGNAL("triggered()"), self.loadCube)
         self.loadAction.triggered.connect(self.loadCube)
-#        self.connect(self.deleteAction, QtCore.SIGNAL("triggered()"), self.deleteCube)
         self.deleteAction.triggered.connect(self.deleteCube)
-#        self.connect(self.algorithmAction, QtCore.SIGNAL("triggered()"), self.applyAlgorithm)
         self.algorithmAction.triggered.connect(self.applyAlgorithm)
-#        self.connect(self.statisticsAction, QtCore.SIGNAL("triggered()"), self.showStatistics)
         self.statisticsAction.triggered.connect(self.showStatistics)
-#        self.connect(self.saveAction, QtCore.SIGNAL("triggered()"), self.saveCube)
         self.saveAction.triggered.connect(self.saveCube)
-#        self.connect(self.renderAction, QtCore.SIGNAL("triggered()"), self.renderCube)
         self.renderAction.triggered.connect(self.renderCube)
-#        self.connect(self.newCubeAction, QtCore.SIGNAL("triggered()"), self.addNewCube)
         self.newCubeAction.triggered.connect(self.addNewCube)
-#        self.connect(self.changeUVAction, QtCore.SIGNAL("triggered()"), self.changeUV)
-#        self.changeUVAction.triggered.connect(self.changeUV)
 
-        #self.connect(self.loadCubesWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
         self.loadCubesWidget.cubeSignal.connect(self.catchCube)
-        #self.connect(self.loadCubesWidget, QtCore.SIGNAL("Loading(PyQt_PyObject)"), self.animateBusy)
         self.loadCubesWidget.loadingSignal.connect(self.animateBusy)
-        #self.connect(self.loadCubesWidget, QtCore.SIGNAL("LogMessage(QString&)"), self.catchLog)
         self.loadCubesWidget.logMessage.connect(self.catchLog)
         
-        #self.connect(self.createCubeWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
         self.createCubeWidget.cubeSignal.connect(self.catchCube)
         
-        #self.connect(self.contAlgWidget, QtCore.SIGNAL("progress(PyQt_PyObject)"), self.updateProgress)
-        #self.connect(self.contAlgWidget, QtCore.SIGNAL("algorithm(PyQt_PyObject)"), self.updateStatusBar)
-        #self.connect(self.contAlgWidget, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.clearStatusBar)
-        #self.connect(self.contAlgWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
-        #self.connect(self.contAlgWidget, QtCore.SIGNAL("LogMessage(QString&)"), self.catchLog)
-        #self.connect(self.contAlgWidget, QtCore.SIGNAL("msg(QString)"), self.catchLog)
         self.contAlgWidget.progressMessage.connect(self.updateProgress)
         self.contAlgWidget.algoInfo.connect(self.updateStatusBar)
         self.contAlgWidget.cubeSignal.connect(self.catchCube)
         self.contAlgWidget.finishedSignal.connect(self.clearStatusBar)
         self.contAlgWidget.logMessage.connect(self.catchLog)
 
-        #self.connect(self.indAlgWidget, QtCore.SIGNAL("progress(PyQt_PyObject)"), self.updateProgress)
-        #self.connect(self.indAlgWidget, QtCore.SIGNAL("algorithm(PyQt_PyObject)"), self.updateStatusBar)
-        #self.connect(self.indAlgWidget, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.clearStatusBar)
-        #self.connect(self.indAlgWidget, QtCore.SIGNAL("Cube(PyQt_PyObject)"), self.catchCube)
         self.indAlgWidget.progressMessage.connect(self.updateProgress)
         self.indAlgWidget.algoInfo.connect(self.updateStatusBar)
         self.indAlgWidget.finishedSignal.connect(self.clearStatusBar)
@@ -307,7 +255,6 @@ class MainWindow(QtGui.QWidget):
         self.algorithmAction = QtGui.QAction(self.__tr("Apply algorithm"), self)
         self.saveAction = QtGui.QAction(self.__tr("Save"), self)
         self.renderAction = QtGui.QAction(self.__tr("Render"), self)
-        #self.changeUVAction = QtGui.QAction(self.__tr("Change undefined value"), self)
 
         # ----Tree branch actions
         self.newCubeAction = QtGui.QAction(self.__tr("New cube"), self)
@@ -323,7 +270,6 @@ class MainWindow(QtGui.QWidget):
         self.algorithmAction.setIcon(QtGui.QIcon(':/icons/algorithm.png'))
         self.logButton.setIcon(QtGui.QIcon(':/icons/log.png'))
         self.setWindowIcon(QtGui.QIcon(':/icons/hpgl-gui.png'))
-        #self.changeUVAction.setIcon(QtGui.QIcon('icons/change.png'))
 
         # Toolbar
         self.toolbar = QtGui.QToolBar()
@@ -335,7 +281,6 @@ class MainWindow(QtGui.QWidget):
         self.itemMenu.addAction(self.statisticsAction)
         self.itemMenu.addAction(self.renderAction)
         self.itemMenu.addAction(self.saveAction)
-        #self.itemMenu.addAction(self.changeUVAction)
         self.itemMenu.addAction(self.deleteAction)
 
         self.branchMenu = QtGui.QMenu(self)
@@ -360,7 +305,6 @@ class MainWindow(QtGui.QWidget):
         splitter.addWidget(leftWidget)
         splitter.addWidget(rightWidget)
         splitter.setContentsMargins(0, 0, 0, 0)
-        #splitter.setSizes([50,40])
 
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.busyIcon)
@@ -381,8 +325,6 @@ class MainWindow(QtGui.QWidget):
     
     
     def insertChild(self, data, position, index = None):
-        #if index == None:
-        #    index = self.tree.selectionModel().currentIndex()
 
         model = self.tree.model()
         
@@ -457,7 +399,6 @@ class MainWindow(QtGui.QWidget):
         
     def retranslateUI(self, MainWindow):
         self.setWindowTitle(self.__tr('HPGL GUI'))
-        #self.logButton.setText(self.__tr("Log"))
         
     def saveCube(self):
         index = self.getIndex()

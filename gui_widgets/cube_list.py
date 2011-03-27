@@ -123,7 +123,7 @@ class CubeItem(object):
         name = self.__items[index][4]
         if isinstance(name, str):
             return name.decode('utf-8')
-        
+
         return name
 
     def allNames(self):

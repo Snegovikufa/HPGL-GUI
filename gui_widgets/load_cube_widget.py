@@ -9,7 +9,7 @@ class LoadCube(QtGui.QDialog):
     cubeSignal = QtCore.Signal(object)
     loadingSignal = QtCore.Signal(bool)
     logMessage = QtCore.Signal(str)
-    
+
     iterator = 0
     numpy_name = 'numpy_array_'
 
@@ -39,7 +39,7 @@ class LoadCube(QtGui.QDialog):
         self.mainLayout = QtGui.QGridLayout(self)
         self.mainLayout.setSpacing(0)
         self.mainLayout.setContentsMargins(6, 0, 6, 0)
-        
+
         intValidator = QtGui.QIntValidator(self)
         intValidator.setBottom(1)
         doubleValidator = QtGui.QDoubleValidator(self)
@@ -48,7 +48,7 @@ class LoadCube(QtGui.QDialog):
         self.GridLayout = QtGui.QGridLayout(self.GridSizeGB)
 #        self.GridLayout.setContentsMargins(0, 0, 6, 0)
 #        self.GridLayout.setSpacing(0)
-        
+
         self.GridSizeXLabel = QtGui.QLabel(self.GridSizeGB)
         self.GridSizeX = QtGui.QLineEdit(self.GridSizeGB)
         self.GridSizeX.setValidator(intValidator)
@@ -77,7 +77,7 @@ class LoadCube(QtGui.QDialog):
         self.IndValuesLayout = QtGui.QGridLayout(self.IndValuesGB)
         self.IndValuesLayout.setSpacing(0)
         self.IndValuesLayout.setContentsMargins(0, 0, 6, 0)
-        
+
         self.IndValues = QtGui.QSpinBox(self.IndValuesGB)
         self.IndValues.setEnabled(False)
         self.IndValues.setMinimum(2)
@@ -106,7 +106,7 @@ class LoadCube(QtGui.QDialog):
         self.LoadCubeLayout = QtGui.QGridLayout(self.LoadCubeGB)
 #        self.LoadCubeLayout.setSpacing(0)
 #        self.LoadCubeLayout.setContentsMargins(0, 0, 0, 0)
-        
+
         self.loadCubeButton = QtGui.QPushButton(self.LoadCubeGB)
         self.loadCubeButton.setDisabled(1)
         self.loadCubeButton.setToolTip(self.__tr("Enter grid sizes first"))
@@ -120,18 +120,18 @@ class LoadCube(QtGui.QDialog):
                                 LoadCubeSpacerR]
         self.LoadCubeWidgetsPlaces = [[0, 1, 1, 1], [0, 0, 1, 1],
                                       [0, 2, 1, 1]]
-        
+
         fileFormatGB = QtGui.QGroupBox(self)
         fileFormatLayout = QtGui.QHBoxLayout(fileFormatGB)
-        
+
         self.fileFormatLabel = QtGui.QLabel()
         self.fileFormat = QtGui.QComboBox()
-        
+
         items = [ self.__tr('Eclipse Property'),
                   self.__tr('GSLIB'),
                   self.__tr('Numpy array') ]
         self.fileFormat.addItems(items)
-        
+
         fileFormatLayout.addWidget(self.fileFormatLabel)
         fileFormatLayout.addWidget(self.fileFormat)
 
@@ -156,25 +156,27 @@ class LoadCube(QtGui.QDialog):
                     int(self.GridSizeX.text()) == 0 or \
                         int(self.GridSizeY.text()) == 0 or \
                             int(self.GridSizeZ.text()) == 0:
-            
+
             self.loadCubeButton.setDisabled(1)
             self.loadCubeButton.setToolTip(self.__tr("Enter grid sizes first"))
-#            return
-        
-        if int(self.GridSizeX.text()) > 0 and \
-                int(self.GridSizeY.text()) > 0 and \
-                    int(self.GridSizeZ.text()) > 0:
-            self.loadCubeButton.setEnabled(1)
-            self.loadCubeButton.setToolTip('')
-            
+
+        try:
+            if int(self.GridSizeX.text()) > 0 and \
+                    int(self.GridSizeY.text()) > 0 and \
+                        int(self.GridSizeZ.text()) > 0:
+                self.loadCubeButton.setEnabled(1)
+                self.loadCubeButton.setToolTip('')
+        except:
+            pass
+
         if self.fileFormat.currentIndex() == 2:
-            
+
             self.loadCubeButton.setEnabled(1)
             self.loadCubeButton.setToolTip('')
 
     def enableDisableGridSizes(self):
         type = self.fileFormat.currentIndex()
-        
+
         if type == 0 or type == 1:
             self.GridSizeX.setDisabled(0)
             self.GridSizeY.setDisabled(0)
@@ -183,101 +185,114 @@ class LoadCube(QtGui.QDialog):
             self.GridSizeX.setDisabled(1)
             self.GridSizeY.setDisabled(1)
             self.GridSizeZ.setDisabled(1)
-            
+
             self.loadCubeButton.setEnabled(1)
             self.loadCubeButton.setToolTip('')
 
     def loadEclipse(self, filepath):
-        
+
         self.loadingSignal.emit(True)
-        
-        item = self.getItem(filepath)
-        
-        
-        self.newThread = LoadCubeThread(filepath, item.undefValue(),
-                                        item.gridSize(), item.indicators())
+
+        self.item = self.getItem(filepath)
+
+
+        self.newThread = LoadCubeThread(filepath, self.item.undefValue(),
+                                        self.item.size(), self.item.indicators())
         self.newThread.cubeSignal.connect(self.catchProp)
         self.newThread.start()
 
 
     def loadGSLIB(self, filepath):
-        
-        gridSize = (int(self.GridSizeX.text()), 
-                        int(self.GridSizeY.text()), 
+
+        gridSize = (int(self.GridSizeX.text()),
+                        int(self.GridSizeY.text()),
                             int(self.GridSizeZ.text()))
-        
+
         cubesDict = LoadGslibFile(filepath, gridSize)
-        
+
         for i in xrange(len(cubesDict)):
             item = self.getItem()
             item.setName( cubesDict.keys()[i] )
-            
+
+            data = numpy.asfortranarray(cubesDict.values()[i], dtype='float32')
+            mask = numpy.ones(gridSize, dtype='uint8', order='F')
+
+            undefValue = item.undefValue()
+            mask[numpy.nonzero(data == undefValue)] = 0
+            mask[numpy.nonzero(data != undefValue)] = 1
+
+            indi = item.indicators()
+            if indi:
+                prop = IndProperty(data, mask, len(indi))
+            else:
+                prop = ContProperty(data, mask)
+
+            item.setProperty(prop)
+
             self.cubeSignal.emit(item)
 
     def loadNumpy(self, filepath):
-        # FIXME: move up
-        
         item = CubeItem()
-        
-        data = numpy.asfarray(numpy.load(filepath), dtype='float32')
+
+        data = numpy.asfortranarray(numpy.load(filepath), dtype='float32')
         gridSize = numpy.shape(data)
         gridObject = SugarboxGrid(*gridSize)
         undefValue = float(self.undefValue.text())
         name = self.numpy_name+str(self.iterator)
         self.iterator += 1
-        
+
         mask = numpy.ones(gridSize, dtype='uint8', order='F')
         mask[numpy.nonzero( data == undefValue)] = 0
         mask[numpy.nonzero( data != undefValue)] = 1
-        
+
         if self.IndValuesCheckbox.isChecked():
             indValues = range(int(self.IndValues.text()))
             prop = IndProperty( data, mask, len(indValues) )
         else:
             indValues = None
             prop = ContProperty( data, mask)
-        
-        item.append(prop, undefValue, indValues, 
+
+        item.append(prop, undefValue, indValues,
                     gridObject, name, gridSize)
         self.cubeSignal.emit(item)
-    
+
     def getItem(self, filepath = None):
-        
+
         gridSize = int(self.GridSizeX.text()), int(self.GridSizeY.text()), int(self.GridSizeZ.text())
         gridObject = SugarboxGrid(*gridSize)
         undefValue = float(self.undefValue.text())
-        
+
         if self.IndValuesCheckbox.isChecked():
             indValues = range(int(self.IndValues.text()))
         else:
             indValues = None
-            
+
         if filepath:
             cubeName = self.getCubeName(filepath)
         else:
             cubeName = None
-        
+
         item = CubeItem()
         item.append(None, undefValue, indValues, gridObject, cubeName, gridSize)
-        
+
         return item
-        
+
     def CubeLoad(self):
         filepath = QtGui.QFileDialog.getOpenFileName(self, 'Select file')[0]
 
         if filepath:
-            
+
             if self.fileFormat.currentIndex() == 0:
                 self.loadEclipse(filepath)
-            
+
             elif self.fileFormat.currentIndex() == 1:
                 self.loadGSLIB(filepath)
-            
+
             elif self.fileFormat.currentIndex() == 2:
                 self.loadNumpy(filepath)
-                
+
             self.hide()
-        
+
 
     def catchProp(self, prop):
         self.item.setProperty(prop)
@@ -329,7 +344,7 @@ class LoadCube(QtGui.QDialog):
 
         # Tab 1
         self.fileFormatLabel.setText(self.__tr('File format'))
-        
+
         self.GridSizeGB.setTitle(self.__tr("Grid Size"))
         self.GridSizeXLabel.setText(self.__tr("x"))
         self.GridSizeX.setText('0')

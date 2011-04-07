@@ -2,6 +2,7 @@
 
 from PySide import QtGui, QtCore
 from geo_bsd.geo import write_property
+from geo_bsd.routines import write_gslib_property
 from gui_widgets.cube_list import CubeItem
 import sys
 import icons_rc
@@ -99,6 +100,7 @@ class MainWindow(QtGui.QWidget):
             self.indCubes.appendItem(cube)
 
         self.resizeColumn()
+        self.animateBusy()
         self.progressBar.setValue(0)
 
     def catchLog(self, text):
@@ -403,28 +405,87 @@ class MainWindow(QtGui.QWidget):
     def saveCube(self):
         index = self.getIndex()
         row = self.getRow()
-
-        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ...')[0]
+        
+        eclipseFilter = "Eclipse (*.inc)"
+        gslibFilter = "GSLIB (*.gslib)"
+        numpyFilter = "Numpy (*.npy)"
+        
+        fileDialog = QtGui.QFileDialog()
+        fileDialog.setNameFilters((
+                                   eclipseFilter, 
+                                   gslibFilter,
+                                   numpyFilter
+                                 ))
+        fileDialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
+        fileDialog.setFileMode(QtGui.QFileDialog.AnyFile)
+        
+        if fileDialog.exec_():
+            filter = fileDialog.selectedNameFilter()
+            fname = fileDialog.selectedFiles()[0]
+        else:
+            return
+        #fname = QtGui.QFileDialog.getSaveFileName(self, 'Save as ...')[0]
         
         if fname and self.isIndexCont(index):
-            try:
-                write_property(self.contCubes.property(row), fname,
-                               self.contCubes.name(row), numpy.float32(self.contCubes.undefValue(row)),
-                               self.contCubes.indicators(row))
-                self.algorithmText.setText(self.__tr('Cube was saved'))
+            if filter == eclipseFilter:
+                fname += '.inc'
+                
+                try:
+                    write_property(self.contCubes.property(row), fname,
+                                   self.contCubes.name(row), numpy.float32(self.contCubes.undefValue(row)),
+                                   self.contCubes.indicators(row))
+                    self.algorithmText.setText(self.__tr('Cube was saved'))
+    
+                except:
+                    self.algorithmText.setText(self.__tr('Error saving cube'))
 
-            except:
-                self.algorithmText.setText(self.__tr('Error saving cube'))
+            if filter == gslibFilter:
+                fname += '.gslib'
+                try:
+                    write_gslib_property(self.contCubes.property(row), fname, 
+                                         self.contCubes.name(row), numpy.float32(self.contCubes.undefValue(row))
+                                        )
+                    self.algorithmText.setText(self.__tr('Cube was saved'))
+                except:
+                    self.algorithmText.setText(self.__tr('Error saving cube'))
+            
+            if filter == numpyFilter:
+                try:
+                    numpy.save(fname, self.contCubes.property(row))
+                    self.algorithmText.setText(self.__tr('Cube was saved'))
+                except:
+                    self.algorithmText.setText(self.__tr('Error saving cube'))
 
         elif fname and self.isIndexInd(index):
-            try:
-                write_property(self.indCubes.property(row), fname,
-                               self.indCubes.name(row), numpy.float32(self.indCubes.undefValue(row)),
-                               list(self.indCubes.indicators(row)))
-                self.algorithmText.setText(self.__tr('Cube was saved'))
-
-            except:
-                self.algorithmText.setText(self.__tr('Error saving cube'))
+            if filter == eclipseFilter:
+                fname += '.inc'
+                
+                try:
+                    write_property(self.indCubes.property(row), fname,
+                                   self.indCubes.name(row), numpy.float32(self.indCubes.undefValue(row)),
+                                   list(self.indCubes.indicators(row)))
+                    self.algorithmText.setText(self.__tr('Cube was saved'))
+    
+                except:
+                    self.algorithmText.setText(self.__tr('Error saving cube'))
+            if filter == gslibFilter:
+                fname += '.gslib'
+                try:
+                    write_gslib_property(self.indCubes.property(row), fname, 
+                                         self.indCubes.name(row), numpy.float32(self.indCubes.undefValue(row)),
+                                         list(self.indCubes.indicators(row))
+                                        )
+                    self.algorithmText.setText(self.__tr('Cube was saved'))
+                except:
+                    self.algorithmText.setText(self.__tr('Error saving cube'))
+            
+            if filter == numpyFilter:
+                try:
+                    numpy.save(fname, self.indCubes.property(row))
+                    self.algorithmText.setText(self.__tr('Cube was saved'))
+                except:
+                    self.algorithmText.setText(self.__tr('Error saving cube'))
+                    
 
     def showLog(self):
         self.logWindow = LW.LogWindow(self)

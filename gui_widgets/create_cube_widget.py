@@ -72,6 +72,8 @@ class CreateCube(QtGui.QDialog):
         self.constant.setDisabled(True)
         
         self.cubeName = QtGui.QLineEdit(self.IndValuesGB)
+        self.cubeName.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp('[A-z\d]{1,}'), self.cubeName))
+        
         self.cubeNameLabel = QtGui.QLabel(self.IndValuesGB)
 
         IndValuesSpacerL = QtGui.QSpacerItem(40, 20,

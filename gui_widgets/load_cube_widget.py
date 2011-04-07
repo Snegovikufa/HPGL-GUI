@@ -3,6 +3,7 @@ from geo_bsd import SugarboxGrid, ContProperty, IndProperty
 from geo_bsd.routines import LoadGslibFile
 from gui_widgets.cube_list import CubeItem
 from hpgl_run.load_cube_thread import LoadCubeThread
+from hpgl_run.load_gslib_thread import LoadGslibThread
 import numpy
 
 class LoadCube(QtGui.QDialog):
@@ -201,21 +202,32 @@ class LoadCube(QtGui.QDialog):
         self.newThread.cubeSignal.connect(self.catchProp)
         self.newThread.start()
 
+    def getGridSize(self):
+        return (int(self.GridSizeX.text()),
+                int(self.GridSizeY.text()),
+                int(self.GridSizeZ.text()))
 
     def loadGSLIB(self, filepath):
-
-        gridSize = (int(self.GridSizeX.text()),
-                        int(self.GridSizeY.text()),
-                            int(self.GridSizeZ.text()))
-
-        cubesDict = LoadGslibFile(filepath, gridSize)
-
+        self.loadingSignal.emit(True)
+        
+        try:
+            gridSize = self.getGridSize()
+            self.newThread = LoadGslibThread(filepath, gridSize)
+            self.newThread.cubeSignal.connect(self.catchGslib)
+            self.newThread.errSignal.connect(self.showErr)
+            self.newThread.start()
+        except:
+            self.loadingSignal.emit(False)
+            
+    def catchGslib(self, cubesDict):
+#        cubesDict = LoadGslibFile(filepath, gridSize)
+#
         for i in xrange(len(cubesDict)):
             item = self.getItem()
             item.setName( cubesDict.keys()[i] )
 
             data = numpy.asfortranarray(cubesDict.values()[i], dtype='float32')
-            mask = numpy.ones(gridSize, dtype='uint8', order='F')
+            mask = numpy.ones(self.getGridSize(), dtype='uint8', order='F')
 
             undefValue = item.undefValue()
             mask[numpy.nonzero(data == undefValue)] = 0
@@ -233,32 +245,35 @@ class LoadCube(QtGui.QDialog):
 
     def loadNumpy(self, filepath):
         item = CubeItem()
-
-        data = numpy.asfortranarray(numpy.load(filepath), dtype='float32')
-        gridSize = numpy.shape(data)
-        gridObject = SugarboxGrid(*gridSize)
-        undefValue = float(self.undefValue.text())
-        name = self.numpy_name+str(self.iterator)
-        self.iterator += 1
-
-        mask = numpy.ones(gridSize, dtype='uint8', order='F')
-        mask[numpy.nonzero( data == undefValue)] = 0
-        mask[numpy.nonzero( data != undefValue)] = 1
-
-        if self.IndValuesCheckbox.isChecked():
-            indValues = range(int(self.IndValues.text()))
-            prop = IndProperty( data, mask, len(indValues) )
-        else:
-            indValues = None
-            prop = ContProperty( data, mask)
-
-        item.append(prop, undefValue, indValues,
-                    gridObject, name, gridSize)
-        self.cubeSignal.emit(item)
+        self.loadingSignal.emit(True)
+        try:
+            data = numpy.asfortranarray(numpy.load(filepath), dtype='float32')
+            gridSize = numpy.shape(data)
+            gridObject = SugarboxGrid(*gridSize)
+            undefValue = float(self.undefValue.text())
+            name = self.numpy_name+str(self.iterator)
+            self.iterator += 1
+    
+            mask = numpy.ones(gridSize, dtype='uint8', order='F')
+            mask[numpy.nonzero( data == undefValue)] = 0
+            mask[numpy.nonzero( data != undefValue)] = 1
+    
+            if self.IndValuesCheckbox.isChecked():
+                indValues = range(int(self.IndValues.text()))
+                prop = IndProperty( data, mask, len(indValues) )
+            else:
+                indValues = None
+                prop = ContProperty( data, mask)
+    
+            item.append(prop, undefValue, indValues,
+                        gridObject, name, gridSize)
+            self.cubeSignal.emit(item)
+        except:
+            self.showErr('Something wrong while loading Numpy file. Try again!')
 
     def getItem(self, filepath = None):
 
-        gridSize = int(self.GridSizeX.text()), int(self.GridSizeY.text()), int(self.GridSizeZ.text())
+        gridSize = self.getGridSize()
         gridObject = SugarboxGrid(*gridSize)
         undefValue = float(self.undefValue.text())
 
@@ -301,6 +316,12 @@ class LoadCube(QtGui.QDialog):
         self.cubeSignal.emit(self.item)
 #        self.emit(QtCore.SIGNAL("Loading(PyQt_PyObject)"), False)
         self.loadingSignal.emit(False)
+    
+    def showErr(self, text):
+        self.loadingSignal.emit(False)
+        self.hide()
+        errorWindow = QtGui.QMessageBox()
+        errorWindow.warning(self.parentWidget(), self.__tr("Error"), self.__tr(text))
 
     def getCubeName(self, filepath):
         '''Return cubes' name that described inside of Eclipse property file'''
@@ -332,11 +353,6 @@ class LoadCube(QtGui.QDialog):
             else:
                 layout.addWidget(widgets[i], places[i][0], places[i][1],
                                  places[i][2], places[i][3])
-
-    def ShowError(self, string):
-        '''Error output widget'''
-        self.ErrorWindow = QtGui.QMessageBox()
-        self.ErrorWindow.warning(None, "Error", str(string))
 
     def RetranslateUI(self, MainWindow):
         '''Adds text to widgets'''

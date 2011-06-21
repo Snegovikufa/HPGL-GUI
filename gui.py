@@ -129,7 +129,10 @@ class MainWindow(QtGui.QWidget):
                                            QtGui.QMessageBox.No)
 
         if reply == QtGui.QMessageBox.Yes:
-            self.view.needQuit()
+            try:
+                self.view.needQuit()
+            except AttributeError:
+                pass
             event.accept()
         else:
             event.ignore()

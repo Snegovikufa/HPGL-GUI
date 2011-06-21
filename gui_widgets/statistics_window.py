@@ -279,7 +279,6 @@ class HistQWidget(QtGui.QWidget):
     def __init__(self, parent, barsNum, normed, valuesArray):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout(self)
-        layout.setMargin(0)
         layout.setSpacing(0)
         
         self.chacoHist = ChacoHistogram()
